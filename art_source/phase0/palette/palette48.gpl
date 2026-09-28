@@ -1,0 +1,52 @@
+GIMP Palette
+Name: Paladins of Pen and Paper 48
+Columns: 8
+#
+ 18  12  24	outline
+ 42  37  48	ink
+ 70  66  78	slate
+108 106 118	gray
+156 156 166	silver
+207 208 212	mist
+246 246 242	white
+ 44  24  16	bark
+ 76  44  26	wood_dk
+116  69  38	wood
+156 102  54	wood_lt
+196 140  78	tan
+226 188 130	sand
+244 220 174	parchment
+255 226 204	skin1
+240 192 156	skin2
+216 156 114	skin3
+178 122  78	skin4
+140  88  54	skin5
+ 94  56  34	skin6
+ 22  48  42	pine_dk
+ 31  74  52	pine
+ 47 106  52	leaf_dk
+ 76 148  52	leaf
+124 188  60	grass
+180 220  98	lime
+ 22  28  64	navy
+ 36  58 138	blue_dk
+ 52 102 204	blue
+ 76 156 232	sky
+134 200 248	sky_lt
+196 236 255	ice
+ 62  16  22	blood
+124  28  34	red_dk
+192  44  44	red
+236  90  68	coral
+200  96  28	orange
+240 154  44	amber
+248 208  64	gold
+252 240 160	cream
+ 42  24  68	plum_dk
+ 82  40 138	plum
+132  80 200	violet
+ 94 156 140	haze
+176  60 120	rose_dk
+236 120 170	rose
+252 184 212	pink
+ 60 224 220	cyan
