@@ -95,6 +95,17 @@ func item(id: String) -> Dictionary:
 	return items[id]
 
 
+func item_opt(id: String) -> Dictionary:
+	return items.get(id, {})
+
+
+func item_rows() -> Array:
+	var rows: Array = []
+	for item_id in items.keys():
+		rows.append(items[item_id])
+	return rows
+
+
 func place(id: String) -> Dictionary:
 	return places[id]
 

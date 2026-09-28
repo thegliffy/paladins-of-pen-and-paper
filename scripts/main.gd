@@ -95,7 +95,23 @@ func _on_hub_action(action: String) -> void:
 		"quest":
 			session.open_quest()
 		"party":
-			session.open_party()
+			_open_gear(session)
+
+
+func _open_gear(parent: Node) -> void:
+	var gear := GearScreen.new()
+	gear.setup("bag")
+	parent.add_child(gear)
+	gear.set_anchors_preset(Control.PRESET_FULL_RECT)
+	gear.offset_left = 0
+	gear.offset_top = 0
+	gear.offset_right = 0
+	gear.offset_bottom = 0
+	await gear.closed
+	if is_instance_valid(gear):
+		gear.queue_free()
+	if parent is SessionScreen:
+		(parent as SessionScreen).show_hub()
 
 
 func _open_map() -> void:
@@ -354,6 +370,28 @@ func _shots() -> void:
 	session.open_party()
 	await _capture("party")
 	session.hide_choices()
+	GameState.place_id = "candlewick"
+	GameState.give_item("kiln_sword", 1)
+	GameState.give_item("bread_charm", 1)
+	GameState.give_item("hedge_mail", 1)
+	var gear := GearScreen.new()
+	gear.setup("bag")
+	session.add_child(gear)
+	gear.set_anchors_preset(Control.PRESET_FULL_RECT)
+	gear.offset_left = 0
+	gear.offset_top = 0
+	gear.offset_right = 0
+	gear.offset_bottom = 0
+	await _capture("inventory")
+	gear.show_hero(0)
+	await _capture("equipment")
+	gear._mode = "shop"
+	gear._filter = "armor"
+	gear._selected = "travel_coat"
+	gear._from_shop = true
+	gear._rebuild()
+	await _capture("shop")
+	gear.free()
 	GameState.place_id = "briar_cross"
 	GameState.remember_lineup("briar_cross", {"cinder_mite": 2, "briar_hound": 1, "thicket_imp": 1})
 	var builder := BattleBuilder.new()

@@ -942,3 +942,231 @@ static func outgoing_damage_multiplier(hp: int, max_hp: int, effects: Array) -> 
 		return 1.0
 	var missing := clampf(1.0 - float(maxi(0, hp)) / float(max_hp), 0.0, 1.0)
 	return 1.0 + scale * missing
+
+
+const BAG_SLOTS := 40
+
+
+static func empty_gear() -> Dictionary:
+	return {"main": "", "off": "", "armor": "", "trinkets": ["", "", ""]}
+
+
+static func normalize_gear(raw: Dictionary) -> Dictionary:
+	var gear := empty_gear()
+	gear["main"] = str(raw.get("main", ""))
+	gear["off"] = str(raw.get("off", ""))
+	gear["armor"] = str(raw.get("armor", ""))
+	var trinkets: Array = raw.get("trinkets", [])
+	var cleaned: Array = []
+	for i in 3:
+		cleaned.append(str(trinkets[i]) if i < trinkets.size() else "")
+	gear["trinkets"] = cleaned
+	return gear
+
+
+static func kit_gear(class_def: Dictionary) -> Dictionary:
+	var kit: Dictionary = class_def.get("kit", {})
+	var gear := empty_gear()
+	gear["main"] = str(kit.get("main", ""))
+	gear["off"] = str(kit.get("off", ""))
+	gear["armor"] = str(kit.get("armor", ""))
+	return gear
+
+
+static func rarity_hex(rarity: String) -> String:
+	match rarity:
+		"rare":
+			return "3d7ad6"
+		"legendary":
+			return "e6b23c"
+		"unique":
+			return "b45cff"
+		_:
+			return "6b5344"
+
+
+static func stack_cap(item: Dictionary) -> int:
+	if int(item.get("stack", 0)) > 0:
+		return int(item["stack"])
+	if str(item.get("rarity", "")) == "unique":
+		return 1
+	if str(item.get("slot", "")) == "usable":
+		return 20
+	return 9
+
+
+static func sell_value(price: int) -> int:
+	return maxi(0, int(price) / 2)
+
+
+static func wear_block(item: Dictionary, class_def: Dictionary) -> String:
+	## "" when this class may wear the item.
+	var slot := str(item.get("slot", ""))
+	if slot == "" or slot == "usable":
+		return "slot"
+	var weight := str(item.get("weight", ""))
+	if weight != "":
+		var weights: Array = class_def.get("weights", [])
+		if not weights.has(weight):
+			return "weight"
+	var tag := str(item.get("tag", ""))
+	if tag != "":
+		var tags: Array = class_def.get("tags", [])
+		if not tags.has(tag):
+			return "tag"
+	return ""
+
+
+static func equip_plan(gear: Dictionary, item: Dictionary, slot: String, main_hands: int) -> Dictionary:
+	## Returns ok, reason, gear, and the item ids pulled out of slots.
+	var next := normalize_gear(gear)
+	var removed: Array = []
+	var kind := str(item.get("slot", ""))
+	var item_id := str(item.get("id", ""))
+	if item_id == "":
+		return {"ok": false, "reason": "item", "gear": next, "removed": removed}
+	if kind == "weapon":
+		if slot == "":
+			slot = "main"
+		var off_ok: bool = slot == "off" and int(item.get("hands", 1)) <= 1 and bool(item.get("offhand", false))
+		if slot != "main" and not off_ok:
+			return {"ok": false, "reason": "slot", "gear": next, "removed": removed}
+	elif kind == "off":
+		if slot == "":
+			slot = "off"
+		if slot != "off":
+			return {"ok": false, "reason": "slot", "gear": next, "removed": removed}
+	elif kind == "armor":
+		if slot == "":
+			slot = "armor"
+		if slot != "armor":
+			return {"ok": false, "reason": "slot", "gear": next, "removed": removed}
+	elif kind == "trinket":
+		if slot == "":
+			slot = _first_trinket_slot(next)
+		if not slot.begins_with("trinket:"):
+			return {"ok": false, "reason": "slot", "gear": next, "removed": removed}
+	else:
+		return {"ok": false, "reason": "slot", "gear": next, "removed": removed}
+	if slot == "main":
+		_lift_slot(next, "main", removed)
+		if int(item.get("hands", 1)) >= 2:
+			_lift_slot(next, "off", removed)
+		next["main"] = item_id
+	elif slot == "off":
+		if main_hands >= 2:
+			_lift_slot(next, "main", removed)
+		_lift_slot(next, "off", removed)
+		next["off"] = item_id
+	elif slot == "armor":
+		_lift_slot(next, "armor", removed)
+		next["armor"] = item_id
+	else:
+		var index := int(slot.trim_prefix("trinket:"))
+		if index < 0 or index > 2:
+			return {"ok": false, "reason": "slot", "gear": next, "removed": removed}
+		var trinkets: Array = next["trinkets"]
+		var previous := str(trinkets[index])
+		if previous != "":
+			removed.append(previous)
+		trinkets[index] = item_id
+		next["trinkets"] = trinkets
+	return {"ok": true, "reason": "", "gear": next, "removed": removed}
+
+
+static func _first_trinket_slot(gear: Dictionary) -> String:
+	var trinkets: Array = gear.get("trinkets", [])
+	for i in 3:
+		if i >= trinkets.size() or str(trinkets[i]) == "":
+			return "trinket:%d" % i
+	return "trinket:0"
+
+
+static func _lift_slot(gear: Dictionary, slot: String, removed: Array) -> void:
+	var previous := str(gear.get(slot, ""))
+	if previous != "":
+		removed.append(previous)
+	gear[slot] = ""
+
+
+static func gear_ids(gear: Dictionary) -> Array:
+	var normalized := normalize_gear(gear)
+	var ids: Array = []
+	for key in ["main", "off", "armor"]:
+		if str(normalized[key]) != "":
+			ids.append(str(normalized[key]))
+	for trinket_id in normalized["trinkets"]:
+		if str(trinket_id) != "":
+			ids.append(str(trinket_id))
+	return ids
+
+
+static func empty_bonus() -> Dictionary:
+	return {
+		"body": 0, "senses": 0, "mind": 0,
+		"attack": 0, "dr": 0, "max_hp": 0, "max_mp": 0,
+		"crit": 0.0, "threat": 0, "initiative": 0, "spell_bonus": 0.0,
+	}
+
+
+static func sum_bonus(items: Array) -> Dictionary:
+	var bonus := empty_bonus()
+	for item in items:
+		var stats: Dictionary = item.get("stats", {})
+		bonus["body"] += int(stats.get("body", 0))
+		bonus["senses"] += int(stats.get("senses", 0))
+		bonus["mind"] += int(stats.get("mind", 0))
+		bonus["attack"] += int(stats.get("attack", 0))
+		bonus["dr"] += int(stats.get("dr", 0))
+		bonus["max_hp"] += int(stats.get("max_hp", 0))
+		bonus["max_mp"] += int(stats.get("max_mp", 0))
+		bonus["crit"] += float(stats.get("crit", 0.0))
+		bonus["threat"] += int(stats.get("threat", 0))
+		bonus["initiative"] += int(stats.get("initiative", 0))
+		bonus["spell_bonus"] += float(stats.get("spell_bonus", 0.0))
+	return bonus
+
+
+static func loot_categories(level: int, boss: bool, r_equip: float, r_trinket: float, r_usable: float) -> Array:
+	## r is 0..1. Equipment at 0.05n (bosses 0.5), trinkets at 0.1n (bosses always), usables at 0.2n.
+	var found: Array = []
+	var equip_cut := 0.5 if boss else 0.05 * float(maxi(0, level))
+	if r_equip < equip_cut:
+		found.append("equipment")
+	if boss or r_trinket < 0.1 * float(maxi(0, level)):
+		found.append("trinket")
+	if r_usable < 0.2 * float(maxi(0, level)):
+		found.append("usable")
+	return found
+
+
+static func unique_drop(unique_id: String, boss: bool, roll: float) -> String:
+	if unique_id == "":
+		return ""
+	var cut := 0.4 if boss else 0.08
+	if roll < cut:
+		return unique_id
+	return ""
+
+
+static func pick_loot(catalog: Array, category: String, level: int, salt: int) -> String:
+	var pool: Array = []
+	for item in catalog:
+		if str(item.get("rarity", "")) == "unique":
+			continue
+		if int(item.get("level", 1)) > level:
+			continue
+		var slot := str(item.get("slot", ""))
+		var matches := false
+		if category == "equipment":
+			matches = slot == "weapon" or slot == "off" or slot == "armor"
+		elif category == "trinket":
+			matches = slot == "trinket"
+		elif category == "usable":
+			matches = slot == "usable"
+		if matches:
+			pool.append(str(item["id"]))
+	if pool.is_empty():
+		return ""
+	var index := posmod(salt, pool.size())
+	return str(pool[index])

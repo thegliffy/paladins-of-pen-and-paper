@@ -53,7 +53,13 @@ func _build() -> void:
 	var gold := Widgets.label("", Layout.font_small(), SpriteCatalog.INK)
 	gold.name = "Gold"
 	Layout.place(gold, top)
+	gold.size.x = top.size.x - 64
 	add_child(gold)
+	var bag := Widgets.make_button("Bag", Vector2(56, 22))
+	bag.name = "Bag"
+	bag.position = Vector2(top.position.x + top.size.x - 60, top.position.y + 3)
+	bag.pressed.connect(_open_bag)
+	add_child(bag)
 
 	var view_rect := Layout.rect("map", "view")
 	var clip := Control.new()
@@ -452,11 +458,27 @@ func _refresh_gold() -> void:
 	gold.text = "Gold %d   %s" % [GameState.gold, ContentDB.region.get("name", "")]
 
 
+func _open_bag() -> void:
+	if _traveling:
+		return
+	var gear := GearScreen.new()
+	gear.setup("bag")
+	add_child(gear)
+	gear.set_anchors_preset(Control.PRESET_FULL_RECT)
+	await gear.closed
+	if is_instance_valid(gear):
+		gear.queue_free()
+	_refresh_gold()
+
+
 func _set_travel_buttons(traveling: bool) -> void:
 	_travel_button.visible = not traveling
 	_back_button.visible = not traveling
 	_stop_button.visible = traveling
 	_info.visible = not traveling
+	var bag := get_node_or_null("Bag")
+	if bag:
+		bag.visible = not traveling
 
 
 func _place_pos(id: String) -> Vector2:

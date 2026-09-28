@@ -16,7 +16,8 @@
     "damage_frame": 2,
     "skills": [],
     "blurb": "A smiling puddle with a bite.",
-    "sprite": "slime"
+    "sprite": "slime",
+    "unique": "blob_crown"
   },
   {
     "id": "thicket_imp",
@@ -96,7 +97,8 @@
       "spark"
     ],
     "blurb": "A floating wick with opinions.",
-    "sprite": "mushroom"
+    "sprite": "mushroom",
+    "unique": "wisp_jar"
   },
   {
     "id": "marshlurker",
@@ -117,7 +119,8 @@
       "bog_breath"
     ],
     "blurb": "Shoulders like a wet log.",
-    "sprite": "skeleton"
+    "sprite": "skeleton",
+    "unique": "lurker_scale"
   },
   {
     "id": "cave_howler",
@@ -138,7 +141,8 @@
       "shriek"
     ],
     "blurb": "Hangs in the back and screams.",
-    "sprite": "bat"
+    "sprite": "bat",
+    "unique": "howl_fang"
   },
   {
     "id": "gravel_brute",
@@ -159,6 +163,7 @@
       "gravel_slam"
     ],
     "blurb": "A walking cairn with fists.",
-    "sprite": "golem"
+    "sprite": "golem",
+    "unique": "brute_heart"
   }
 ]

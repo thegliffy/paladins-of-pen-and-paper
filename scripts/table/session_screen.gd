@@ -76,7 +76,7 @@ func show_hub() -> void:
 		{"id": "fight", "label": "Fight", "icon": "icon_attack", "disabled": not fight},
 		{"id": "rest", "label": "Rest", "icon": "icon_cover"},
 		{"id": "quest", "label": "Quest", "icon": "icon_skill"},
-		{"id": "party", "label": "Party", "icon": "icon_item"},
+		{"id": "party", "label": "Gear", "icon": "icon_item"},
 	])
 	_close_modal()
 
@@ -1134,6 +1134,7 @@ func _sync_party() -> void:
 			doll.show_sheet(ArtPack.seat_idle(class_id), canvas)
 		else:
 			doll.set_look(member["look"], class_id, str(member["race"]), "back")
+		doll.show_gear(member)
 		seat.add_child(doll)
 		if _class_regens_mp(class_id):
 			var plus := FxStrip.new()

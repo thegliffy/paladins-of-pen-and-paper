@@ -26,6 +26,7 @@ func _init() -> void:
 	_test_targeting_and_lineup()
 	_test_table_space()
 	_test_place_rosters()
+	_test_gear()
 	print("Tests: %d passed, %d failed" % [passed, failed])
 	quit(1 if failed else 0)
 
@@ -882,3 +883,109 @@ func _test_place_rosters() -> void:
 	var keep: Array = by_place["gravel_keep"]["monsters"]
 	eq(str(keep[0]), "cave_howler", "the keep's first foe is a regular")
 	check(keep.has("gravel_brute"), "the keep lists its brute")
+
+
+func _test_gear() -> void:
+	var sword := {"id": "sword", "slot": "weapon", "tag": "sword", "hands": 1, "offhand": false}
+	var staff := {"id": "staff", "slot": "weapon", "tag": "staff", "hands": 2, "offhand": false}
+	var shield := {"id": "shield", "slot": "off", "tag": "shield", "hands": 1}
+	var plate := {"id": "plate", "slot": "armor", "weight": "heavy"}
+	var coat := {"id": "coat", "slot": "armor", "weight": "light"}
+	var ring := {"id": "ring", "slot": "trinket"}
+	var paladin := {"weights": ["light", "medium", "heavy"], "tags": ["sword", "shield"]}
+	var wizard := {"weights": ["light"], "tags": ["staff"]}
+	eq(Formulas.wear_block(plate, paladin), "", "a paladin may wear heavy plate")
+	eq(Formulas.wear_block(plate, wizard), "weight", "a wizard cannot wear heavy plate")
+	eq(Formulas.wear_block(sword, wizard), "tag", "a wizard cannot wield a sword")
+	eq(Formulas.wear_block(coat, wizard), "", "a wizard may wear a light coat")
+	var gear := Formulas.empty_gear()
+	gear["main"] = "sword"
+	gear["off"] = "shield"
+	var two: Dictionary = Formulas.equip_plan(gear, staff, "main", 1)
+	check(bool(two["ok"]), "a two-hander can be equipped")
+	eq(str(two["gear"]["main"]), "staff", "the two-hander takes the main hand")
+	eq(str(two["gear"]["off"]), "", "a two-hander clears the off hand")
+	check((two["removed"] as Array).has("sword") and (two["removed"] as Array).has("shield"), "both hands return to the bag")
+	var off: Dictionary = Formulas.equip_plan(two["gear"], shield, "off", 2)
+	check(bool(off["ok"]), "an off-hand item can replace a two-hander")
+	eq(str(off["gear"]["main"]), "", "the two-hander leaves when the off hand is filled")
+	eq(str(off["gear"]["off"]), "shield", "the shield takes the off hand")
+	var trinket: Dictionary = Formulas.equip_plan(Formulas.empty_gear(), ring, "", 1)
+	eq(str(trinket["gear"]["trinkets"][0]), "ring", "the first trinket slot fills first")
+	var second: Dictionary = Formulas.equip_plan(trinket["gear"], {"id": "bead", "slot": "trinket"}, "", 1)
+	eq(str(second["gear"]["trinkets"][1]), "bead", "the next trinket uses the next slot")
+	var third: Dictionary = Formulas.equip_plan(second["gear"], {"id": "bell", "slot": "trinket"}, "trinket:2", 1)
+	eq(str(third["gear"]["trinkets"][2]), "bell", "the third trinket has its own slot")
+	var bonus := Formulas.sum_bonus([
+		{"stats": {"attack": 4, "body": 1, "dr": 2, "crit": 3, "max_hp": 10}},
+		{"stats": {"attack": 1, "mind": 2, "threat": 4}},
+	])
+	eq(int(bonus["attack"]), 5, "weapon attack adds")
+	eq(int(bonus["body"]), 1, "body adds before derived stats")
+	eq(int(bonus["dr"]), 2, "armor adds")
+	eq(int(bonus["mind"]), 2, "mind adds")
+	eq(int(bonus["threat"]), 4, "threat adds")
+	near(float(bonus["crit"]), 3.0, 0.01, "crit adds")
+	var naked_hp := Formulas.max_hp(1, 8, 3)
+	var geared_hp := Formulas.max_hp(1, 8 + int(bonus["body"]), 3) + int(bonus["max_hp"])
+	var naked_atk := Formulas.player_attack(1, 8)
+	var geared_atk := Formulas.player_attack(1, 8 + int(bonus["body"])) + int(bonus["attack"])
+	check(geared_hp > naked_hp, "body and flat health raise max HP")
+	check(geared_atk > naked_atk, "body and flat attack raise the swing")
+	eq(Formulas.sell_value(24), 12, "sell price is half")
+	eq(Formulas.sell_value(25), 12, "half a gold rounds down")
+	var low: Array = Formulas.loot_categories(1, false, 0.04, 0.09, 0.19)
+	check(low.has("equipment") and low.has("trinket") and low.has("usable"), "level 1 rolls just under the cuts")
+	var miss: Array = Formulas.loot_categories(1, false, 0.05, 0.1, 0.2)
+	check(miss.is_empty(), "the drop cuts are strict")
+	var boss: Array = Formulas.loot_categories(1, true, 0.49, 0.99, 0.19)
+	check(boss.has("equipment") and boss.has("trinket") and boss.has("usable"), "a boss drops gear at 0.5 and always a trinket")
+	check(not Formulas.loot_categories(1, true, 0.5, 0.0, 0.2).has("equipment"), "a boss misses equipment at 0.5")
+	eq(Formulas.unique_drop("fang", false, 0.07), "fang", "a monster unique can drop")
+	eq(Formulas.unique_drop("fang", false, 0.08), "", "a unique misses on the cut")
+	eq(Formulas.unique_drop("fang", true, 0.39), "fang", "a boss unique is more likely")
+	eq(Formulas.unique_drop("", true, 0.0), "", "no unique id means no unique drop")
+	var catalog: Array = [
+		{"id": "sword", "slot": "weapon", "rarity": "common", "level": 1},
+		{"id": "ring", "slot": "trinket", "rarity": "common", "level": 1},
+		{"id": "potion", "slot": "usable", "rarity": "common", "level": 1},
+		{"id": "crown", "slot": "trinket", "rarity": "unique", "level": 1},
+		{"id": "plate", "slot": "armor", "rarity": "rare", "level": 3},
+	]
+	eq(Formulas.pick_loot(catalog, "equipment", 1, 0), "sword", "equipment ignores the high-level plate")
+	eq(Formulas.pick_loot(catalog, "equipment", 3, 1), "plate", "a higher roll can pick the second equipment")
+	eq(Formulas.pick_loot(catalog, "trinket", 1, 0), "ring", "uniques stay out of the trinket table")
+	eq(Formulas.pick_loot(catalog, "usable", 1, 0), "potion", "usables come from the usable table")
+	var rows: Array = JSON.parse_string(FileAccess.get_file_as_string("res://data/items.json"))
+	check(rows.size() >= 36 and rows.size() <= 42, "about 30 to 40 items")
+	var by_id := {}
+	var slots := {"weapon": 0, "off": 0, "armor": 0, "trinket": 0, "usable": 0}
+	var rarities := {"common": 0, "rare": 0, "legendary": 0, "unique": 0}
+	for row in rows:
+		by_id[str(row["id"])] = row
+		check(str(row.get("name", "")) != "", str(row["id"]) + " has a name")
+		check(str(row.get("icon", "")) != "", str(row["id"]) + " names an icon")
+		slots[str(row["slot"])] = int(slots.get(str(row["slot"]), 0)) + 1
+		rarities[str(row["rarity"])] = int(rarities.get(str(row["rarity"]), 0)) + 1
+	check(int(slots["weapon"]) >= 8, "weapons for the classes")
+	check(int(slots["armor"]) >= 4, "armor tiers")
+	check(int(slots["trinket"]) >= 4, "trinkets")
+	check(int(slots["usable"]) >= 4 and int(slots["usable"]) <= 6, "four to six consumables")
+	check(int(rarities["legendary"]) >= 1 and int(rarities["unique"]) >= 1, "legendary and unique tiers")
+	var classes: Array = JSON.parse_string(FileAccess.get_file_as_string("res://data/classes.json"))
+	for cls in classes:
+		var kit: Dictionary = cls.get("kit", {})
+		var main := str(kit.get("main", ""))
+		check(by_id.has(main), str(cls["id"]) + " starts with a real weapon")
+		eq(Formulas.wear_block(by_id[main], cls), "", str(cls["id"]) + " can wear the starting weapon")
+	var monsters: Array = JSON.parse_string(FileAccess.get_file_as_string("res://data/monsters.json"))
+	var uniques := 0
+	for monster in monsters:
+		var unique := str(monster.get("unique", ""))
+		if unique == "":
+			continue
+		uniques += 1
+		check(by_id.has(unique), str(monster["id"]) + " unique exists")
+		eq(str(by_id[unique]["rarity"]), "unique", str(unique) + " is unique")
+	check(uniques >= 4, "several monsters carry a unique")
+	check(FileAccess.file_exists("res://art_source/phase0/ui/items/sword.png"), "a weapon icon placeholder exists")

@@ -55,6 +55,7 @@ func make_member(persona_id: String, race_id: String, class_id: String, look: Di
 	}
 	for skill_id in ContentDB.class_def(class_id)["skills"]:
 		member["skill_ranks"][str(skill_id)] = 1
+	member["gear"] = Formulas.kit_gear(ContentDB.class_def(class_id))
 	var stats := combat_stats(member)
 	member["hp"] = stats["max_hp"]
 	member["mp"] = stats["max_mp"]
@@ -70,21 +71,27 @@ func combat_stats(member: Dictionary) -> Dictionary:
 		int(persona["body"]), int(persona["senses"]), int(persona["mind"]),
 		int(race["body"]), int(race["senses"]), int(race["mind"])
 	)
+	var bonus := Formulas.sum_bonus(_worn_items(member))
+	stats["body"] += int(bonus["body"])
+	stats["senses"] += int(bonus["senses"])
+	stats["mind"] += int(bonus["mind"])
 	var level := int(member["level"])
-	var max_hp := Formulas.max_hp(level, stats["body"], stats["mind"])
-	var max_mp := Formulas.max_energy(level, stats["body"], stats["mind"]) + int(race.get("energy", 0))
+	var max_hp := Formulas.max_hp(level, stats["body"], stats["mind"]) + int(bonus["max_hp"])
+	var max_mp := Formulas.max_energy(level, stats["body"], stats["mind"]) + int(race.get("energy", 0)) + int(bonus["max_mp"])
 	return {
 		"body": stats["body"],
 		"senses": stats["senses"],
 		"mind": stats["mind"],
 		"max_hp": max_hp,
 		"max_mp": max_mp,
-		"attack": Formulas.player_attack(level, stats["body"]),
-		"dr": int(race.get("dr", 0)) + int(persona.get("dr", 0)),
-		"initiative": int(persona.get("initiative", 0)),
-		"spell_bonus": float(persona.get("spell_bonus", 0.0)),
+		"attack": Formulas.player_attack(level, stats["body"]) + int(bonus["attack"]),
+		"dr": int(race.get("dr", 0)) + int(persona.get("dr", 0)) + int(bonus["dr"]),
+		"initiative": int(persona.get("initiative", 0)) + int(bonus["initiative"]),
+		"spell_bonus": float(persona.get("spell_bonus", 0.0)) + float(bonus["spell_bonus"]),
 		"travel_bonus": int(persona.get("travel_bonus", 0)),
 		"skill_points": int(race.get("skill_points", 0)),
+		"crit": float(bonus["crit"]),
+		"gear_threat": int(bonus["threat"]),
 	}
 
 
@@ -165,8 +172,116 @@ func travel_bonus() -> int:
 	return bonus
 
 
-func give_item(item_id: String, count: int = 1) -> void:
-	inventory[item_id] = int(inventory.get(item_id, 0)) + count
+func give_item(item_id: String, count: int = 1) -> bool:
+	if not ContentDB.items.has(item_id) or count <= 0:
+		return false
+	var bag := inventory.duplicate()
+	if not _bag_give(bag, item_id, count):
+		return false
+	inventory = bag
+	return true
+
+
+func equip_item(member_index: int, item_id: String, slot: String = "") -> String:
+	if member_index < 0 or member_index >= party.size():
+		return "hero"
+	if not ContentDB.items.has(item_id) or int(inventory.get(item_id, 0)) <= 0:
+		return "bag"
+	var member: Dictionary = party[member_index]
+	var item: Dictionary = ContentDB.item(item_id)
+	var block := Formulas.wear_block(item, ContentDB.class_def(str(member["class_id"])))
+	if block != "":
+		return block
+	var gear := Formulas.normalize_gear(member.get("gear", {}))
+	var main_hands := _hands_of(str(gear["main"]))
+	var plan: Dictionary = Formulas.equip_plan(gear, item, slot, main_hands)
+	if not bool(plan.get("ok", false)):
+		return str(plan.get("reason", "slot"))
+	var bag := inventory.duplicate()
+	if not _bag_take(bag, item_id):
+		return "bag"
+	for removed_id in plan.get("removed", []):
+		if not _bag_give(bag, str(removed_id)):
+			return "full"
+	var before := combat_stats(member)
+	inventory = bag
+	member["gear"] = plan["gear"]
+	_fit_pools(member, before, combat_stats(member))
+	save_game()
+	return ""
+
+
+func unequip_slot(member_index: int, slot: String) -> String:
+	if member_index < 0 or member_index >= party.size():
+		return "hero"
+	var member: Dictionary = party[member_index]
+	var gear := Formulas.normalize_gear(member.get("gear", {}))
+	var item_id := _slot_item(gear, slot)
+	if item_id == "":
+		return "empty"
+	var bag := inventory.duplicate()
+	if not _bag_give(bag, item_id):
+		return "full"
+	var before := combat_stats(member)
+	inventory = bag
+	_clear_slot(gear, slot)
+	member["gear"] = gear
+	_fit_pools(member, before, combat_stats(member))
+	save_game()
+	return ""
+
+
+func buy_item(item_id: String) -> String:
+	if not ContentDB.items.has(item_id):
+		return "item"
+	var item: Dictionary = ContentDB.item(item_id)
+	if not bool(item.get("shop", false)):
+		return "shop"
+	var price := int(item.get("price", 0))
+	if gold < price:
+		return "gold"
+	if not give_item(item_id, 1):
+		return "full"
+	gold -= price
+	save_game()
+	return ""
+
+
+func use_on(member_index: int, item_id: String) -> String:
+	if member_index < 0 or member_index >= party.size():
+		return "hero"
+	if not ContentDB.items.has(item_id):
+		return "item"
+	var item: Dictionary = ContentDB.item(item_id)
+	if str(item.get("slot", "")) != "usable":
+		return "slot"
+	var member: Dictionary = party[member_index]
+	if int(member.get("hp", 0)) <= 0:
+		return "down"
+	if not take_item(item_id):
+		return "bag"
+	var stats := combat_stats(member)
+	var kind := str(item.get("kind", ""))
+	var amount := int(item.get("amount", 0))
+	if kind == "heal_hp" or kind == "heal_both":
+		member["hp"] = mini(int(stats["max_hp"]), int(member["hp"]) + amount)
+	if kind == "heal_mp" or kind == "heal_both":
+		var mp_amount := amount if kind == "heal_mp" else int(item.get("mp_amount", 0))
+		member["mp"] = mini(int(stats["max_mp"]), int(member["mp"]) + mp_amount)
+	save_game()
+	return ""
+
+
+func sell_item(item_id: String) -> String:
+	if not ContentDB.items.has(item_id):
+		return "item"
+	if int(inventory.get(item_id, 0)) <= 0:
+		return "bag"
+	if not take_item(item_id):
+		return "bag"
+	gold += Formulas.sell_value(int(ContentDB.item(item_id).get("price", 0)))
+	save_game()
+	return ""
 
 
 func take_item(item_id: String) -> bool:
@@ -277,6 +392,7 @@ func _normalize_member(raw: Dictionary) -> Dictionary:
 		"mp": int(raw.get("mp", 1)),
 		"skill_ranks": {},
 		"skill_points_spent": int(raw.get("skill_points_spent", 0)),
+		"gear": Formulas.normalize_gear(raw.get("gear", {})),
 	}
 	var ranks: Dictionary = raw.get("skill_ranks", {})
 	for skill_id in ranks.keys():
@@ -295,6 +411,73 @@ func _capture() -> Dictionary:
 		"hops": hops,
 		"lineups": lineups.duplicate(true),
 	}
+
+
+func _worn_items(member: Dictionary) -> Array:
+	var worn: Array = []
+	for item_id in Formulas.gear_ids(Formulas.normalize_gear(member.get("gear", {}))):
+		if ContentDB.items.has(str(item_id)):
+			worn.append(ContentDB.item(str(item_id)))
+	return worn
+
+
+func _hands_of(item_id: String) -> int:
+	if item_id == "" or not ContentDB.items.has(item_id):
+		return 1
+	return int(ContentDB.item(item_id).get("hands", 1))
+
+
+func _slot_item(gear: Dictionary, slot: String) -> String:
+	if slot.begins_with("trinket:"):
+		var index := int(slot.trim_prefix("trinket:"))
+		var trinkets: Array = gear["trinkets"]
+		if index < 0 or index >= trinkets.size():
+			return ""
+		return str(trinkets[index])
+	return str(gear.get(slot, ""))
+
+
+func _clear_slot(gear: Dictionary, slot: String) -> void:
+	if slot.begins_with("trinket:"):
+		var index := int(slot.trim_prefix("trinket:"))
+		var trinkets: Array = gear["trinkets"]
+		if index >= 0 and index < trinkets.size():
+			trinkets[index] = ""
+		return
+	gear[slot] = ""
+
+
+func _bag_take(bag: Dictionary, item_id: String) -> bool:
+	var have := int(bag.get(item_id, 0))
+	if have <= 0:
+		return false
+	bag[item_id] = have - 1
+	if int(bag[item_id]) <= 0:
+		bag.erase(item_id)
+	return true
+
+
+func _bag_give(bag: Dictionary, item_id: String, count: int = 1) -> bool:
+	if not ContentDB.items.has(item_id) or count <= 0:
+		return false
+	var have := int(bag.get(item_id, 0))
+	if have <= 0 and bag.size() >= Formulas.BAG_SLOTS:
+		return false
+	var room := Formulas.stack_cap(ContentDB.item(item_id)) - have
+	var add := mini(count, room)
+	if add <= 0:
+		return false
+	bag[item_id] = have + add
+	return true
+
+
+func _fit_pools(member: Dictionary, before: Dictionary, after: Dictionary) -> void:
+	if int(member.get("hp", 0)) > 0:
+		var hp := int(member["hp"]) + maxi(0, int(after["max_hp"]) - int(before["max_hp"]))
+		member["hp"] = clampi(hp, 1, int(after["max_hp"]))
+	if int(after["max_mp"]) >= 0:
+		var mp := int(member.get("mp", 0)) + maxi(0, int(after["max_mp"]) - int(before["max_mp"]))
+		member["mp"] = clampi(mp, 0, int(after["max_mp"]))
 
 
 func _write(data: Dictionary) -> void:

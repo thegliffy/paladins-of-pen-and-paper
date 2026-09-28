@@ -101,6 +101,8 @@ func _build_units(monster_rows: Array) -> void:
 			"dr": stats["dr"],
 			"initiative": stats["initiative"],
 			"spell_bonus": stats["spell_bonus"],
+			"crit_bonus": float(stats.get("crit", 0.0)),
+			"gear_threat": int(stats.get("gear_threat", 0)),
 			"threat": 0,
 			"covering": false,
 			"conditions": [],
@@ -401,7 +403,7 @@ func _strike(attacker: Dictionary, defender: Dictionary, base: float, variance: 
 	raw += float(Formulas.on_hit_bonus(attacker_passives))
 	var crit := false
 	if can_crit:
-		var chance := Formulas.crit_chance(int(attacker["senses"]), Formulas.crit_flat_bonus(attacker_passives))
+		var chance := Formulas.crit_chance(int(attacker["senses"]), Formulas.crit_flat_bonus(attacker_passives) + float(attacker.get("crit_bonus", 0.0)))
 		crit = Formulas.is_crit(chance, rng.randi_range(1, 100))
 		if crit:
 			raw *= 2.0
@@ -714,16 +716,27 @@ func _cover(unit: Dictionary) -> void:
 	await _wait(0.35)
 
 
+func _keep_drop(item_id: String, found: PackedStringArray) -> void:
+	if item_id == "" or not ContentDB.items.has(item_id):
+		return
+	if GameState.give_item(item_id, 1):
+		found.append(str(ContentDB.item(item_id)["name"]))
+	else:
+		found.append("the bag is full")
+
+
 func _choose_item(user: Dictionary) -> bool:
 	var entries: Array = []
 	for item_id in GameState.inventory.keys():
 		var item: Dictionary = ContentDB.item(str(item_id))
+		if str(item.get("slot", "")) != "usable":
+			continue
 		entries.append({
 			"id": "item:%s" % item_id,
 			"text": "%s x%d" % [item["name"], int(GameState.inventory[item_id])],
 		})
 	if entries.is_empty():
-		view.set_caption("The pouch is empty.")
+		view.set_caption("No usables in the pouch.")
 		await _wait(0.4)
 		return false
 	view.show_choices(entries, "back")
@@ -739,10 +752,17 @@ func _choose_item(user: Dictionary) -> bool:
 		return false
 	var item := ContentDB.item(item_id)
 	var amount := int(item.get("amount", 0))
-	if str(item.get("kind", "")) == "heal_mp":
+	var kind := str(item.get("kind", ""))
+	if kind == "heal_mp":
 		target["mp"] = mini(int(target["max_mp"]), int(target["mp"]) + amount)
 		view.sync_unit(target)
 		view.react_hit(str(target["id"]), [{"text": "+%d" % amount, "color": SpriteCatalog.MP}], _ratio(target, "hp"), _ratio(target, "mp"))
+	elif kind == "heal_both":
+		_land_flat_heal(target, amount)
+		var mp_amount := int(item.get("mp_amount", 0))
+		target["mp"] = mini(int(target["max_mp"]), int(target["mp"]) + mp_amount)
+		view.sync_unit(target)
+		view.react_hit(str(target["id"]), [{"text": "+%d" % mp_amount, "color": SpriteCatalog.MP}], _ratio(target, "hp"), _ratio(target, "mp"))
 	else:
 		_land_flat_heal(target, amount)
 	Sfx.play("heal")
@@ -965,6 +985,16 @@ func _grant_victory() -> void:
 			leveled = true
 			notes.append("%s reaches level %d." % [member_name(member), int(member["level"])])
 	GameState.gold += gold_total
+	var found: PackedStringArray = []
+	for unit in units:
+		if str(unit.get("side", "")) != "monster":
+			continue
+		var monster: Dictionary = ContentDB.monster(str(unit.get("kind", "")))
+		var categories: Array = Formulas.loot_categories(int(unit["level"]), bool(unit.get("boss", false)), rng.randf(), rng.randf(), rng.randf())
+		for category in categories:
+			var drop_id := Formulas.pick_loot(ContentDB.item_rows(), str(category), int(unit["level"]), rng.randi())
+			_keep_drop(drop_id, found)
+		_keep_drop(Formulas.unique_drop(str(monster.get("unique", "")), bool(unit.get("boss", false)), rng.randf()), found)
 	var quest_note := ""
 	if GameState.place_id == "millpond" and not GameState.quests_done.has("reed_trouble"):
 		var quest: Dictionary = ContentDB.quest("reed_trouble")
@@ -978,8 +1008,11 @@ func _grant_victory() -> void:
 		Sfx.play("level")
 	else:
 		Sfx.play("victory")
-	var body := "XP %d, split across the table.\nGold +%d. Purse %d.%s\n%s" % [
-		xp, gold_total, GameState.gold, quest_note, "\n".join(notes)
+	var loot_note := ""
+	if not found.is_empty():
+		loot_note = "\nFound %s." % ", ".join(found)
+	var body := "XP %d, split across the table.\nGold +%d. Purse %d.%s%s\n%s" % [
+		xp, gold_total, GameState.gold, quest_note, loot_note, "\n".join(notes)
 	]
 	await view.show_end("Victory", body, 0.15, 0.95)
 
@@ -1151,7 +1184,7 @@ func _unit_threat(unit: Dictionary) -> int:
 	var cover := 1.0
 	if bool(unit.get("covering", false)):
 		cover = float(rules.get("cover_mult", 1.0))
-	var flat := int(unit.get("threat", 0)) + Formulas.threat_flat(effects)
+	var flat := int(unit.get("threat", 0)) + int(unit.get("gear_threat", 0)) + Formulas.threat_flat(effects)
 	return Formulas.member_threat(
 		int(cls.get("base_threat", 1)),
 		int(unit.get("body", 0)),

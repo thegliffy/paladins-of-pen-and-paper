@@ -18,6 +18,9 @@ static func run(host: Node) -> int:
 	await _tap_cancel(host, tree, failures)
 	await _tap_ally(host, tree, failures)
 	await _heal_on_cast(host, tree, failures)
+	await _gear(host, tree, failures)
+	await _map_bag(host, tree, failures)
+	await _combat_item(host, tree, failures)
 	await _builder(host, tree, failures)
 	await _builder_space(host, tree, failures)
 	await _row_fit(host, tree, failures)
@@ -381,6 +384,305 @@ static func _heal_on_cast(host: Node, tree: SceneTree, failures: Array[String]) 
 	elif _unit_hp(flow, "m0") != 800 or flow.turn_index != turn_before:
 		failures.append("heal_next")
 		push_error("Touch check: the heal waited for another actor")
+	session.queue_free()
+	await tree.process_frame
+
+
+static func _gear(host: Node, tree: SceneTree, failures: Array[String]) -> void:
+	GameState.new_campaign([
+		_hero("mason", "delver", "paladin"),
+		_hero("nim", "glenfolk", "wizard"),
+	])
+	GameState.place_id = "candlewick"
+	GameState.give_item("kiln_sword", 1)
+	GameState.give_item("sunbrand", 1)
+	var before := int(GameState.combat_stats(GameState.party[0])["attack"])
+	var session := SessionScreen.new()
+	await _mount(host, tree, session)
+	session.show_hub()
+	host.set("screen", session)
+	host.set("_busy", false)
+	var hub_action := Callable(host, "_on_hub_action")
+	if not session.action_pressed.is_connected(hub_action):
+		session.action_pressed.connect(hub_action)
+	var opener := _find_button(session, "Gear")
+	if opener == null:
+		failures.append("gear_hub")
+		push_error("Touch check: the hub has no Gear button")
+		session.queue_free()
+		return
+	await _tap(tree, opener.get_global_rect().get_center())
+	var opened: bool = await _until(tree, func() -> bool: return session.find_child("GearScreen", true, false) != null)
+	if not opened or session.find_child("Item_tonic", true, false) == null:
+		failures.append("gear_bag")
+		push_error("Touch check: Gear did not open the shared bag")
+		session.queue_free()
+		return
+	var sword := session.find_child("Item_kiln_sword", true, false) as Button
+	if sword == null:
+		failures.append("gear_row")
+		session.queue_free()
+		return
+	await _tap(tree, sword.get_global_rect().get_center())
+	var compared: bool = await _until(tree, func() -> bool:
+		var line := session.find_child("Compare", true, false) as Label
+		return line != null and line.text.contains(" to ")
+	)
+	if not compared:
+		failures.append("gear_compare")
+		push_error("Touch check: the item card did not compare stats")
+		session.queue_free()
+		return
+	var equip := _find_button(session, "Equip")
+	await _tap(tree, equip.get_global_rect().get_center())
+	var worn: bool = await _until(tree, func() -> bool:
+		var slot := session.find_child("Slot_main", true, false) as Button
+		return slot != null and slot.text == "Main: Kiln Sword"
+	)
+	var geared := BattleFlow.new()
+	geared._build_units([])
+	var attack := int(geared.units[0]["attack"])
+	if not worn or attack <= before or attack != int(GameState.combat_stats(GameState.party[0])["attack"]):
+		failures.append("gear_equip")
+		push_error("Touch check: Kiln Sword did not raise combat attack (%d to %d)" % [before, attack])
+		session.queue_free()
+		return
+	var bag_tab := session.find_child("Tab_bag", true, false) as Button
+	await _tap(tree, bag_tab.get_global_rect().get_center())
+	var brand_ready: bool = await _until(tree, func() -> bool: return session.find_child("Item_sunbrand", true, false) != null)
+	if not brand_ready:
+		failures.append("gear_bag_back")
+		session.queue_free()
+		return
+	var brand := session.find_child("Item_sunbrand", true, false) as Button
+	await _tap(tree, brand.get_global_rect().get_center())
+	var brand_card: bool = await _until(tree, func() -> bool:
+		var name_label := session.find_child("DetailName", true, false) as Label
+		return name_label != null and name_label.text == "Sunbrand"
+	)
+	if not brand_card:
+		failures.append("gear_brand")
+		session.queue_free()
+		return
+	equip = _find_button(session, "Equip")
+	await _tap(tree, equip.get_global_rect().get_center())
+	var two_hand: bool = await _until(tree, func() -> bool:
+		var main := session.find_child("Slot_main", true, false) as Button
+		var off := session.find_child("Slot_off", true, false) as Button
+		return main != null and off != null and main.text == "Main: Sunbrand" and off.text == "Off: Empty"
+	)
+	if not two_hand:
+		failures.append("gear_twohand")
+		push_error("Touch check: Sunbrand did not clear the off hand")
+		session.queue_free()
+		return
+	var hero_tab := session.find_child("Tab_hero", true, false) as Button
+	await _tap(tree, hero_tab.get_global_rect().get_center())
+	var wizard_ready: bool = await _until(tree, func() -> bool: return session.find_child("Hero_1", true, false) != null)
+	if not wizard_ready:
+		failures.append("gear_hero")
+		session.queue_free()
+		return
+	var wizard := session.find_child("Hero_1", true, false) as Button
+	await _tap(tree, wizard.get_global_rect().get_center())
+	await _until(tree, func() -> bool: return session.find_child("Tab_bag", true, false) != null)
+	bag_tab = session.find_child("Tab_bag", true, false) as Button
+	await _tap(tree, bag_tab.get_global_rect().get_center())
+	var sword_back: bool = await _until(tree, func() -> bool: return session.find_child("Item_kiln_sword", true, false) != null)
+	if not sword_back:
+		failures.append("gear_returned")
+		session.queue_free()
+		return
+	sword = session.find_child("Item_kiln_sword", true, false) as Button
+	await _tap(tree, sword.get_global_rect().get_center())
+	var blocked: bool = await _until(tree, func() -> bool:
+		var line := session.find_child("Compare", true, false) as Label
+		return line != null and line.text == "This class cannot wield it"
+	)
+	if not blocked:
+		failures.append("gear_restrict")
+		push_error("Touch check: the wizard was offered a sword")
+		session.queue_free()
+		return
+	equip = _find_button(session, "Equip")
+	await _tap(tree, equip.get_global_rect().get_center())
+	await tree.process_frame
+	await tree.process_frame
+	if str(GameState.party[1]["gear"]["main"]) != "reed_staff":
+		failures.append("gear_restrict_equip")
+		push_error("Touch check: the wizard equipped a sword")
+		session.queue_free()
+		return
+	var shop_tab := session.find_child("Tab_shop", true, false) as Button
+	if shop_tab == null:
+		failures.append("gear_shop_tab")
+		session.queue_free()
+		return
+	await _tap(tree, shop_tab.get_global_rect().get_center())
+	var armor_ready: bool = await _until(tree, func() -> bool: return session.find_child("Filter_armor", true, false) != null)
+	if not armor_ready:
+		failures.append("gear_shop")
+		session.queue_free()
+		return
+	var armor := session.find_child("Filter_armor", true, false) as Button
+	await _tap(tree, armor.get_global_rect().get_center())
+	var coat_ready: bool = await _until(tree, func() -> bool: return session.find_child("Item_travel_coat", true, false) != null)
+	if not coat_ready:
+		failures.append("gear_shop_row")
+		session.queue_free()
+		return
+	var coat := session.find_child("Item_travel_coat", true, false) as Button
+	await _tap(tree, coat.get_global_rect().get_center())
+	var buy_ready: bool = await _until(tree, func() -> bool: return _find_button(session, "Buy 25") != null)
+	if not buy_ready:
+		failures.append("gear_buy_button")
+		session.queue_free()
+		return
+	var gold_before := GameState.gold
+	var buy := _find_button(session, "Buy 25")
+	await _tap(tree, buy.get_global_rect().get_center())
+	var bought: bool = await _until(tree, func() -> bool:
+		return int(GameState.inventory.get("travel_coat", 0)) == 1 and _find_button(session, "Sell") != null
+	)
+	if not bought or GameState.gold != gold_before - 25:
+		failures.append("gear_buy")
+		push_error("Touch check: buying the coat left gold %d" % GameState.gold)
+		session.queue_free()
+		return
+	var sell := _find_button(session, "Sell")
+	if sell == null:
+		failures.append("gear_sell_button")
+		session.queue_free()
+		return
+	await _tap(tree, sell.get_global_rect().get_center())
+	var sold: bool = await _until(tree, func() -> bool: return int(GameState.inventory.get("travel_coat", 0)) == 0)
+	if not sold or GameState.gold != gold_before - 25 + 12:
+		failures.append("gear_sell")
+		push_error("Touch check: selling the coat left gold %d" % GameState.gold)
+		session.queue_free()
+		return
+	var saved_main := str(GameState.party[0]["gear"]["main"])
+	var saved_off := str(GameState.party[0]["gear"]["off"])
+	var saved_tonic := int(GameState.inventory.get("tonic", 0))
+	var saved_gold := GameState.gold
+	GameState.save_game()
+	GameState.party = []
+	GameState.inventory = {}
+	GameState.gold = 0
+	if not GameState.load_game():
+		failures.append("gear_load")
+		session.queue_free()
+		return
+	if str(GameState.party[0]["gear"]["main"]) != saved_main or str(GameState.party[0]["gear"]["off"]) != saved_off:
+		failures.append("gear_load_slots")
+		push_error("Touch check: load did not restore equipment")
+	elif int(GameState.inventory.get("tonic", 0)) != saved_tonic or GameState.gold != saved_gold:
+		failures.append("gear_load_bag")
+		push_error("Touch check: load did not restore the bag")
+	elif str(GameState.party[1]["gear"]["main"]) != "reed_staff":
+		failures.append("gear_load_kit")
+		push_error("Touch check: load dropped the wizard's staff")
+	var closer := session.find_child("CloseGear", true, false) as Button
+	if closer != null:
+		await _tap(tree, closer.get_global_rect().get_center())
+		await _until(tree, func() -> bool: return session.find_child("GearScreen", true, false) == null)
+	session.queue_free()
+	await tree.process_frame
+
+
+static func _map_bag(host: Node, tree: SceneTree, failures: Array[String]) -> void:
+	GameState.new_campaign([_hero("mason", "delver", "paladin")])
+	GameState.place_id = "candlewick"
+	var map := MapScreen.new()
+	await _mount(host, tree, map)
+	var bag := map.get_node_or_null("Bag") as Button
+	if bag == null or not bag.visible:
+		failures.append("map_bag")
+		push_error("Touch check: the map has no Bag button")
+		map.queue_free()
+		return
+	await _tap(tree, bag.get_global_rect().get_center())
+	var opened: bool = await _until(tree, func() -> bool: return map.find_child("GearScreen", true, false) != null)
+	if not opened:
+		failures.append("map_bag_open")
+		push_error("Touch check: Bag did not open the inventory")
+		map.queue_free()
+		return
+	var closer := map.find_child("CloseGear", true, false) as Button
+	await _tap(tree, closer.get_global_rect().get_center())
+	var gone: bool = await _until(tree, func() -> bool: return map.find_child("GearScreen", true, false) == null)
+	if not gone:
+		failures.append("map_bag_close")
+		push_error("Touch check: Close did not leave the bag")
+	map._set_travel_buttons(true)
+	if bag.visible:
+		failures.append("map_bag_travel")
+		push_error("Touch check: Bag stayed up while walking")
+	map.queue_free()
+	await tree.process_frame
+
+
+static func _combat_item(host: Node, tree: SceneTree, failures: Array[String]) -> void:
+	var pack: Dictionary = await _boot_turn(host, tree, [
+		_hero("mason", "delver", "paladin"),
+		_hero("nim", "glenfolk", "wizard"),
+	], ["puddleblob"])
+	var session := pack["session"] as SessionScreen
+	var flow := pack["flow"] as BattleFlow
+	GameState.give_item("kiln_sword", 1)
+	flow.units[1]["hp"] = 20
+	session.sync_unit(flow.units[1])
+	var seat := session._seats[1] as Control
+	var digits := seat.get_node("BarHost/HpDigits") as DigitReadout
+	var item := _find_action(session, "item")
+	if item == null or digits == null or digits.text != "20":
+		failures.append("item_button")
+		push_error("Touch check: the item slot or the chair was not ready")
+		session.queue_free()
+		return
+	await _tap(tree, item.get_global_rect().get_center())
+	var armed: bool = await _until(tree, func() -> bool: return session._inspect.visible)
+	if not armed:
+		failures.append("item_arm")
+		session.queue_free()
+		return
+	item = _find_action(session, "item")
+	await _tap(tree, item.get_global_rect().get_center())
+	var listed: bool = await _until(tree, func() -> bool: return _find_button(session, "Hearth Tonic x3") != null)
+	if not listed or _find_button(session, "Kiln Sword  x1") != null:
+		failures.append("item_list")
+		push_error("Touch check: the pouch did not list only usables")
+		session.queue_free()
+		return
+	var tonic := _find_button(session, "Hearth Tonic x3")
+	await _tap(tree, tonic.get_global_rect().get_center())
+	var aiming: bool = await _until(tree, func() -> bool: return session._targeting)
+	if not aiming:
+		failures.append("item_aim")
+		push_error("Touch check: the tonic did not ask for an ally")
+		session.queue_free()
+		return
+	var at := Vector2(seat.get_global_rect().get_center().x, seat.get_global_rect().end.y - 6.0)
+	await _tap(tree, at)
+	var healed: bool = await _until(tree, func() -> bool: return _unit_hp(flow, "p1") > 20)
+	var hp := _unit_hp(flow, "p1")
+	if not healed or digits.text != str(hp):
+		failures.append("item_heal")
+		push_error("Touch check: the tonic left HP %d chair %s" % [hp, digits.text])
+	elif int(GameState.inventory.get("tonic", 0)) != 2:
+		failures.append("item_spent")
+		push_error("Touch check: the tonic was not spent")
+	elif _unit_hp(flow, "m0") != 800:
+		failures.append("item_turn")
+		push_error("Touch check: the foe acted before the tonic finished")
+	else:
+		var foe := session._monsters["m0"] as Control
+		await _tap(tree, foe.get_global_rect().get_center())
+		for _i in 12:
+			await tree.process_frame
+		if _unit_hp(flow, "m0") != 800:
+			failures.append("item_turn")
+			push_error("Touch check: the tonic did not end the turn")
 	session.queue_free()
 	await tree.process_frame
 

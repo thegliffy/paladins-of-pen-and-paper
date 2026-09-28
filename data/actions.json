@@ -27,6 +27,6 @@
     "target": "One ally",
     "cooldown": "None",
     "tag": "Active",
-    "description": "Use a tonic or vial from the party pouch."
+    "description": "Open the pouch, then tap an ally. Using a tonic or vial ends the turn."
   }
 ]
