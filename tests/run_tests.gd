@@ -483,6 +483,10 @@ func _test_portrait_layout() -> void:
 	check(int(actions[1]) + int(actions[3]) >= 460, "action bar sits in the bottom thumb zone")
 	var chair: Dictionary = layout["portrait"]["combat"]["chair_bars"]
 	check(chair.has("hp") and chair.has("mp") and chair.has("hp_text"), "chair bars are data")
+	var hp_text: Array = chair["hp_text"]
+	var mp_bar: Array = chair["mp"]
+	check(int(hp_text[2]) >= 15 and int(hp_text[3]) >= 12, "hp number box fits three digits")
+	check(int(hp_text[1]) + int(hp_text[3]) <= int(mp_bar[1]), "hp number sits above the mp bar")
 	var skill_card: Array = layout["portrait"]["combat"]["skill_card"]
 	eq(skill_card.size(), 4, "skill card rect")
 	check(int(skill_card[2]) > 0 and int(skill_card[3]) > 0, "skill card has a size")

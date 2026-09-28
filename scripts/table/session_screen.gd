@@ -877,18 +877,20 @@ func _attach_chair_bars(seat: Control, member: Dictionary, stats: Dictionary, pi
 	hp["root"].position = Vector2(float(hp_rect[0]), float(hp_rect[1]))
 	host.add_child(hp["root"])
 	Widgets.set_bar(hp, float(member["hp"]) / float(maxi(1, int(stats["max_hp"]))))
-	var text_rect: Array = spec["hp_text"]
-	var hp_label := Widgets.label(str(int(member["hp"])), Layout.font_tiny(), SpriteCatalog.LIGHT)
-	hp_label.position = Vector2(float(text_rect[0]), float(text_rect[1]))
-	hp_label.size = Vector2(float(text_rect[2]), float(text_rect[3]))
-	hp_label.clip_text = true
-	hp_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	host.add_child(hp_label)
 	var mp_rect: Array = spec["mp"]
 	var mp := Widgets.bar(float(mp_rect[2]), float(mp_rect[3]), SpriteCatalog.MP, SpriteCatalog.MP_BACK)
 	mp["root"].position = Vector2(float(mp_rect[0]), float(mp_rect[1]))
 	host.add_child(mp["root"])
 	Widgets.set_bar(mp, float(member["mp"]) / float(maxi(1, int(stats["max_mp"]))))
+	var text_rect: Array = spec["hp_text"]
+	var hp_label := Widgets.label(str(int(member["hp"])), Layout.font_tiny(), SpriteCatalog.LIGHT)
+	var text_size := Vector2(float(text_rect[2]), float(text_rect[3]))
+	hp_label.position = Vector2(float(text_rect[0]), float(text_rect[1]))
+	hp_label.custom_minimum_size = text_size
+	hp_label.size = text_size
+	hp_label.clip_text = true
+	hp_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	host.add_child(hp_label)
 	var threat_rect: Array = spec["threat"]
 	var threat_label := Widgets.label("", Layout.font_tiny(), SpriteCatalog.GOLD)
 	threat_label.name = "Threat"
