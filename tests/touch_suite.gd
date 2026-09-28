@@ -17,6 +17,7 @@ static func run(host: Node) -> int:
 	await _tap_skill(host, tree, failures)
 	await _tap_cancel(host, tree, failures)
 	await _tap_ally(host, tree, failures)
+	await _heal_on_cast(host, tree, failures)
 	await _builder(host, tree, failures)
 	await _builder_space(host, tree, failures)
 	await _row_fit(host, tree, failures)
@@ -351,6 +352,35 @@ static func _tap_ally(host: Node, tree: SceneTree, failures: Array[String]) -> v
 	if _unit_hp(flow, "m0") != 800:
 		failures.append("ally_next")
 		push_error("Touch check: the next actor acted before the heal finished")
+	session.queue_free()
+	await tree.process_frame
+
+
+static func _heal_on_cast(host: Node, tree: SceneTree, failures: Array[String]) -> void:
+	var pack: Dictionary = await _boot_turn(host, tree, [
+		_hero("mason", "delver", "paladin"),
+		_hero("nim", "glenfolk", "wizard"),
+	], ["puddleblob"])
+	var session := pack["session"] as SessionScreen
+	var flow := pack["flow"] as BattleFlow
+	flow.units[1]["hp"] = 20
+	session.sync_unit(flow.units[1])
+	var seat := session._seats[1] as Control
+	var digits := seat.get_node("BarHost/HpDigits") as DigitReadout
+	var skill: Dictionary = ContentDB.skill("rallying_brand")
+	var turn_before := flow.turn_index
+	flow._land_heal(flow.units[0], skill, flow.units[1], 1)
+	var hp := _unit_hp(flow, "p1")
+	var popup := false
+	for child in session.get_children():
+		if child is DigitReadout and str((child as DigitReadout).text).begins_with("+"):
+			popup = true
+	if hp <= 20 or digits == null or digits.text != str(hp) or not popup:
+		failures.append("heal_now")
+		push_error("Touch check: heal left HP %d chair %s popup %s" % [hp, digits.text if digits else "missing", popup])
+	elif _unit_hp(flow, "m0") != 800 or flow.turn_index != turn_before:
+		failures.append("heal_next")
+		push_error("Touch check: the heal waited for another actor")
 	session.queue_free()
 	await tree.process_frame
 

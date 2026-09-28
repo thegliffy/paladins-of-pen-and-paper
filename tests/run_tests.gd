@@ -25,7 +25,6 @@ func _init() -> void:
 	_test_wrapped_labels()
 	_test_targeting_and_lineup()
 	_test_table_space()
-	_test_heal_lands_on_cast()
 	_test_place_rosters()
 	print("Tests: %d passed, %d failed" % [passed, failed])
 	quit(1 if failed else 0)
@@ -841,45 +840,6 @@ func _assert_row_fit(entries: Array, label: String, table_top: float, card_top: 
 			check(hit.size.x <= 0.05 or hit.size.y <= 0.05, label + " foes do not overlap")
 	if large_w > 0 and regular_w > 0:
 		check(large_w > regular_w, label + " large footprint is wider")
-
-
-class HealProbe extends RefCounted:
-	var noted := -1
-	var popup := ""
-	var popup_id := ""
-
-	func sync_unit(unit: Dictionary) -> void:
-		noted = int(unit["hp"])
-
-	func react_hit(id: String, texts: Array, _hp_ratio: float, _mp_ratio: float) -> void:
-		popup_id = id
-		if not texts.is_empty():
-			popup = str(texts[0]["text"])
-
-
-func _test_heal_lands_on_cast() -> void:
-	var probe := HealProbe.new()
-	var flow := BattleFlow.new()
-	flow.view = probe
-	flow.turn_index = 1
-	var caster := {"id": "p0", "mind": 4, "passives": [], "hp": 30, "max_hp": 40, "mp": 10, "max_mp": 20}
-	var target := {"id": "p1", "hp": 20, "max_hp": 40, "mp": 5, "max_mp": 20}
-	var monster := {"id": "m0", "hp": 800, "max_hp": 800}
-	flow.units = [caster, target, monster]
-	var skill := {
-		"id": "rallying_brand",
-		"kind": "heal",
-		"heal": 14,
-		"heal_per_mind": 0,
-		"heal_per_rank": 0,
-	}
-	flow._land_heal(caster, skill, target, 1)
-	eq(int(target["hp"]), 34, "a direct heal changes HP the moment it resolves")
-	eq(probe.noted, 34, "the chair is refreshed before the call returns")
-	eq(probe.popup, "+14", "a heal number pops up")
-	eq(probe.popup_id, "p1", "the popup is on the healed ally")
-	eq(int(monster["hp"]), 800, "the next actor has not acted")
-	eq(flow.turn_index, 1, "resolving a heal does not advance the turn")
 
 
 func _test_place_rosters() -> void:

@@ -341,6 +341,8 @@ func _shots() -> void:
 	session.show_member_bar(0, preview_cd, "skill:oathstrike", ranks, 130)
 	session.present_inspect(0, "skill:oathstrike", preview_cd, ranks, 130)
 	await _capture("skills")
+	session.present_inspect(0, "skill:hearthmend", preview_cd, ranks, 130)
+	await _capture("heal")
 	var aim: Dictionary = session._inspect_card("skill:oathstrike", ranks, 80, 130, preview_cd, {})
 	aim["hint"] = "Pick a target"
 	session.set_target_mode(["m0", "m1", "m2"], "")
