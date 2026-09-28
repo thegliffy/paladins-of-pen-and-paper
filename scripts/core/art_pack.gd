@@ -19,6 +19,10 @@ static var _baked: Dictionary = {}
 static var _outlined: Dictionary = {}
 
 
+static func clear_bake_cache() -> void:
+	_baked.clear()
+
+
 static func manifest() -> Dictionary:
 	if _manifest.is_empty():
 		var parsed: Variant = Pack.json(ROOT + "manifest.json")
@@ -221,13 +225,120 @@ static func doll_canvas(face: String) -> Vector2:
 	return Vector2(float(raw[0]), float(raw[1]))
 
 
-static func compose_doll(face: String, look: Dictionary, class_id: String) -> Texture2D:
+static func seat_gear_order() -> PackedStringArray:
+	return PackedStringArray(["body", "outfit", "class", "armor", "hair", "hat", "off", "main", "chair"])
+
+
+static func recipe_gear_order() -> PackedStringArray:
+	var steps: Array = manifest()["paperdoll"]["seat_recipe"]["steps_with_gear"]
+	var order := PackedStringArray()
+	for step in steps:
+		var text := str(step)
+		if text.begins_with("ACTIVE"):
+			continue
+		var token := ""
+		if text.find("chair_back") >= 0:
+			token = "chair"
+		elif text.find("OFF HAND") >= 0:
+			token = "off"
+		elif text.find("MAIN HAND") >= 0:
+			token = "main"
+		elif text.find("ARMOR") >= 0:
+			token = "armor"
+		elif text.find("hair_back") >= 0:
+			token = "hair"
+		elif text.find("_hat") >= 0:
+			token = "hat"
+		elif text.find("outfit") >= 0:
+			token = "outfit"
+		elif text.find("body_back") >= 0:
+			token = "body"
+		elif text.find("class_back") >= 0:
+			token = "class"
+		if token != "":
+			order.append(token)
+	return order
+
+
+static func class_noweapon_rel(class_id: String) -> String:
+	return "paperdoll/back/class_back_%s_noweapon.png" % class_id
+
+
+static func pick_class_back(class_id: String, main_weapon: bool, noweapon_present: bool) -> String:
+	if main_weapon and noweapon_present:
+		return class_noweapon_rel(class_id)
+	return "paperdoll/back/class_back_%s.png" % class_id
+
+
+static func class_back_rel(class_id: String, main_weapon: bool) -> String:
+	var bare := class_noweapon_rel(class_id)
+	return pick_class_back(class_id, main_weapon, has(bare))
+
+
+static func offhand_flips(item: Dictionary) -> bool:
+	## One-handed weapons are painted for the right hand. Shields and orbs already face the left arm.
+	var tag := str(item.get("tag", ""))
+	if tag == "shield" or tag == "orb":
+		return false
+	if str(item.get("slot", "")) != "weapon":
+		return false
+	return int(item.get("hands", 1)) < 2
+
+
+static func seat_blit_plan(class_id: String, gear: Dictionary) -> Array:
+	var steps: Array = []
+	var two := bool(gear.get("two_hand", false))
+	var main_weapon := bool(gear.get("main_weapon", false))
+	steps.append({"id": "body", "kind": "body"})
+	if class_id != "barbarian":
+		steps.append({"id": "outfit", "kind": "outfit"})
+	steps.append({"id": "class", "kind": "blit", "path": class_back_rel(class_id, main_weapon)})
+	var armor := str(gear.get("armor", ""))
+	if armor != "":
+		steps.append({"id": "armor", "kind": "gear", "path": armor, "flip": false})
+	steps.append({"id": "hair", "kind": "hair"})
+	steps.append({"id": "hat", "kind": "hat"})
+	if not two:
+		var off := str(gear.get("off", ""))
+		if off != "":
+			steps.append({"id": "off", "kind": "gear", "path": off, "flip": bool(gear.get("off_flip", false))})
+	var main := str(gear.get("main", ""))
+	if main != "":
+		steps.append({"id": "main", "kind": "gear", "path": main, "flip": false})
+	steps.append({"id": "chair", "kind": "blit", "path": "paperdoll/back/chair_back.png"})
+	return steps
+
+
+static func gear_image(rel: String, flip_h: bool) -> Image:
+	if rel == "" or not has(rel):
+		return Image.create(1, 1, false, Image.FORMAT_RGBA8)
+	var source := texture(rel)
+	if source == null or source.get_image() == null:
+		return Image.create(1, 1, false, Image.FORMAT_RGBA8)
+	var image := source.get_image()
+	if flip_h:
+		image = image.duplicate()
+		image.flip_x()
+	return image
+
+
+static func compose_doll(face: String, look: Dictionary, class_id: String, gear: Dictionary = {}) -> Texture2D:
 	var skin := posmod(int(look.get("skin", 0)), 6) + 1
 	var head := posmod(int(look.get("head", 0)), 6) + 1
 	var hair := posmod(int(look.get("hair", 0)), 8) + 1
 	var outfit: String = OUTFIT_RAMPS[posmod(int(look.get("outfit_color", 0)), OUTFIT_RAMPS.size())]
 	var hair_name: String = HAIR_RAMPS[posmod(int(look.get("hair_color", 0)), HAIR_RAMPS.size())]
-	var key := "%s|%s|%d|%d|%d|%s|%s" % [face, class_id, skin, head, hair, outfit, hair_name]
+	var gear_key := ""
+	if face != "front" and not gear.is_empty():
+		gear_key = "|%s|%s|%s|%s|%s|%s" % [
+			str(gear.get("armor", "")),
+			str(gear.get("off", "")),
+			str(bool(gear.get("off_flip", false))),
+			str(gear.get("main", "")),
+			str(bool(gear.get("main_weapon", false))),
+			str(bool(gear.get("two_hand", false))),
+		]
+	var key := "%s|%s|%d|%d|%d|%s|%s%s" % [face, class_id, skin, head, hair, outfit, hair_name, gear_key]
 	if _baked.has(key):
 		return _baked[key]
 	var canvas := doll_canvas(face)
@@ -246,17 +357,24 @@ static func compose_doll(face: String, look: Dictionary, class_id: String) -> Te
 		_blit_image(image, hair_img)
 		_blit(image, hat)
 	else:
-		_blit(image, "paperdoll/back/body_back_skin_%d.png" % skin)
-		if class_id != "barbarian":
-			_blit_image(image, _tinted("paperdoll/back/outfit_back.png", OUTFIT_KEYS, _ramp("outfit_ramps", outfit)))
-		_blit(image, "paperdoll/back/class_back_%s.png" % class_id)
 		var hat_back := "paperdoll/back/class_back_%s_hat.png" % class_id
-		var hair_img := _tinted("paperdoll/back/hair_back_%d.png" % hair, HAIR_KEYS, _ramp("hair_ramps", hair_name))
-		if has(hat_back):
-			_clip_under_hat(hair_img, hat_back)
-		_blit_image(image, hair_img)
-		_blit(image, hat_back)
-		_blit(image, "paperdoll/back/chair_back.png")
+		for step in seat_blit_plan(class_id, gear):
+			match str(step["kind"]):
+				"body":
+					_blit(image, "paperdoll/back/body_back_skin_%d.png" % skin)
+				"outfit":
+					_blit_image(image, _tinted("paperdoll/back/outfit_back.png", OUTFIT_KEYS, _ramp("outfit_ramps", outfit)))
+				"blit":
+					_blit(image, str(step["path"]))
+				"gear":
+					_blit_gear(image, str(step["path"]), bool(step.get("flip", false)))
+				"hair":
+					var hair_img := _tinted("paperdoll/back/hair_back_%d.png" % hair, HAIR_KEYS, _ramp("hair_ramps", hair_name))
+					if has(hat_back):
+						_clip_under_hat(hair_img, hat_back)
+					_blit_image(image, hair_img)
+				"hat":
+					_blit(image, hat_back)
 	var baked := ImageTexture.create_from_image(image)
 	_baked[key] = baked
 	return baked
@@ -330,6 +448,13 @@ static func _blit(dest: Image, rel: String) -> void:
 	if source == null or source.get_image() == null:
 		return
 	_blit_image(dest, source.get_image())
+
+
+static func _blit_gear(dest: Image, rel: String, flip_h: bool) -> void:
+	var image := gear_image(rel, flip_h)
+	if image.get_width() <= 1 and image.get_height() <= 1:
+		return
+	_blit_image(dest, image)
 
 
 static func _blit_image(dest: Image, source: Image) -> void:

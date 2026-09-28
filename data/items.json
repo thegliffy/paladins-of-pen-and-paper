@@ -10,7 +10,7 @@
     "level": 1,
     "price": 40,
     "shop": true,
-    "icon": "ui/items/sword.png",
+    "icon": "ui/items/oath_blade.png",
     "doll": "paperdoll/gear/oath_blade.png",
     "stats": {
       "attack": 3
@@ -33,7 +33,7 @@
     "level": 1,
     "price": 35,
     "shop": true,
-    "icon": "ui/items/mace.png",
+    "icon": "ui/items/chapel_mace.png",
     "doll": "paperdoll/gear/chapel_mace.png",
     "stats": {
       "attack": 2,
@@ -57,7 +57,7 @@
     "level": 1,
     "price": 40,
     "shop": true,
-    "icon": "ui/items/staff.png",
+    "icon": "ui/items/reed_staff.png",
     "doll": "paperdoll/gear/reed_staff.png",
     "stats": {
       "attack": 2,
@@ -82,7 +82,7 @@
     "level": 1,
     "price": 40,
     "shop": true,
-    "icon": "ui/items/staff.png",
+    "icon": "ui/items/sap_crook.png",
     "doll": "paperdoll/gear/sap_crook.png",
     "stats": {
       "attack": 2,
@@ -106,7 +106,7 @@
     "level": 1,
     "price": 45,
     "shop": true,
-    "icon": "ui/items/bow.png",
+    "icon": "ui/items/thorn_bow.png",
     "doll": "paperdoll/gear/thorn_bow.png",
     "stats": {
       "attack": 3,
@@ -130,7 +130,7 @@
     "level": 1,
     "price": 30,
     "shop": true,
-    "icon": "ui/items/dagger.png",
+    "icon": "ui/items/pocket_knife.png",
     "doll": "paperdoll/gear/pocket_knife.png",
     "stats": {
       "attack": 2,
@@ -154,7 +154,7 @@
     "level": 1,
     "price": 35,
     "shop": true,
-    "icon": "ui/items/lute.png",
+    "icon": "ui/items/road_lute.png",
     "doll": "paperdoll/gear/road_lute.png",
     "stats": {
       "attack": 1,
@@ -178,7 +178,7 @@
     "level": 1,
     "price": 45,
     "shop": true,
-    "icon": "ui/items/axe.png",
+    "icon": "ui/items/gravel_axe.png",
     "doll": "paperdoll/gear/gravel_axe.png",
     "stats": {
       "attack": 5
@@ -201,7 +201,7 @@
     "level": 2,
     "price": 120,
     "shop": true,
-    "icon": "ui/items/sword.png",
+    "icon": "ui/items/kiln_sword.png",
     "doll": "paperdoll/gear/kiln_sword.png",
     "stats": {
       "attack": 6,
@@ -225,7 +225,7 @@
     "level": 2,
     "price": 140,
     "shop": true,
-    "icon": "ui/items/staff.png",
+    "icon": "ui/items/lamp_staff.png",
     "doll": "paperdoll/gear/lamp_staff.png",
     "stats": {
       "attack": 4,
@@ -250,7 +250,7 @@
     "level": 2,
     "price": 130,
     "shop": true,
-    "icon": "ui/items/bow.png",
+    "icon": "ui/items/marsh_bow.png",
     "doll": "paperdoll/gear/marsh_bow.png",
     "stats": {
       "attack": 6,
@@ -275,7 +275,7 @@
     "level": 2,
     "price": 125,
     "shop": true,
-    "icon": "ui/items/dagger.png",
+    "icon": "ui/items/night_shard.png",
     "doll": "paperdoll/gear/night_shard.png",
     "stats": {
       "attack": 5,
@@ -299,7 +299,7 @@
     "level": 4,
     "price": 400,
     "shop": true,
-    "icon": "ui/items/sword.png",
+    "icon": "ui/items/sunbrand.png",
     "doll": "paperdoll/gear/sunbrand.png",
     "stats": {
       "attack": 12,
@@ -324,7 +324,7 @@
     "level": 1,
     "price": 30,
     "shop": true,
-    "icon": "ui/items/shield.png",
+    "icon": "ui/items/kettle_shield.png",
     "doll": "paperdoll/gear/kettle_shield.png",
     "stats": {
       "dr": 2,
@@ -348,7 +348,7 @@
     "level": 1,
     "price": 30,
     "shop": true,
-    "icon": "ui/items/shield.png",
+    "icon": "ui/items/hymn_board.png",
     "doll": "paperdoll/gear/hymn_board.png",
     "stats": {
       "dr": 1,
@@ -372,7 +372,7 @@
     "level": 1,
     "price": 35,
     "shop": true,
-    "icon": "ui/items/orb.png",
+    "icon": "ui/items/glass_orb.png",
     "doll": "paperdoll/gear/glass_orb.png",
     "stats": {
       "mind": 1,
@@ -396,7 +396,7 @@
     "level": 2,
     "price": 110,
     "shop": true,
-    "icon": "ui/items/shield.png",
+    "icon": "ui/items/oak_buckler.png",
     "doll": "paperdoll/gear/oak_buckler.png",
     "stats": {
       "dr": 4,
@@ -420,7 +420,7 @@
     "level": 3,
     "price": 160,
     "shop": true,
-    "icon": "ui/items/orb.png",
+    "icon": "ui/items/void_lens.png",
     "doll": "paperdoll/gear/void_lens.png",
     "stats": {
       "mind": 2,
@@ -443,7 +443,7 @@
     "level": 1,
     "price": 25,
     "shop": true,
-    "icon": "ui/items/armor_light.png",
+    "icon": "ui/items/travel_coat.png",
     "doll": "paperdoll/gear/travel_coat.png",
     "stats": {
       "dr": 1
@@ -466,7 +466,7 @@
     "level": 1,
     "price": 30,
     "shop": true,
-    "icon": "ui/items/armor_light.png",
+    "icon": "ui/items/reed_wrap.png",
     "doll": "paperdoll/gear/reed_wrap.png",
     "stats": {
       "dr": 1,
@@ -490,7 +490,7 @@
     "level": 1,
     "price": 50,
     "shop": true,
-    "icon": "ui/items/armor_medium.png",
+    "icon": "ui/items/hedge_mail.png",
     "doll": "paperdoll/gear/hedge_mail.png",
     "stats": {
       "dr": 3
@@ -513,7 +513,7 @@
     "level": 2,
     "price": 90,
     "shop": true,
-    "icon": "ui/items/armor_heavy.png",
+    "icon": "ui/items/kiln_plate.png",
     "doll": "paperdoll/gear/kiln_plate.png",
     "stats": {
       "dr": 4,
@@ -537,7 +537,7 @@
     "level": 2,
     "price": 120,
     "shop": true,
-    "icon": "ui/items/armor_light.png",
+    "icon": "ui/items/moon_robe.png",
     "doll": "paperdoll/gear/moon_robe.png",
     "stats": {
       "dr": 2,
@@ -562,7 +562,7 @@
     "level": 3,
     "price": 200,
     "shop": true,
-    "icon": "ui/items/armor_heavy.png",
+    "icon": "ui/items/keep_plate.png",
     "doll": "paperdoll/gear/keep_plate.png",
     "stats": {
       "dr": 6,
@@ -586,7 +586,7 @@
     "level": 1,
     "price": 20,
     "shop": true,
-    "icon": "ui/items/trinket.png",
+    "icon": "ui/items/bread_charm.png",
     "stats": {
       "max_hp": 10
     },
@@ -609,7 +609,7 @@
     "level": 1,
     "price": 20,
     "shop": true,
-    "icon": "ui/items/trinket.png",
+    "icon": "ui/items/wick_ring.png",
     "stats": {
       "max_mp": 10
     },
@@ -632,7 +632,7 @@
     "level": 2,
     "price": 80,
     "shop": true,
-    "icon": "ui/items/trinket.png",
+    "icon": "ui/items/pond_bead.png",
     "stats": {
       "senses": 1,
       "crit": 3
@@ -656,7 +656,7 @@
     "level": 2,
     "price": 90,
     "shop": true,
-    "icon": "ui/items/trinket.png",
+    "icon": "ui/items/threat_bell.png",
     "stats": {
       "threat": 4
     },
@@ -679,7 +679,7 @@
     "level": 4,
     "price": 280,
     "shop": true,
-    "icon": "ui/items/trinket.png",
+    "icon": "ui/items/ley_locket.png",
     "stats": {
       "mind": 1,
       "spell_bonus": 0.1,
@@ -704,7 +704,7 @@
     "level": 1,
     "price": 60,
     "shop": false,
-    "icon": "ui/items/trinket.png",
+    "icon": "ui/items/blob_crown.png",
     "stats": {
       "max_hp": 18,
       "senses": 1
@@ -731,7 +731,7 @@
     "level": 3,
     "price": 150,
     "shop": false,
-    "icon": "ui/items/dagger.png",
+    "icon": "ui/items/howl_fang.png",
     "doll": "paperdoll/gear/howl_fang.png",
     "stats": {
       "attack": 7,
@@ -752,7 +752,7 @@
     "level": 4,
     "price": 180,
     "shop": false,
-    "icon": "ui/items/trinket.png",
+    "icon": "ui/items/brute_heart.png",
     "stats": {
       "body": 2,
       "threat": 5
@@ -777,7 +777,7 @@
     "level": 2,
     "price": 140,
     "shop": false,
-    "icon": "ui/items/armor_medium.png",
+    "icon": "ui/items/lurker_scale.png",
     "doll": "paperdoll/gear/lurker_scale.png",
     "stats": {
       "dr": 5,
@@ -800,7 +800,7 @@
     "level": 2,
     "price": 120,
     "shop": false,
-    "icon": "ui/items/trinket.png",
+    "icon": "ui/items/wisp_jar.png",
     "stats": {
       "max_mp": 24,
       "spell_bonus": 0.1
@@ -827,7 +827,7 @@
     "price": 24,
     "shop": true,
     "stack": 20,
-    "icon": "ui/items/potion.png",
+    "icon": "ui/items/tonic.png",
     "description": "Restores 50 health.",
     "tag": "",
     "weight": "",
@@ -848,7 +848,7 @@
     "price": 28,
     "shop": true,
     "stack": 20,
-    "icon": "ui/items/ether.png",
+    "icon": "ui/items/vial.png",
     "description": "Restores 40 energy.",
     "tag": "",
     "weight": "",
@@ -869,7 +869,7 @@
     "price": 8,
     "shop": true,
     "stack": 20,
-    "icon": "ui/items/potion.png",
+    "icon": "ui/items/loaf_crumb.png",
     "description": "Restores 18 health. Travels in a pocket.",
     "tag": "",
     "weight": "",
@@ -890,7 +890,7 @@
     "price": 48,
     "shop": true,
     "stack": 20,
-    "icon": "ui/items/ether.png",
+    "icon": "ui/items/blue_ether.png",
     "description": "Restores 90 energy.",
     "tag": "",
     "weight": "",
@@ -911,7 +911,7 @@
     "price": 46,
     "shop": true,
     "stack": 20,
-    "icon": "ui/items/potion.png",
+    "icon": "ui/items/field_salve.png",
     "description": "Restores 90 health.",
     "tag": "",
     "weight": "",
@@ -933,7 +933,7 @@
     "price": 36,
     "shop": true,
     "stack": 20,
-    "icon": "ui/items/potion.png",
+    "icon": "ui/items/kettle_dram.png",
     "description": "Restores 30 health and 30 energy.",
     "tag": "",
     "weight": "",

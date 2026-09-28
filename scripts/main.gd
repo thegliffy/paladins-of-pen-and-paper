@@ -280,6 +280,20 @@ func _export_check() -> void:
 		elif str(place_id) != "" and backdrop == "combat/bg_forest_portrait.png":
 			failures.append("place_bg_%s" % place_id)
 			push_error("Export check: %s fell back to the forest" % place_id)
+	for item_id in ContentDB.items.keys():
+		var item: Dictionary = ContentDB.item(str(item_id))
+		var icon_path := str(item.get("icon", ""))
+		var icon := ArtPack.texture(icon_path) if icon_path != "" and ArtPack.has(icon_path) else null
+		if not _texture_ok(icon) or icon.get_width() != 16 or icon.get_height() != 16:
+			failures.append("item_%s" % item_id)
+			push_error("Export check: %s icon did not load at 16x16 (%s)" % [item_id, icon_path])
+		var doll_path := str(item.get("doll", ""))
+		if doll_path == "":
+			continue
+		var overlay := ArtPack.texture(doll_path) if ArtPack.has(doll_path) else null
+		if not _texture_ok(overlay) or overlay.get_width() != 48 or overlay.get_height() != 78:
+			failures.append("doll_%s" % item_id)
+			push_error("Export check: %s seat overlay did not load at 48x78 (%s)" % [item_id, doll_path])
 	for monster_id in ["bramblet", "grinmud_toad", "bottlecrab", "squallgull", "kelpback", "gloomgrub", "dripfang", "pebble_squire", "hollow_helm", "cobble_rat"]:
 		var idle := ArtPack.monster_frame(monster_id, "idle", 0)
 		var attack := ArtPack.monster_frame(monster_id, "attack", 0)
@@ -360,6 +374,14 @@ func _shots() -> void:
 	await _swap(map)
 	await _capture("map")
 	GameState.place_id = "millpond"
+	GameState.give_item("travel_coat", 1)
+	GameState.equip_item(0, "travel_coat", "armor")
+	GameState.give_item("moon_robe", 1)
+	GameState.equip_item(1, "moon_robe", "armor")
+	GameState.give_item("hedge_mail", 1)
+	GameState.equip_item(3, "hedge_mail", "armor")
+	GameState.give_item("pocket_knife", 1)
+	GameState.equip_item(4, "pocket_knife", "off")
 	var session := SessionScreen.new()
 	await _swap(session)
 	session.stage_battle_preview()

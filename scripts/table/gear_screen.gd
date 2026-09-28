@@ -136,6 +136,12 @@ func _build_list() -> void:
 		var count := int(row["count"])
 		var button := Widgets.make_button("%s  x%d" % [item["name"], count], Vector2(236, 28))
 		button.name = "Item_%s" % str(item["id"])
+		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		button.add_theme_constant_override("h_separation", 6)
+		var icon_path := str(item.get("icon", ""))
+		if icon_path != "" and ArtPack.has(icon_path):
+			button.icon = ArtPack.texture(icon_path)
+			button.expand_icon = false
 		button.add_theme_color_override("font_color", Color(Formulas.rarity_hex(str(item.get("rarity", "common")))))
 		var item_id := str(item["id"])
 		var from_shop := bool(row["shop"])
@@ -266,10 +272,22 @@ func _build_detail() -> void:
 		add_child(hint)
 		return
 	var item: Dictionary = ContentDB.item(_selected)
+	var icon_path := str(item.get("icon", ""))
+	if icon_path != "" and ArtPack.has(icon_path):
+		var icon := TextureRect.new()
+		icon.name = "DetailIcon"
+		icon.texture = ArtPack.texture(icon_path)
+		icon.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		icon.stretch_mode = TextureRect.STRETCH_KEEP
+		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		icon.position = Vector2(16, 326)
+		icon.size = Vector2(16, 16)
+		add_child(icon)
 	var name_label := Widgets.label(str(item["name"]), Layout.font_size(), Color(Formulas.rarity_hex(str(item.get("rarity", "common")))))
 	name_label.name = "DetailName"
-	name_label.position = Vector2(16, 324)
-	name_label.size = Vector2(180, 18)
+	name_label.position = Vector2(36, 324)
+	name_label.size = Vector2(140, 18)
 	add_child(name_label)
 	var rarity := Widgets.label(str(item.get("rarity", "common")).to_upper(), Layout.font_tiny(), Color(Formulas.rarity_hex(str(item.get("rarity", "common")))))
 	rarity.position = Vector2(180, 326)

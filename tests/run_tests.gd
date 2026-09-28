@@ -27,6 +27,7 @@ func _init() -> void:
 	_test_table_space()
 	_test_place_rosters()
 	_test_gear()
+	_test_seat_gear()
 	print("Tests: %d passed, %d failed" % [passed, failed])
 	quit(1 if failed else 0)
 
@@ -1016,4 +1017,116 @@ func _test_gear() -> void:
 		check(by_id.has(unique), str(monster["id"]) + " unique exists")
 		eq(str(by_id[unique]["rarity"]), "unique", str(unique) + " is unique")
 	check(uniques >= 4, "several monsters carry a unique")
-	check(FileAccess.file_exists("res://art_source/phase0/ui/items/sword.png"), "a weapon icon placeholder exists")
+	eq(str(by_id["lurker_scale"]["name"]), "Bone Plate", "lurker scale stays Bone Plate")
+	eq(str(by_id["wisp_jar"]["name"]), "Cap Jar", "wisp jar stays Cap Jar")
+	for row in rows:
+		var icon := "ui/items/%s.png" % str(row["id"])
+		eq(str(row["icon"]), icon, str(row["id"]) + " icon path")
+		check(ArtPack.has(icon), str(row["id"]) + " icon file")
+		var icon_tex := ArtPack.texture(icon)
+		check(icon_tex != null and icon_tex.get_width() == 16 and icon_tex.get_height() == 16, str(row["id"]) + " icon is 16x16")
+		var doll := str(row.get("doll", ""))
+		if doll == "":
+			continue
+		check(ArtPack.has(doll), str(row["id"]) + " seat overlay")
+		var overlay := ArtPack.texture(doll)
+		check(overlay != null and overlay.get_width() == 48 and overlay.get_height() == 78, str(row["id"]) + " overlay is 48x78")
+
+
+func _test_seat_gear() -> void:
+	var recipe := ArtPack.recipe_gear_order()
+	var expected := PackedStringArray(["body", "outfit", "class", "armor", "hair", "hat", "off", "main", "chair"])
+	eq(recipe, expected, "seat recipe order is body through chair")
+	eq(ArtPack.seat_gear_order(), expected, "composer order matches the recipe")
+	var look := ArtPack.default_look("paladin")
+	var full := {
+		"armor": "paperdoll/gear/travel_coat.png",
+		"off": "paperdoll/gear/kettle_shield.png",
+		"off_flip": false,
+		"main": "paperdoll/gear/oath_blade.png",
+		"main_weapon": true,
+		"two_hand": false,
+	}
+	var ids: PackedStringArray = []
+	for step in ArtPack.seat_blit_plan("paladin", full):
+		ids.append(str(step["id"]))
+	eq(ids, expected, "a full seat blits every recipe layer")
+	var two := {
+		"off": "paperdoll/gear/kettle_shield.png",
+		"off_flip": false,
+		"main": "paperdoll/gear/reed_staff.png",
+		"main_weapon": true,
+		"two_hand": true,
+	}
+	var two_ids: PackedStringArray = []
+	for step in ArtPack.seat_blit_plan("wizard", two):
+		two_ids.append(str(step["id"]))
+	check(not two_ids.has("off"), "a two-hander clears the off hand")
+	check(two_ids.has("main") and two_ids.find("main") < two_ids.find("chair"), "the main hand sits under the chair")
+	check(two_ids.find("class") < two_ids.find("hair") and two_ids.find("hair") < two_ids.find("main"), "hair stays above the class and under the weapon")
+	eq(ArtPack.pick_class_back("paladin", true, false), "paperdoll/back/class_back_paladin.png", "missing noweapon falls back")
+	eq(ArtPack.pick_class_back("paladin", true, true), "paperdoll/back/class_back_paladin_noweapon.png", "a noweapon layer replaces the armed class")
+	eq(ArtPack.pick_class_back("paladin", false, true), "paperdoll/back/class_back_paladin.png", "an empty main hand keeps the painted class weapon")
+	for class_id in ["paladin", "druid", "wizard", "barbarian", "bard", "ranger"]:
+		check(not ArtPack.has(ArtPack.class_noweapon_rel(class_id)), class_id + " noweapon is not painted yet")
+		eq(ArtPack.class_back_rel(class_id, true), "paperdoll/back/class_back_%s.png" % class_id, class_id + " falls back while armed")
+	check(ArtPack.offhand_flips({"slot": "weapon", "tag": "dagger", "hands": 1}), "a dagger flips in the off hand")
+	check(ArtPack.offhand_flips({"slot": "weapon", "tag": "sword", "hands": 1}), "a one-handed sword flips in the off hand")
+	check(not ArtPack.offhand_flips({"slot": "off", "tag": "shield", "hands": 1}), "a shield keeps its own art")
+	check(not ArtPack.offhand_flips({"slot": "off", "tag": "orb", "hands": 1}), "an orb keeps its own art")
+	check(not ArtPack.offhand_flips({"slot": "weapon", "tag": "staff", "hands": 2}), "a two-hander is not an off-hand flip")
+	var knife := "paperdoll/gear/pocket_knife.png"
+	var plain := ArtPack.gear_image(knife, false)
+	var flipped := ArtPack.gear_image(knife, true)
+	var turned := plain.duplicate()
+	turned.flip_x()
+	check(_same_image(flipped, turned), "off-hand flip is a horizontal mirror")
+	var rogue := ArtPack.default_look("rogue")
+	var bare := ArtPack.compose_doll("back", rogue, "rogue")
+	var worn := ArtPack.compose_doll("back", rogue, "rogue", {"off": knife, "off_flip": true})
+	var unflipped := ArtPack.compose_doll("back", rogue, "rogue", {"off": knife, "off_flip": false})
+	check(not _same_image(worn.get_image(), unflipped.get_image()), "the off hand renders the flipped dagger")
+	check(_gear_pixel_matches(bare.get_image(), worn.get_image(), flipped, plain), "flipped dagger pixels land on the seat")
+	var shield := "paperdoll/gear/kettle_shield.png"
+	var shield_img := ArtPack.gear_image(shield, false)
+	var shielded := ArtPack.compose_doll("back", look, "paladin", {"off": shield, "off_flip": false})
+	check(_gear_pixel_matches(ArtPack.compose_doll("back", look, "paladin").get_image(), shielded.get_image(), shield_img, ArtPack.gear_image(shield, true)), "a shield is drawn unflipped")
+	var staff := "paperdoll/gear/reed_staff.png"
+	var wizard := ArtPack.default_look("wizard")
+	var staff_only := ArtPack.compose_doll("back", wizard, "wizard", {"main": staff, "main_weapon": true, "two_hand": true})
+	var staff_and_off := ArtPack.compose_doll("back", wizard, "wizard", {"main": staff, "main_weapon": true, "two_hand": true, "off": shield, "off_flip": false})
+	check(_same_image(staff_only.get_image(), staff_and_off.get_image()), "a two-hander hides the off-hand overlay")
+	var with_shield := ArtPack.compose_doll("back", wizard, "wizard", {"main": staff, "main_weapon": true, "two_hand": false, "off": shield, "off_flip": false})
+	check(not _same_image(staff_only.get_image(), with_shield.get_image()), "the off hand draws when two_hand is off")
+	ArtPack.clear_bake_cache()
+	var front_bare := ArtPack.compose_doll("front", look, "paladin")
+	ArtPack.clear_bake_cache()
+	var front := ArtPack.compose_doll("front", look, "paladin", full)
+	check(front.get_width() == 32 and front.get_height() == 48, "the front doll stays 32x48")
+	check(_same_image(front.get_image(), front_bare.get_image()), "seat overlays are not baked onto the front doll")
+
+
+func _same_image(a: Image, b: Image) -> bool:
+	if a.get_width() != b.get_width() or a.get_height() != b.get_height():
+		return false
+	for y in a.get_height():
+		for x in a.get_width():
+			if a.get_pixel(x, y) != b.get_pixel(x, y):
+				return false
+	return true
+
+
+func _gear_pixel_matches(base: Image, seated: Image, want: Image, other: Image) -> bool:
+	var found := false
+	for y in mini(want.get_height(), seated.get_height()):
+		for x in mini(want.get_width(), seated.get_width()):
+			var painted := want.get_pixel(x, y)
+			var rival := other.get_pixel(x, y)
+			if painted.a < 0.5 or base.get_pixel(x, y).a > 0.2:
+				continue
+			if rival == painted:
+				continue
+			found = true
+			if seated.get_pixel(x, y) != painted:
+				return false
+	return found
