@@ -134,9 +134,8 @@ func _open_builder(session: SessionScreen) -> void:
 
 
 func _start_battle(difficulty: float, kind: String) -> void:
-	var place: Dictionary = ContentDB.place(GameState.place_id)
 	var pool: Array = []
-	for monster_id in place.get("monsters", []):
+	for monster_id in ContentDB.place_monster_ids(GameState.place_id):
 		var monster: Dictionary = ContentDB.monster(str(monster_id))
 		pool.append({"id": str(monster_id), "power": int(monster["power"])})
 	if pool.is_empty():

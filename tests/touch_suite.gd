@@ -316,6 +316,13 @@ static func _tap_ally(host: Node, tree: SceneTree, failures: Array[String]) -> v
 	var flow := pack["flow"] as BattleFlow
 	flow.units[1]["hp"] = 20
 	session.sync_unit(flow.units[1])
+	var seat := session._seats[1] as Control
+	var digits := seat.get_node("BarHost/HpDigits") as DigitReadout
+	if digits == null or digits.text != "20":
+		failures.append("ally_digits_before")
+		push_error("Touch check: the chair did not show 20 before the heal")
+		session.queue_free()
+		return
 	var button := _find_action(session, "skill:rallying_brand")
 	if button == null:
 		failures.append("ally_button")
@@ -328,13 +335,22 @@ static func _tap_ally(host: Node, tree: SceneTree, failures: Array[String]) -> v
 		push_error("Touch check: Rallying Brand did not ask for an ally")
 		session.queue_free()
 		return
-	var seat := session._seats[1] as Control
+	var timing := session.find_child("HealTiming", true, false)
+	if timing == null or str(timing.get_meta("caption", "")) != "IMMEDIATE":
+		failures.append("ally_timing")
+		push_error("Touch check: Rallying Brand was not labeled immediate")
 	var at := Vector2(seat.get_global_rect().get_center().x, seat.get_global_rect().end.y - 6.0)
 	await _tap(tree, at)
 	var healed: bool = await _until(tree, func() -> bool: return _unit_hp(flow, "p1") > 20)
 	if not healed:
 		failures.append("ally_cast")
 		push_error("Touch check: tapping an ally did not cast the heal")
+	elif digits.text == "20" or int(digits.text) != _unit_hp(flow, "p1"):
+		failures.append("ally_digits")
+		push_error("Touch check: the chair still showed %s after HP became %d" % [digits.text, _unit_hp(flow, "p1")])
+	if _unit_hp(flow, "m0") != 800:
+		failures.append("ally_next")
+		push_error("Touch check: the next actor acted before the heal finished")
 	session.queue_free()
 	await tree.process_frame
 
@@ -354,6 +370,9 @@ static func _builder(host: Node, tree: SceneTree, failures: Array[String]) -> vo
 		push_error("Touch check: the builder did not start with one foe")
 		builder.queue_free()
 		return
+	if builder.find_child("Count_gravel_brute", true, false) != null or builder.find_child("Count_marshlurker", true, false) == null:
+		failures.append("builder_place")
+		push_error("Touch check: Millpond did not list its own monsters")
 	var gold_one := int(gold.text.trim_prefix("Gold "))
 	var plus_blob := builder.find_child("Plus_puddleblob", true, false) as Button
 	for _i in 8:
@@ -465,27 +484,30 @@ static func _builder_space(host: Node, tree: SceneTree, failures: Array[String])
 	builder.setup("gravel_keep")
 	await _mount(host, tree, builder)
 	var space := builder.find_child("Space", true, false)
-	var blob := builder.find_child("Count_puddleblob", true, false) as Label
+	var howler := builder.find_child("Count_cave_howler", true, false) as Label
 	var brute := builder.find_child("Count_gravel_brute", true, false) as Label
-	if space == null or blob == null or brute == null or str(space.get_meta("caption")) != "SPACE 12 LEFT":
+	if space == null or howler == null or brute == null or str(space.get_meta("caption")) != "SPACE 12 LEFT":
 		failures.append("space_label")
 		push_error("Touch check: the builder did not show table space")
 		builder.queue_free()
 		return
-	if builder.find_child("Size_gravel_brute", true, false) == null or builder.find_child("Size_puddleblob", true, false) != null:
+	if builder.find_child("Count_puddleblob", true, false) != null:
+		failures.append("space_place")
+		push_error("Touch check: Gravel Keep listed a marsh blob")
+	if builder.find_child("Size_gravel_brute", true, false) == null or builder.find_child("Size_cave_howler", true, false) != null:
 		failures.append("size_tag")
 		push_error("Touch check: large foes were not marked")
-	var minus_blob := builder.find_child("Minus_puddleblob", true, false) as Button
-	await _tap(tree, minus_blob.get_global_rect().get_center())
+	var minus_howler := builder.find_child("Minus_cave_howler", true, false) as Button
+	await _tap(tree, minus_howler.get_global_rect().get_center())
 	var plus_brute := builder.find_child("Plus_gravel_brute", true, false) as Button
 	for _i in 5:
 		await _tap(tree, plus_brute.get_global_rect().get_center())
 	if brute.text != "3" or int(space.get_meta("left")) != 0 or not plus_brute.disabled:
 		failures.append("space_large")
 		push_error("Touch check: three larges did not fill the table (count %s space %s)" % [brute.text, space.get_meta("left")])
-	var plus_blob := builder.find_child("Plus_puddleblob", true, false) as Button
-	await _tap(tree, plus_blob.get_global_rect().get_center())
-	if blob.text != "0" or not plus_blob.disabled:
+	var plus_howler := builder.find_child("Plus_cave_howler", true, false) as Button
+	await _tap(tree, plus_howler.get_global_rect().get_center())
+	if howler.text != "0" or not plus_howler.disabled:
 		failures.append("space_full")
 		push_error("Touch check: a full large table accepted a regular foe")
 	var minus_brute := builder.find_child("Minus_gravel_brute", true, false) as Button
@@ -493,21 +515,21 @@ static func _builder_space(host: Node, tree: SceneTree, failures: Array[String])
 		await _tap(tree, minus_brute.get_global_rect().get_center())
 	await _tap(tree, plus_brute.get_global_rect().get_center())
 	await _tap(tree, plus_brute.get_global_rect().get_center())
-	await _tap(tree, plus_blob.get_global_rect().get_center())
-	await _tap(tree, plus_blob.get_global_rect().get_center())
+	await _tap(tree, plus_howler.get_global_rect().get_center())
+	await _tap(tree, plus_howler.get_global_rect().get_center())
 	await _tap(tree, plus_brute.get_global_rect().get_center())
-	if brute.text != "2" or blob.text != "1" or int(space.get_meta("left")) != 2:
+	if brute.text != "2" or howler.text != "1" or int(space.get_meta("left")) != 2:
 		failures.append("space_mix")
-		push_error("Touch check: two large plus one regular landed on %s / %s space %s" % [brute.text, blob.text, space.get_meta("left")])
+		push_error("Touch check: two large plus one regular landed on %s / %s space %s" % [brute.text, howler.text, space.get_meta("left")])
 	for _i in 2:
 		await _tap(tree, minus_brute.get_global_rect().get_center())
-	await _tap(tree, minus_blob.get_global_rect().get_center())
+	await _tap(tree, minus_howler.get_global_rect().get_center())
 	await _tap(tree, plus_brute.get_global_rect().get_center())
 	for _i in 4:
-		await _tap(tree, plus_blob.get_global_rect().get_center())
-	if brute.text != "1" or blob.text != "3" or int(space.get_meta("left")) != 1 or not plus_blob.disabled or not plus_brute.disabled:
+		await _tap(tree, plus_howler.get_global_rect().get_center())
+	if brute.text != "1" or howler.text != "3" or int(space.get_meta("left")) != 1 or not plus_howler.disabled or not plus_brute.disabled:
 		failures.append("space_one_large")
-		push_error("Touch check: one large plus three regular landed on %s / %s space %s" % [brute.text, blob.text, space.get_meta("left")])
+		push_error("Touch check: one large plus three regular landed on %s / %s space %s" % [brute.text, howler.text, space.get_meta("left")])
 	builder.queue_free()
 	await tree.process_frame
 

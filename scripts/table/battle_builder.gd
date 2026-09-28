@@ -16,7 +16,7 @@ var _start: Button
 
 func setup(place_id: String) -> void:
 	_place_id = place_id
-	_order = ContentDB.region_monster_ids()
+	_order = ContentDB.place_monster_ids(place_id)
 	_counts = GameState.lineup_counts(place_id, _order)
 	_build()
 
@@ -30,7 +30,7 @@ func _build() -> void:
 	backdrop.set_anchors_preset(Control.PRESET_FULL_RECT)
 	backdrop.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	backdrop.stretch_mode = TextureRect.STRETCH_SCALE
-	backdrop.texture = ArtPack.texture("combat/bg_forest_portrait.png")
+	backdrop.texture = ArtPack.texture(ContentDB.combat_backdrop_path(_place_id))
 	backdrop.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(backdrop)
 	var sheet := Widgets.panel()

@@ -70,7 +70,7 @@ func show_hub() -> void:
 	_banner.text = "%s   %d gold" % [place["name"], GameState.gold]
 	_caption.text = str(place["description"])
 	_sync_party()
-	var fight: bool = not ContentDB.region_monster_ids().is_empty()
+	var fight: bool = not ContentDB.place_monster_ids(GameState.place_id).is_empty()
 	set_actions([
 		{"id": "travel", "label": "Travel", "icon": "icon_run"},
 		{"id": "fight", "label": "Fight", "icon": "icon_attack", "disabled": not fight},
@@ -516,6 +516,14 @@ func _fill_inspect(card: Dictionary, action_id: String = "") -> void:
 	var cd_label := PixelFont.label(cd_copy, Color("744526"))
 	cd_label.position = cd_at + Vector2(12, 1)
 	_inspect.add_child(cd_label)
+	var timing := str(card.get("timing", ""))
+	if timing != "":
+		var timing_copy := "EACH TURN" if timing == "Each turn" else "IMMEDIATE"
+		var timing_label := PixelFont.label(timing_copy, Color("3d7a4a"))
+		timing_label.name = "HealTiming"
+		timing_label.position = Vector2(_inspect.size.x - 8.0 - timing_label.size.x, cd_at.y + 1.0)
+		timing_label.set_meta("caption", timing_copy)
+		_inspect.add_child(timing_label)
 	var chars := int((_inspect.size.x - 32.0 + 1.0) / 4.0)
 	var lines := PixelFont.wrap(str(card.get("description", "")), chars)
 	for i in lines.size():
@@ -697,6 +705,7 @@ func react_hit(id: String, texts: Array, hp_ratio: float, mp_ratio: float) -> vo
 	var node := _node_for(id)
 	if node == null:
 		return
+	var recovery := _floater_is_recovery(texts)
 	var visual := node.get_node_or_null("Sprite")
 	if visual == null:
 		visual = node.get_node_or_null("Doll")
@@ -709,7 +718,8 @@ func react_hit(id: String, texts: Array, hp_ratio: float, mp_ratio: float) -> vo
 		tween.tween_property(sprite, "position:x", origin_x, 0.14)
 		var flash := create_tween()
 		var base := sprite.modulate
-		flash.tween_property(sprite, "modulate", Color(1, 0.3, 0.3, base.a), Timing.HIT_BLINK_IN)
+		var tint := Color(0.55, 1.0, 0.65, base.a) if recovery else Color(1, 0.3, 0.3, base.a)
+		flash.tween_property(sprite, "modulate", tint, Timing.HIT_BLINK_IN)
 		flash.tween_property(sprite, "modulate", base, Timing.HIT_BLINK_OUT)
 	if _bars.has(id):
 		if _bars[id].has("hp"):
@@ -722,7 +732,15 @@ func react_hit(id: String, texts: Array, hp_ratio: float, mp_ratio: float) -> vo
 	for entry in texts:
 		_queue_floater(id, str(entry["text"]), entry["color"], delay)
 		delay += Timing.FLOATER_QUEUE
-	Sfx.play("hit")
+	if not recovery:
+		Sfx.play("hit")
+
+
+func _floater_is_recovery(texts: Array) -> bool:
+	for entry in texts:
+		if str(entry.get("text", "")).begins_with("+"):
+			return true
+	return false
 
 
 func death_blink(id: String) -> void:
@@ -969,9 +987,9 @@ func _build_chrome() -> void:
 	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
 	bg.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	bg.stretch_mode = TextureRect.STRETCH_SCALE
-	bg.texture = ArtPack.texture("combat/bg_forest_portrait.png")
 	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(bg)
+	_apply_backdrop()
 	_inspect_catcher = Control.new()
 	_inspect_catcher.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_inspect_catcher.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -1141,9 +1159,7 @@ func _sync_party() -> void:
 		seat.gui_input.connect(_card_input.bind(pid))
 		_attach_chair_bars(seat, member, stats, pid)
 	_order_seats(points)
-	var bg := get_child(0) as TextureRect
-	if bg:
-		bg.texture = ArtPack.texture("combat/bg_forest_portrait.png")
+	_apply_backdrop()
 
 
 func _attach_chair_bars(seat: Control, member: Dictionary, stats: Dictionary, pid: String) -> void:
@@ -1652,8 +1668,13 @@ func _spend(member_index: int, skill_id: String) -> void:
 		open_party()
 
 
-func _backdrop_kind() -> void:
-	pass
+func _apply_backdrop() -> void:
+	if get_child_count() == 0:
+		return
+	var bg := get_child(0) as TextureRect
+	if bg == null:
+		return
+	bg.texture = ArtPack.texture(ContentDB.combat_backdrop_path(GameState.place_id))
 
 
 func _dress_reference_party() -> void:

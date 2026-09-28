@@ -2,7 +2,7 @@ extends Node
 class_name BattleFlow
 ## Turn loop, dice, and the timing table. The view is a SessionScreen.
 
-var view: SessionScreen
+var view
 var rng := RandomNumberGenerator.new()
 var units: Array = []
 var order: Array = []
@@ -599,18 +599,25 @@ func _cast(user: Dictionary, skill: Dictionary, targets: Array) -> void:
 
 
 func _heal(user: Dictionary, skill: Dictionary, target: Dictionary, rank: int) -> void:
-	var healed := Formulas.heal_amount(skill, int(user["mind"]), rank)
-	var caster_passives: Array = user.get("passives", [])
-	var amount := Formulas.boost_heal(healed, caster_passives)
-	target["hp"] = mini(int(target["max_hp"]), int(target["hp"]) + amount)
-	view.react_hit(str(target["id"]), [{"text": "+%d" % amount, "color": Color("3dba6a")}], _ratio(target, "hp"), _ratio(target, "mp"))
-	Sfx.play("heal")
+	_land_heal(user, skill, target, rank)
 	var self_heal := int(skill.get("self_heal", 0))
 	if self_heal > 0 and str(target["id"]) != str(user["id"]):
-		await _wait(Timing.FLOATER_QUEUE)
-		user["hp"] = mini(int(user["max_hp"]), int(user["hp"]) + self_heal)
-		view.react_hit(str(user["id"]), [{"text": "+%d" % self_heal, "color": Color("3dba6a")}], _ratio(user, "hp"), _ratio(user, "mp"))
+		_land_flat_heal(user, self_heal)
 	await _wait(0.4)
+
+
+func _land_heal(user: Dictionary, skill: Dictionary, target: Dictionary, rank: int) -> void:
+	var healed := Formulas.heal_amount(skill, int(user["mind"]), rank)
+	var amount := Formulas.boost_heal(healed, user.get("passives", []))
+	_land_flat_heal(target, amount)
+	Sfx.play("heal")
+
+
+func _land_flat_heal(target: Dictionary, amount: int) -> void:
+	## Writes HP and refreshes the chair before this function returns, so the next actor has not moved yet.
+	target["hp"] = mini(int(target["max_hp"]), int(target["hp"]) + amount)
+	view.sync_unit(target)
+	view.react_hit(str(target["id"]), [{"text": "+%d" % amount, "color": Color("3dba6a")}], _ratio(target, "hp"), _ratio(target, "mp"))
 
 
 func _try_condition(skill: Dictionary, target: Dictionary) -> void:
@@ -734,10 +741,10 @@ func _choose_item(user: Dictionary) -> bool:
 	var amount := int(item.get("amount", 0))
 	if str(item.get("kind", "")) == "heal_mp":
 		target["mp"] = mini(int(target["max_mp"]), int(target["mp"]) + amount)
+		view.sync_unit(target)
 		view.react_hit(str(target["id"]), [{"text": "+%d" % amount, "color": SpriteCatalog.MP}], _ratio(target, "hp"), _ratio(target, "mp"))
 	else:
-		target["hp"] = mini(int(target["max_hp"]), int(target["hp"]) + amount)
-		view.react_hit(str(target["id"]), [{"text": "+%d" % amount, "color": Color("3dba6a")}], _ratio(target, "hp"), _ratio(target, "mp"))
+		_land_flat_heal(target, amount)
 	Sfx.play("heal")
 	await _wait(0.35)
 	return true

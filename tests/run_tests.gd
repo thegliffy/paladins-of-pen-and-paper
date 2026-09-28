@@ -25,6 +25,8 @@ func _init() -> void:
 	_test_wrapped_labels()
 	_test_targeting_and_lineup()
 	_test_table_space()
+	_test_heal_lands_on_cast()
+	_test_place_rosters()
 	print("Tests: %d passed, %d failed" % [passed, failed])
 	quit(1 if failed else 0)
 
@@ -183,9 +185,13 @@ func _test_timing() -> void:
 	near(Timing.travel_roll_lead(), 0.1, 0.001, "roll starts 0.1s after hop begin")
 
 
+func _region() -> Dictionary:
+	var raw: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/region.json"))
+	return Formulas.active_region(raw)
+
+
 func _test_route_and_encounter() -> void:
-	var text := FileAccess.get_file_as_string("res://data/region.json")
-	var region: Dictionary = JSON.parse_string(text)
+	var region: Dictionary = _region()
 	var edges: Array = region["edges"]
 	var path: Array = RouteFinder.fewest_hops("candlewick", "lantern_reach", edges)
 	eq(path[0], "candlewick", "route starts at origin")
@@ -222,7 +228,7 @@ func _test_content_shape() -> void:
 	var classes: Array = JSON.parse_string(FileAccess.get_file_as_string("res://data/classes.json"))
 	var skills: Array = JSON.parse_string(FileAccess.get_file_as_string("res://data/skills.json"))
 	var monsters: Array = JSON.parse_string(FileAccess.get_file_as_string("res://data/monsters.json"))
-	var region: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/region.json"))
+	var region: Dictionary = _region()
 	eq(personas.size(), 5, "5 personas")
 	eq(races.size(), 3, "3 races")
 	eq(classes.size(), 8, "8 classes")
@@ -475,7 +481,7 @@ func _test_portrait_layout() -> void:
 	var content: Array = layout["portrait"]["map"]["content"]
 	check(int(content[1]) > int(view[3]), "map content is taller than the view")
 	check(int(content[0]) <= int(view[2]), "map content fits the portrait width")
-	var region: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/region.json"))
+	var region: Dictionary = _region()
 	eq(int(region["map_size"][0]), int(content[0]), "region width matches layout")
 	eq(int(region["map_size"][1]), int(content[1]), "region height matches layout")
 	var actions: Array = layout["portrait"]["combat"]["action_bar"]
@@ -566,6 +572,11 @@ func _test_party_bar() -> void:
 	eq(str(passive_card["tag"]), "Passive", "passive tag")
 	eq(str(passive_card["hint"]), "Always on", "passive card cannot invite a cast")
 	check(not bool(passive_card["can_cast"]), "passive card cannot cast")
+	eq(Formulas.heal_timing(by_id["hearthmend"]), "Immediate", "a direct heal is immediate")
+	eq(str(Formulas.skill_inspect(by_id["hearthmend"], 1, 40, 200, {}, {})["timing"]), "Immediate", "heal card says immediate")
+	eq(Formulas.heal_timing(by_id["sap_pulse"]), "Each turn", "turn-start health is each turn")
+	eq(str(Formulas.skill_inspect(by_id["sap_pulse"], 1, 40, 200, {}, {})["timing"]), "Each turn", "regen card says each turn")
+	eq(Formulas.heal_timing(strike), "", "a strike is not a heal")
 
 
 func _test_art_present() -> void:
@@ -652,7 +663,7 @@ func _test_wrapped_labels() -> void:
 	var info := Layout.rect("map", "info")
 	var row := Layout.rect("map", "travel_row")
 	check(info.position.y + info.size.y <= row.position.y + 0.01, "map description ends above the travel buttons")
-	var region: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/region.json"))
+	var region: Dictionary = _region()
 	for place in region["places"]:
 		var blurb := Widgets.place_blurb(place, 4, 99, false)
 		var wrapped := Widgets.wrap_size(blurb, info.size.x, font_size)
@@ -715,7 +726,7 @@ func _test_targeting_and_lineup() -> void:
 	eq(str(easy["difficulty"]), "Easy", "a weaker foe is easy")
 	var seen := {}
 	var region_ids: Array = []
-	var region_rows: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/region.json"))
+	var region_rows: Dictionary = _region()
 	var places: Array = region_rows["places"]
 	for place in places:
 		for monster_id in place.get("monsters", []):
@@ -830,3 +841,84 @@ func _assert_row_fit(entries: Array, label: String, table_top: float, card_top: 
 			check(hit.size.x <= 0.05 or hit.size.y <= 0.05, label + " foes do not overlap")
 	if large_w > 0 and regular_w > 0:
 		check(large_w > regular_w, label + " large footprint is wider")
+
+
+class HealProbe extends RefCounted:
+	var noted := -1
+	var popup := ""
+	var popup_id := ""
+
+	func sync_unit(unit: Dictionary) -> void:
+		noted = int(unit["hp"])
+
+	func react_hit(id: String, texts: Array, _hp_ratio: float, _mp_ratio: float) -> void:
+		popup_id = id
+		if not texts.is_empty():
+			popup = str(texts[0]["text"])
+
+
+func _test_heal_lands_on_cast() -> void:
+	var probe := HealProbe.new()
+	var flow := BattleFlow.new()
+	flow.view = probe
+	flow.turn_index = 1
+	var caster := {"id": "p0", "mind": 4, "passives": [], "hp": 30, "max_hp": 40, "mp": 10, "max_mp": 20}
+	var target := {"id": "p1", "hp": 20, "max_hp": 40, "mp": 5, "max_mp": 20}
+	var monster := {"id": "m0", "hp": 800, "max_hp": 800}
+	flow.units = [caster, target, monster]
+	var skill := {
+		"id": "rallying_brand",
+		"kind": "heal",
+		"heal": 14,
+		"heal_per_mind": 0,
+		"heal_per_rank": 0,
+	}
+	flow._land_heal(caster, skill, target, 1)
+	eq(int(target["hp"]), 34, "a direct heal changes HP the moment it resolves")
+	eq(probe.noted, 34, "the chair is refreshed before the call returns")
+	eq(probe.popup, "+14", "a heal number pops up")
+	eq(probe.popup_id, "p1", "the popup is on the healed ally")
+	eq(int(monster["hp"]), 800, "the next actor has not acted")
+	eq(flow.turn_index, 1, "resolving a heal does not advance the turn")
+
+
+func _test_place_rosters() -> void:
+	var wrapped: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/region.json"))
+	eq(str(wrapped["active"]), "greenmere", "the file names the active region")
+	check(wrapped["regions"] is Array and (wrapped["regions"] as Array).size() >= 1, "regions are a list of entries")
+	var picked: Dictionary = Formulas.active_region({
+		"active": "b",
+		"regions": [{"id": "a", "name": "Aye"}, {"id": "b", "name": "Bee"}],
+	})
+	eq(str(picked["name"]), "Bee", "active id selects the region entry")
+	eq(str(Formulas.active_region({"id": "flat", "places": []})["id"]), "flat", "a single region still loads")
+	var merged: Array = Formulas.encounter_roster(["briar_hound", "puddleblob"], ["briar_hound", "lantern_wisp"])
+	eq(merged.size(), 3, "wanderers append without repeating an id")
+	eq(str(merged[0]), "briar_hound", "local monsters stay first")
+	eq(str(merged[2]), "lantern_wisp", "a new wanderer is added")
+	var monsters := {}
+	var monster_rows: Array = JSON.parse_string(FileAccess.get_file_as_string("res://data/monsters.json"))
+	for row in monster_rows:
+		monsters[str(row["id"])] = row
+	var region := _region()
+	var wanderers: Array = region.get("wanderers", [])
+	check(not wanderers.is_empty(), "the region lists shared wanderers")
+	for place in region["places"]:
+		var roster: Array = Formulas.encounter_roster(place.get("monsters", []), wanderers)
+		check(roster.size() >= 3, str(place["id"]) + " offers at least three foes")
+		var large := false
+		for monster_id in roster:
+			check(monsters.has(str(monster_id)), str(place["id"]) + " names a real monster")
+			if Formulas.monster_size_tag(monsters[str(monster_id)]) == "large":
+				large = true
+		check(large, str(place["id"]) + " includes a large foe")
+		check(str(place.get("backdrop", "")).begins_with("combat/bg_"), str(place["id"]) + " names a combat backdrop")
+	var by_place := {}
+	for place in region["places"]:
+		by_place[str(place["id"])] = place
+	var mill: Array = by_place["millpond"]["monsters"]
+	check(mill.has("marshlurker"), "the marsh keeps the lurker")
+	check(not mill.has("gravel_brute"), "the marsh does not list the keep brute")
+	var keep: Array = by_place["gravel_keep"]["monsters"]
+	eq(str(keep[0]), "cave_howler", "the keep's first foe is a regular")
+	check(keep.has("gravel_brute"), "the keep lists its brute")

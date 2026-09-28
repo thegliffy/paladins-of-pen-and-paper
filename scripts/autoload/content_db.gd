@@ -34,7 +34,7 @@ func _ready() -> void:
 		quests = []
 	var region_raw: Variant = _read("res://data/region.json")
 	if region_raw is Dictionary:
-		region = region_raw
+		region = Formulas.active_region(region_raw)
 	else:
 		push_error("ContentDB region.json did not load")
 		region = {}
@@ -104,13 +104,33 @@ func region_monster_ids() -> Array:
 	var ids: Array = []
 	var seen := {}
 	for place_row in region.get("places", []):
-		for monster_id in place_row.get("monsters", []):
+		for monster_id in place_monster_ids(str(place_row.get("id", ""))):
 			var key := str(monster_id)
-			if seen.has(key) or not monsters.has(key):
+			if seen.has(key):
 				continue
 			seen[key] = true
 			ids.append(key)
 	return ids
+
+
+func place_monster_ids(place_id: String) -> Array:
+	## Local table first, then this region's wanderers. Unknown ids are dropped.
+	var row: Dictionary = places.get(place_id, {})
+	var roster: Array = Formulas.encounter_roster(row.get("monsters", []), region.get("wanderers", []))
+	var ids: Array = []
+	for monster_id in roster:
+		var key := str(monster_id)
+		if monsters.has(key):
+			ids.append(key)
+	return ids
+
+
+func combat_backdrop_path(place_id: String) -> String:
+	var row: Dictionary = places.get(place_id, {})
+	var rel := str(row.get("backdrop", ""))
+	if rel != "" and ArtPack.has(rel):
+		return rel
+	return "combat/bg_forest_portrait.png"
 
 
 func threat_rules() -> Dictionary:

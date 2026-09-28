@@ -213,7 +213,7 @@ func _hop(origin: String, dest: String, cost: int) -> String:
 	_content.queue_redraw()
 	var midpoint: Vector2 = RouteFinder.point_along(points, length * 0.5)
 	_spring_to(midpoint)
-	var needs_roll: bool = (ContentDB.place(dest).get("monsters", []) as Array).size() > 0
+	var needs_roll: bool = not ContentDB.place_monster_ids(dest).is_empty()
 	var approach := create_tween()
 	approach.tween_method(_set_hop_alpha.bind(points, length), 0.0, 0.5, Timing.HOP_APPROACH)
 	var kind := "safe"

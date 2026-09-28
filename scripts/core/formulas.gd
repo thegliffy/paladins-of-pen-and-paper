@@ -778,6 +778,7 @@ static func skill_inspect(skill: Dictionary, rank: int, hp: int, mp: int, cooldo
 		"cooldown": cool,
 		"description": str(skill.get("description", "")),
 		"tag": "Passive" if is_passive(skill) else "Active",
+		"timing": heal_timing(skill),
 		"hint": inspect_hint(state),
 		"can_cast": state == "ready",
 	}
@@ -874,6 +875,43 @@ static func heal_multiplier(effects: Array) -> float:
 
 static func boost_heal(amount: int, effects: Array) -> int:
 	return maxi(0, int(round(float(amount) * heal_multiplier(effects))))
+
+
+static func heal_timing(skill: Dictionary) -> String:
+	## Direct heals land on cast. Health that returns at turn start is labeled apart from them.
+	for effect in skill.get("effects", []):
+		if str(effect.get("hook", "")) == "turn_start" and float(effect.get("hp_regen_pct", 0.0)) > 0.0:
+			return "Each turn"
+	if str(skill.get("kind", "")) == "heal" or int(skill.get("heal", 0)) > 0:
+		return "Immediate"
+	return ""
+
+
+static func active_region(raw: Dictionary) -> Dictionary:
+	## One file can hold several regions. The active id picks which one the game loads.
+	var rows: Variant = raw.get("regions", null)
+	if rows is Array:
+		var want := str(raw.get("active", ""))
+		for row in rows:
+			if row is Dictionary and str(row.get("id", "")) == want:
+				return row
+		if not rows.is_empty() and rows[0] is Dictionary:
+			return rows[0]
+	return raw
+
+
+static func encounter_roster(local_ids: Array, wanderers: Array) -> Array:
+	## Place monsters first, then shared wanderers, each id once.
+	var ids: Array = []
+	var seen := {}
+	for source in [local_ids, wanderers]:
+		for monster_id in source:
+			var key := str(monster_id)
+			if key == "" or seen.has(key):
+				continue
+			seen[key] = true
+			ids.append(key)
+	return ids
 
 
 static func initiative_bonus(effects: Array) -> int:
