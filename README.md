@@ -30,7 +30,7 @@ The save is `user://paladins_save.json`. It is written when the app pauses or cl
 godot --headless --path . -s res://tests/run_tests.gd
 ```
 
-That covers the stat, HP, energy, damage, crit, XP, gold, travel-table, dice, timing, path, portrait-layout, party seats, skill-button states, cooldown, HP-cost, build-up, mana regen, threat raffle, and on-hit passive examples.
+That covers the stat, HP, energy, damage, crit, XP, gold, travel-table, dice, timing, path, portrait-layout, party seats, skill-button states, the arm-then-cast inspect card, cooldown, HP-cost, build-up, mana regen, threat raffle, and on-hit passive examples.
 
 Placeholder art is generated with `python3 tools/gen_art.py`.
 
