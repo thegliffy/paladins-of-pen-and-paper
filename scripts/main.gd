@@ -294,6 +294,16 @@ func _export_check() -> void:
 		if not _texture_ok(overlay) or overlay.get_width() != 48 or overlay.get_height() != 78:
 			failures.append("doll_%s" % item_id)
 			push_error("Export check: %s seat overlay did not load at 48x78 (%s)" % [item_id, doll_path])
+	for class_id in ["paladin", "druid", "wizard", "barbarian", "bard", "ranger"]:
+		var layer := ArtPack.class_noweapon_rel(class_id)
+		var layer_tex := ArtPack.texture(layer) if layer != "" and ArtPack.has(layer) else null
+		if not _texture_ok(layer_tex) or layer_tex.get_width() != 48 or layer_tex.get_height() != 78:
+			failures.append("noweapon_%s" % class_id)
+			push_error("Export check: %s noweapon layer did not load" % class_id)
+		for armed in [false, true]:
+			var sheet := ArtPack.seat_idle(class_id, armed)
+			if not _texture_ok(sheet) or sheet.get_width() != 48 or sheet.get_height() != 78:
+				failures.append("seat_%s_%s" % [class_id, armed])
 	for monster_id in ["bramblet", "grinmud_toad", "bottlecrab", "squallgull", "kelpback", "gloomgrub", "dripfang", "pebble_squire", "hollow_helm", "cobble_rat"]:
 		var idle := ArtPack.monster_frame(monster_id, "idle", 0)
 		var attack := ArtPack.monster_frame(monster_id, "attack", 0)

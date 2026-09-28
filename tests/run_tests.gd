@@ -1068,8 +1068,18 @@ func _test_seat_gear() -> void:
 	eq(ArtPack.pick_class_back("paladin", true, true), "paperdoll/back/class_back_paladin_noweapon.png", "a noweapon layer replaces the armed class")
 	eq(ArtPack.pick_class_back("paladin", false, true), "paperdoll/back/class_back_paladin.png", "an empty main hand keeps the painted class weapon")
 	for class_id in ["paladin", "druid", "wizard", "barbarian", "bard", "ranger"]:
-		check(not ArtPack.has(ArtPack.class_noweapon_rel(class_id)), class_id + " noweapon is not painted yet")
-		eq(ArtPack.class_back_rel(class_id, true), "paperdoll/back/class_back_%s.png" % class_id, class_id + " falls back while armed")
+		var bare := ArtPack.class_noweapon_rel(class_id)
+		check(ArtPack.has(bare), class_id + " noweapon layer is painted")
+		eq(ArtPack.class_back_rel(class_id, true), bare, class_id + " drops the baked weapon while armed")
+		eq(ArtPack.class_back_rel(class_id, false), "paperdoll/back/class_back_%s.png" % class_id, class_id + " keeps the class weapon when unarmed")
+		var idle := ArtPack.seat_sheet_rel(class_id, "seat_idle", true)
+		var active := ArtPack.seat_sheet_rel(class_id, "seat_active", true)
+		check(idle.ends_with("_noweapon.png") and ArtPack.has(idle), class_id + " idle seat drops the baked weapon")
+		check(active.ends_with("_noweapon.png") and ArtPack.has(active), class_id + " active seat drops the baked weapon")
+	eq(ArtPack.class_back_rel("cleric", true), "paperdoll/back/class_back_cleric.png", "cleric keeps the normal layer")
+	eq(ArtPack.class_back_rel("rogue", true), "paperdoll/back/class_back_rogue.png", "rogue keeps the normal layer")
+	eq(ArtPack.seat_sheet_rel("cleric", "seat_idle", true), "party/seat_cleric_idle.png", "cleric seat stays the normal bake")
+	_test_one_equipped_weapon()
 	check(ArtPack.offhand_flips({"slot": "weapon", "tag": "dagger", "hands": 1}), "a dagger flips in the off hand")
 	check(ArtPack.offhand_flips({"slot": "weapon", "tag": "sword", "hands": 1}), "a one-handed sword flips in the off hand")
 	check(not ArtPack.offhand_flips({"slot": "off", "tag": "shield", "hands": 1}), "a shield keeps its own art")
@@ -1104,6 +1114,48 @@ func _test_seat_gear() -> void:
 	var front := ArtPack.compose_doll("front", look, "paladin", full)
 	check(front.get_width() == 32 and front.get_height() == 48, "the front doll stays 32x48")
 	check(_same_image(front.get_image(), front_bare.get_image()), "seat overlays are not baked onto the front doll")
+
+
+func _test_one_equipped_weapon() -> void:
+	var weapons := {
+		"paladin": "paperdoll/gear/oath_blade.png",
+		"druid": "paperdoll/gear/sap_crook.png",
+		"wizard": "paperdoll/gear/reed_staff.png",
+		"barbarian": "paperdoll/gear/gravel_axe.png",
+		"bard": "paperdoll/gear/road_lute.png",
+		"ranger": "paperdoll/gear/thorn_bow.png",
+		"cleric": "paperdoll/gear/chapel_mace.png",
+		"rogue": "paperdoll/gear/pocket_knife.png",
+	}
+	for class_id in weapons.keys():
+		var gear_path := str(weapons[class_id])
+		var look := ArtPack.default_look(class_id)
+		var unarmed := ArtPack.compose_doll("back", look, class_id).get_image()
+		var stripped := ArtPack.compose_doll("back", look, class_id, {"main_weapon": true}).get_image()
+		var armed := ArtPack.compose_doll("back", look, class_id, {
+			"main": gear_path,
+			"main_weapon": true,
+		}).get_image()
+		var gear := ArtPack.gear_image(gear_path, false)
+		var class_pixels := 0
+		var leaked := 0
+		var covered := 0
+		for y in unarmed.get_height():
+			for x in unarmed.get_width():
+				if unarmed.get_pixel(x, y) == stripped.get_pixel(x, y):
+					continue
+				class_pixels += 1
+				if y < gear.get_height() and x < gear.get_width() and gear.get_pixel(x, y).a > 0.5:
+					covered += 1
+					continue
+				if armed.get_pixel(x, y) != stripped.get_pixel(x, y):
+					leaked += 1
+		if class_id == "cleric" or class_id == "rogue":
+			eq(class_pixels, 0, class_id + " has no baked weapon to double")
+		else:
+			check(class_pixels > 0, class_id + " baked weapon is visible when unarmed")
+		eq(leaked, 0, class_id + " shows one weapon when one is equipped")
+		check(not _same_image(stripped, armed), class_id + " still draws the equipped weapon")
 
 
 func _same_image(a: Image, b: Image) -> bool:

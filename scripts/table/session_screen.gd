@@ -1130,8 +1130,9 @@ func _sync_party() -> void:
 		var doll := PaperDoll.new()
 		doll.name = "Doll"
 		var class_id := str(member["class_id"])
+		var armed := bool(PaperDoll.seat_spec(member).get("main_weapon", false))
 		if ArtPack.seat_is_default(class_id, member["look"]):
-			doll.show_sheet(ArtPack.seat_idle(class_id), canvas)
+			doll.show_sheet(ArtPack.seat_idle(class_id, armed), canvas)
 		else:
 			doll.set_look(member["look"], class_id, str(member["race"]), "back")
 		doll.show_gear(member)

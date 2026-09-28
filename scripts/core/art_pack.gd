@@ -152,8 +152,30 @@ static func seat_is_default(class_id: String, look: Dictionary) -> bool:
 	return outfit == str(row["outfit"])
 
 
-static func seat_idle(class_id: String) -> Texture2D:
-	return texture("party/seat_%s_idle.png" % class_id)
+static func seat_idle(class_id: String, main_weapon: bool = false) -> Texture2D:
+	return texture(seat_sheet_rel(class_id, "seat_idle", main_weapon))
+
+
+static func seat_active(class_id: String, main_weapon: bool = false) -> Texture2D:
+	return texture(seat_sheet_rel(class_id, "seat_active", main_weapon))
+
+
+static func seat_sheet_rel(class_id: String, key: String, main_weapon: bool) -> String:
+	if main_weapon:
+		var entry := class_noweapon_entry(class_id)
+		var rel := str(entry.get(key, ""))
+		if rel != "" and has(rel):
+			return rel
+	var state := "idle" if key == "seat_idle" else "active"
+	return "party/seat_%s_%s.png" % [class_id, state]
+
+
+static func class_noweapon_entry(class_id: String) -> Dictionary:
+	var block: Dictionary = manifest()["paperdoll"].get("class_noweapon", {})
+	var classes: Dictionary = block.get("classes", {})
+	if classes.has(class_id):
+		return classes[class_id]
+	return {}
 
 
 static func gold_outline(source: Texture2D) -> Texture2D:
@@ -261,17 +283,23 @@ static func recipe_gear_order() -> PackedStringArray:
 
 
 static func class_noweapon_rel(class_id: String) -> String:
-	return "paperdoll/back/class_back_%s_noweapon.png" % class_id
+	return str(class_noweapon_entry(class_id).get("layer", ""))
 
 
 static func pick_class_back(class_id: String, main_weapon: bool, noweapon_present: bool) -> String:
 	if main_weapon and noweapon_present:
-		return class_noweapon_rel(class_id)
+		var listed := class_noweapon_rel(class_id)
+		if listed != "":
+			return listed
+		return "paperdoll/back/class_back_%s_noweapon.png" % class_id
 	return "paperdoll/back/class_back_%s.png" % class_id
 
 
 static func class_back_rel(class_id: String, main_weapon: bool) -> String:
+	## Cleric and rogue are absent from paperdoll.class_noweapon, so they keep the normal layer.
 	var bare := class_noweapon_rel(class_id)
+	if bare == "":
+		return "paperdoll/back/class_back_%s.png" % class_id
 	return pick_class_back(class_id, main_weapon, has(bare))
 
 
