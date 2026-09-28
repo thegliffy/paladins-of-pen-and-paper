@@ -52,7 +52,9 @@ Native 270×480 captures:
 godot --headless --export-debug Android build/paladins-0.1.0-debug.apk
 ```
 
-The export needs the Godot 4.7.2 Android templates, Android SDK 36, build-tools 36.1.0, NDK 29.0.14206865, and a JDK.
+The export needs the Godot 4.7.2 Android templates (installed into `android/build`, which is gitignored), a `.build_version` of `4.7.2.stable`, Android SDK 36, build-tools 36.1.0, NDK 29.0.14206865, and a JDK. The project enables ETC2/ASTC import, which the Android exporter requires.
+
+The debug APK for this slice is [v0.1.0](https://github.com/thegliffy/paladins-of-pen-and-paper/releases/tag/v0.1.0): [paladins-0.1.0-debug.apk](https://github.com/thegliffy/paladins-of-pen-and-paper/releases/download/v0.1.0/paladins-0.1.0-debug.apk). It is arm64-v8a, portrait, package `com.thegliffy.paladinspenpaper`.
 
 ## Where numbers live
 
