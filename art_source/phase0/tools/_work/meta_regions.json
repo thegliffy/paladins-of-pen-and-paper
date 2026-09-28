@@ -5,7 +5,7 @@
     0,
     0
    ],
-   "status": "draft_pending_approval",
+   "status": "approved",
    "location": "candlewick",
    "location_name": "Candlewick",
    "region": "town",
@@ -14,14 +14,15 @@
     222,
     266
    ],
-   "notes": "DRAFT Candlewick (town) combat backdrop, 270x480, same framing as bg_forest_portrait: sky/landmarks above the horizon (y141), monster stand zone y~180-270 kept low-contrast, calmer texture below y~300 (table y343-382, seats and bars below). Procedural, flat shading, pack palette, alpha 255. Candlewick has no monsters in data/region.json (town / inn); backdrop provided for completeness."
+   "approval": "approved 2026-09-28 by Kyle (via Chief of Staff); pushed to art/phase0-pack @ 122a66a",
+   "notes": "Candlewick (town) combat backdrop, 270x480, same framing as bg_forest_portrait: sky/landmarks above the horizon (y141), monster stand zone y~180-270 kept low-contrast, calmer texture below y~300 (table y343-382, seats and bars below). Procedural, flat shading, pack palette, alpha 255. Candlewick has no monsters in data/region.json (town / inn); backdrop provided for completeness."
   },
   "combat/bg_millpond_portrait.png": {
    "anchor": [
     0,
     0
    ],
-   "status": "draft_pending_approval",
+   "status": "approved",
    "location": "millpond",
    "location_name": "Millpond",
    "region": "meadow",
@@ -30,14 +31,15 @@
     222,
     266
    ],
-   "notes": "DRAFT Millpond (meadow) combat backdrop, 270x480, same framing as bg_forest_portrait: sky/landmarks above the horizon (y141), monster stand zone y~180-270 kept low-contrast, calmer texture below y~300 (table y343-382, seats and bars below). Procedural, flat shading, pack palette, alpha 255."
+   "approval": "approved 2026-09-28 by Kyle (via Chief of Staff); pushed to art/phase0-pack @ 122a66a",
+   "notes": "Millpond (meadow) combat backdrop, 270x480, same framing as bg_forest_portrait: sky/landmarks above the horizon (y141), monster stand zone y~180-270 kept low-contrast, calmer texture below y~300 (table y343-382, seats and bars below). Procedural, flat shading, pack palette, alpha 255."
   },
   "combat/bg_briar_cross_portrait.png": {
    "anchor": [
     0,
     0
    ],
-   "status": "draft_pending_approval",
+   "status": "approved",
    "location": "briar_cross",
    "location_name": "Briar Cross",
    "region": "meadow",
@@ -46,14 +48,15 @@
     222,
     266
    ],
-   "notes": "DRAFT Briar Cross (meadow) combat backdrop, 270x480, same framing as bg_forest_portrait: sky/landmarks above the horizon (y141), monster stand zone y~180-270 kept low-contrast, calmer texture below y~300 (table y343-382, seats and bars below). Procedural, flat shading, pack palette, alpha 255."
+   "approval": "approved 2026-09-28 by Kyle (via Chief of Staff); pushed to art/phase0-pack @ 122a66a",
+   "notes": "Briar Cross (meadow) combat backdrop, 270x480, same framing as bg_forest_portrait: sky/landmarks above the horizon (y141), monster stand zone y~180-270 kept low-contrast, calmer texture below y~300 (table y343-382, seats and bars below). Procedural, flat shading, pack palette, alpha 255."
   },
   "combat/bg_lantern_reach_portrait.png": {
    "anchor": [
     0,
     0
    ],
-   "status": "draft_pending_approval",
+   "status": "approved",
    "location": "lantern_reach",
    "location_name": "Lantern Reach",
    "region": "coast",
@@ -62,14 +65,15 @@
     222,
     266
    ],
-   "notes": "DRAFT Lantern Reach (coast) combat backdrop, 270x480, same framing as bg_forest_portrait: sky/landmarks above the horizon (y141), monster stand zone y~180-270 kept low-contrast, calmer texture below y~300 (table y343-382, seats and bars below). Procedural, flat shading, pack palette, alpha 255."
+   "approval": "approved 2026-09-28 by Kyle (via Chief of Staff); pushed to art/phase0-pack @ 122a66a",
+   "notes": "Lantern Reach (coast) combat backdrop, 270x480, same framing as bg_forest_portrait: sky/landmarks above the horizon (y141), monster stand zone y~180-270 kept low-contrast, calmer texture below y~300 (table y343-382, seats and bars below). Procedural, flat shading, pack palette, alpha 255."
   },
   "combat/bg_howling_cleft_portrait.png": {
    "anchor": [
     0,
     0
    ],
-   "status": "draft_pending_approval",
+   "status": "approved",
    "location": "howling_cleft",
    "location_name": "Howling Cleft",
    "region": "cave",
@@ -78,14 +82,15 @@
     222,
     266
    ],
-   "notes": "DRAFT Howling Cleft (cave) combat backdrop, 270x480, same framing as bg_forest_portrait: sky/landmarks above the horizon (y141), monster stand zone y~180-270 kept low-contrast, calmer texture below y~300 (table y343-382, seats and bars below). Procedural, flat shading, pack palette, alpha 255."
+   "approval": "approved 2026-09-28 by Kyle (via Chief of Staff); pushed to art/phase0-pack @ 122a66a",
+   "notes": "Howling Cleft (cave) combat backdrop, 270x480, same framing as bg_forest_portrait: sky/landmarks above the horizon (y141), monster stand zone y~180-270 kept low-contrast, calmer texture below y~300 (table y343-382, seats and bars below). Procedural, flat shading, pack palette, alpha 255."
   },
   "combat/bg_gravel_keep_portrait.png": {
    "anchor": [
     0,
     0
    ],
-   "status": "draft_pending_approval",
+   "status": "approved",
    "location": "gravel_keep",
    "location_name": "Gravel Keep",
    "region": "keep",
@@ -94,7 +99,8 @@
     222,
     266
    ],
-   "notes": "DRAFT Gravel Keep (keep) combat backdrop, 270x480, same framing as bg_forest_portrait: sky/landmarks above the horizon (y141), monster stand zone y~180-270 kept low-contrast, calmer texture below y~300 (table y343-382, seats and bars below). Procedural, flat shading, pack palette, alpha 255."
+   "approval": "approved 2026-09-28 by Kyle (via Chief of Staff); pushed to art/phase0-pack @ 122a66a",
+   "notes": "Gravel Keep (keep) combat backdrop, 270x480, same framing as bg_forest_portrait: sky/landmarks above the horizon (y141), monster stand zone y~180-270 kept low-contrast, calmer texture below y~300 (table y343-382, seats and bars below). Procedural, flat shading, pack palette, alpha 255."
   },
   "monsters/bramblet/bramblet_idle.png": {
    "frames": 2,
@@ -118,7 +124,7 @@
     20
    ],
    "loop": true,
-   "status": "draft_pending_approval",
+   "status": "approved",
    "region": "meadow",
    "monster_size": "regular"
   },
@@ -144,7 +150,7 @@
     20
    ],
    "loop": false,
-   "status": "draft_pending_approval",
+   "status": "approved",
    "region": "meadow",
    "monster_size": "regular"
   },
@@ -170,7 +176,7 @@
     20
    ],
    "loop": false,
-   "status": "draft_pending_approval",
+   "status": "approved",
    "region": "meadow",
    "monster_size": "regular"
   },
@@ -196,13 +202,13 @@
     20
    ],
    "loop": false,
-   "status": "draft_pending_approval",
+   "status": "approved",
    "region": "meadow",
    "monster_size": "regular"
   },
   "monsters/bramblet/bramblet_portrait.png": {
    "notes": "20x20 head crop (rect [30, 31, 20, 20] of the rest frame) for the initiative strip.",
-   "status": "draft_pending_approval"
+   "status": "approved"
   },
   "monsters/bramblet/bramblet_still.png": {
    "anchor": [
@@ -214,7 +220,7 @@
     12
    ],
    "notes": "single rest frame (portraits / initiative).",
-   "status": "draft_pending_approval"
+   "status": "approved"
   },
   "monsters/grinmud_toad/grinmud_toad_idle.png": {
    "frames": 2,
@@ -238,7 +244,7 @@
     20
    ],
    "loop": true,
-   "status": "draft_pending_approval",
+   "status": "approved",
    "region": "meadow",
    "monster_size": "regular"
   },
@@ -264,7 +270,7 @@
     20
    ],
    "loop": false,
-   "status": "draft_pending_approval",
+   "status": "approved",
    "region": "meadow",
    "monster_size": "regular"
   },
@@ -290,7 +296,7 @@
     20
    ],
    "loop": false,
-   "status": "draft_pending_approval",
+   "status": "approved",
    "region": "meadow",
    "monster_size": "regular"
   },
@@ -316,13 +322,13 @@
     20
    ],
    "loop": false,
-   "status": "draft_pending_approval",
+   "status": "approved",
    "region": "meadow",
    "monster_size": "regular"
   },
   "monsters/grinmud_toad/grinmud_toad_portrait.png": {
    "notes": "20x20 head crop (rect [30, 29, 20, 20] of the rest frame) for the initiative strip.",
-   "status": "draft_pending_approval"
+   "status": "approved"
   },
   "monsters/grinmud_toad/grinmud_toad_still.png": {
    "anchor": [
@@ -334,7 +340,7 @@
     20
    ],
    "notes": "single rest frame (portraits / initiative).",
-   "status": "draft_pending_approval"
+   "status": "approved"
   },
   "monsters/bottlecrab/bottlecrab_idle.png": {
    "frames": 2,
@@ -358,7 +364,7 @@
     20
    ],
    "loop": true,
-   "status": "draft_pending_approval",
+   "status": "approved",
    "region": "coast",
    "monster_size": "regular"
   },
@@ -384,7 +390,7 @@
     20
    ],
    "loop": false,
-   "status": "draft_pending_approval",
+   "status": "approved",
    "region": "coast",
    "monster_size": "regular"
   },
@@ -410,7 +416,7 @@
     20
    ],
    "loop": false,
-   "status": "draft_pending_approval",
+   "status": "approved",
    "region": "coast",
    "monster_size": "regular"
   },
@@ -436,13 +442,13 @@
     20
    ],
    "loop": false,
-   "status": "draft_pending_approval",
+   "status": "approved",
    "region": "coast",
    "monster_size": "regular"
   },
   "monsters/bottlecrab/bottlecrab_portrait.png": {
    "notes": "20x20 head crop (rect [30, 35, 20, 20] of the rest frame) for the initiative strip.",
-   "status": "draft_pending_approval"
+   "status": "approved"
   },
   "monsters/bottlecrab/bottlecrab_still.png": {
    "anchor": [
@@ -454,7 +460,7 @@
     3
    ],
    "notes": "single rest frame (portraits / initiative).",
-   "status": "draft_pending_approval"
+   "status": "approved"
   },
   "monsters/squallgull/squallgull_idle.png": {
    "frames": 2,
@@ -478,7 +484,7 @@
     20
    ],
    "loop": true,
-   "status": "draft_pending_approval",
+   "status": "approved",
    "region": "coast",
    "monster_size": "regular"
   },
@@ -504,7 +510,7 @@
     20
    ],
    "loop": false,
-   "status": "draft_pending_approval",
+   "status": "approved",
    "region": "coast",
    "monster_size": "regular"
   },
@@ -530,7 +536,7 @@
     20
    ],
    "loop": false,
-   "status": "draft_pending_approval",
+   "status": "approved",
    "region": "coast",
    "monster_size": "regular"
   },
@@ -556,13 +562,13 @@
     20
    ],
    "loop": false,
-   "status": "draft_pending_approval",
+   "status": "approved",
    "region": "coast",
    "monster_size": "regular"
   },
   "monsters/squallgull/squallgull_portrait.png": {
    "notes": "20x20 head crop (rect [31, 26, 20, 20] of the rest frame) for the initiative strip.",
-   "status": "draft_pending_approval"
+   "status": "approved"
   },
   "monsters/squallgull/squallgull_still.png": {
    "anchor": [
@@ -574,7 +580,7 @@
     12
    ],
    "notes": "single rest frame (portraits / initiative).",
-   "status": "draft_pending_approval"
+   "status": "approved"
   },
   "monsters/kelpback/kelpback_idle.png": {
    "frames": 2,
@@ -598,7 +604,7 @@
     20
    ],
    "loop": true,
-   "status": "draft_pending_approval",
+   "status": "approved",
    "region": "coast",
    "monster_size": "large"
   },
@@ -624,7 +630,7 @@
     20
    ],
    "loop": false,
-   "status": "draft_pending_approval",
+   "status": "approved",
    "region": "coast",
    "monster_size": "large"
   },
@@ -650,7 +656,7 @@
     20
    ],
    "loop": false,
-   "status": "draft_pending_approval",
+   "status": "approved",
    "region": "coast",
    "monster_size": "large"
   },
@@ -676,13 +682,13 @@
     20
    ],
    "loop": false,
-   "status": "draft_pending_approval",
+   "status": "approved",
    "region": "coast",
    "monster_size": "large"
   },
   "monsters/kelpback/kelpback_portrait.png": {
    "notes": "20x20 head crop (rect [6, 30, 20, 20] of the rest frame) for the initiative strip.",
-   "status": "draft_pending_approval"
+   "status": "approved"
   },
   "monsters/kelpback/kelpback_still.png": {
    "anchor": [
@@ -694,7 +700,7 @@
     12
    ],
    "notes": "single rest frame (portraits / initiative).",
-   "status": "draft_pending_approval"
+   "status": "approved"
   },
   "monsters/gloomgrub/gloomgrub_idle.png": {
    "frames": 2,
@@ -718,7 +724,7 @@
     20
    ],
    "loop": true,
-   "status": "draft_pending_approval",
+   "status": "approved",
    "region": "cave",
    "monster_size": "regular"
   },
@@ -744,7 +750,7 @@
     20
    ],
    "loop": false,
-   "status": "draft_pending_approval",
+   "status": "approved",
    "region": "cave",
    "monster_size": "regular"
   },
@@ -770,7 +776,7 @@
     20
    ],
    "loop": false,
-   "status": "draft_pending_approval",
+   "status": "approved",
    "region": "cave",
    "monster_size": "regular"
   },
@@ -796,13 +802,13 @@
     20
    ],
    "loop": false,
-   "status": "draft_pending_approval",
+   "status": "approved",
    "region": "cave",
    "monster_size": "regular"
   },
   "monsters/gloomgrub/gloomgrub_portrait.png": {
    "notes": "20x20 head crop (rect [10, 36, 20, 20] of the rest frame) for the initiative strip.",
-   "status": "draft_pending_approval"
+   "status": "approved"
   },
   "monsters/gloomgrub/gloomgrub_still.png": {
    "anchor": [
@@ -814,7 +820,7 @@
     22
    ],
    "notes": "single rest frame (portraits / initiative).",
-   "status": "draft_pending_approval"
+   "status": "approved"
   },
   "monsters/dripfang/dripfang_idle.png": {
    "frames": 2,
@@ -838,7 +844,7 @@
     20
    ],
    "loop": true,
-   "status": "draft_pending_approval",
+   "status": "approved",
    "region": "cave",
    "monster_size": "regular"
   },
@@ -864,7 +870,7 @@
     20
    ],
    "loop": false,
-   "status": "draft_pending_approval",
+   "status": "approved",
    "region": "cave",
    "monster_size": "regular"
   },
@@ -890,7 +896,7 @@
     20
    ],
    "loop": false,
-   "status": "draft_pending_approval",
+   "status": "approved",
    "region": "cave",
    "monster_size": "regular"
   },
@@ -916,13 +922,13 @@
     20
    ],
    "loop": false,
-   "status": "draft_pending_approval",
+   "status": "approved",
    "region": "cave",
    "monster_size": "regular"
   },
   "monsters/dripfang/dripfang_portrait.png": {
    "notes": "20x20 head crop (rect [31, 24, 20, 20] of the rest frame) for the initiative strip.",
-   "status": "draft_pending_approval"
+   "status": "approved"
   },
   "monsters/dripfang/dripfang_still.png": {
    "anchor": [
@@ -934,7 +940,7 @@
     1
    ],
    "notes": "single rest frame (portraits / initiative).",
-   "status": "draft_pending_approval"
+   "status": "approved"
   },
   "monsters/pebble_squire/pebble_squire_idle.png": {
    "frames": 2,
@@ -958,7 +964,7 @@
     20
    ],
    "loop": true,
-   "status": "draft_pending_approval",
+   "status": "approved",
    "region": "keep",
    "monster_size": "regular"
   },
@@ -984,7 +990,7 @@
     20
    ],
    "loop": false,
-   "status": "draft_pending_approval",
+   "status": "approved",
    "region": "keep",
    "monster_size": "regular"
   },
@@ -1010,7 +1016,7 @@
     20
    ],
    "loop": false,
-   "status": "draft_pending_approval",
+   "status": "approved",
    "region": "keep",
    "monster_size": "regular"
   },
@@ -1036,13 +1042,13 @@
     20
    ],
    "loop": false,
-   "status": "draft_pending_approval",
+   "status": "approved",
    "region": "keep",
    "monster_size": "regular"
   },
   "monsters/pebble_squire/pebble_squire_portrait.png": {
    "notes": "20x20 head crop (rect [29, 15, 20, 20] of the rest frame) for the initiative strip.",
-   "status": "draft_pending_approval"
+   "status": "approved"
   },
   "monsters/pebble_squire/pebble_squire_still.png": {
    "anchor": [
@@ -1054,7 +1060,7 @@
     2
    ],
    "notes": "single rest frame (portraits / initiative).",
-   "status": "draft_pending_approval"
+   "status": "approved"
   },
   "monsters/hollow_helm/hollow_helm_idle.png": {
    "frames": 2,
@@ -1078,7 +1084,7 @@
     20
    ],
    "loop": true,
-   "status": "draft_pending_approval",
+   "status": "approved",
    "region": "keep",
    "monster_size": "regular"
   },
@@ -1104,7 +1110,7 @@
     20
    ],
    "loop": false,
-   "status": "draft_pending_approval",
+   "status": "approved",
    "region": "keep",
    "monster_size": "regular"
   },
@@ -1130,7 +1136,7 @@
     20
    ],
    "loop": false,
-   "status": "draft_pending_approval",
+   "status": "approved",
    "region": "keep",
    "monster_size": "regular"
   },
@@ -1156,13 +1162,13 @@
     20
    ],
    "loop": false,
-   "status": "draft_pending_approval",
+   "status": "approved",
    "region": "keep",
    "monster_size": "regular"
   },
   "monsters/hollow_helm/hollow_helm_portrait.png": {
    "notes": "20x20 head crop (rect [28, 17, 20, 20] of the rest frame) for the initiative strip.",
-   "status": "draft_pending_approval"
+   "status": "approved"
   },
   "monsters/hollow_helm/hollow_helm_still.png": {
    "anchor": [
@@ -1174,7 +1180,7 @@
     1
    ],
    "notes": "single rest frame (portraits / initiative).",
-   "status": "draft_pending_approval"
+   "status": "approved"
   },
   "monsters/cobble_rat/cobble_rat_idle.png": {
    "frames": 2,
@@ -1198,7 +1204,7 @@
     20
    ],
    "loop": true,
-   "status": "draft_pending_approval",
+   "status": "approved",
    "region": "keep",
    "monster_size": "regular"
   },
@@ -1224,7 +1230,7 @@
     20
    ],
    "loop": false,
-   "status": "draft_pending_approval",
+   "status": "approved",
    "region": "keep",
    "monster_size": "regular"
   },
@@ -1250,7 +1256,7 @@
     20
    ],
    "loop": false,
-   "status": "draft_pending_approval",
+   "status": "approved",
    "region": "keep",
    "monster_size": "regular"
   },
@@ -1276,13 +1282,13 @@
     20
    ],
    "loop": false,
-   "status": "draft_pending_approval",
+   "status": "approved",
    "region": "keep",
    "monster_size": "regular"
   },
   "monsters/cobble_rat/cobble_rat_portrait.png": {
    "notes": "20x20 head crop (rect [11, 39, 20, 20] of the rest frame) for the initiative strip.",
-   "status": "draft_pending_approval"
+   "status": "approved"
   },
   "monsters/cobble_rat/cobble_rat_still.png": {
    "anchor": [
@@ -1294,7 +1300,7 @@
     28
    ],
    "notes": "single rest frame (portraits / initiative).",
-   "status": "draft_pending_approval"
+   "status": "approved"
   }
  },
  "regions": {
@@ -1542,7 +1548,8 @@
      12
     ],
     "flying": false,
-    "status": "draft_pending_approval"
+    "status": "approved",
+    "approval": "approved 2026-09-28 by Kyle (via Chief of Staff); pushed to art/phase0-pack @ 122a66a"
    },
    "grinmud_toad": {
     "name": "Grinmud Toad",
@@ -1565,7 +1572,8 @@
      20
     ],
     "flying": false,
-    "status": "draft_pending_approval"
+    "status": "approved",
+    "approval": "approved 2026-09-28 by Kyle (via Chief of Staff); pushed to art/phase0-pack @ 122a66a"
    },
    "bottlecrab": {
     "name": "Bottlecrab",
@@ -1588,7 +1596,8 @@
      3
     ],
     "flying": false,
-    "status": "draft_pending_approval"
+    "status": "approved",
+    "approval": "approved 2026-09-28 by Kyle (via Chief of Staff); pushed to art/phase0-pack @ 122a66a"
    },
    "squallgull": {
     "name": "Squallgull",
@@ -1611,7 +1620,8 @@
      12
     ],
     "flying": true,
-    "status": "draft_pending_approval"
+    "status": "approved",
+    "approval": "approved 2026-09-28 by Kyle (via Chief of Staff); pushed to art/phase0-pack @ 122a66a"
    },
    "kelpback": {
     "name": "Kelpback Snapper",
@@ -1634,7 +1644,8 @@
      12
     ],
     "flying": false,
-    "status": "draft_pending_approval"
+    "status": "approved",
+    "approval": "approved 2026-09-28 by Kyle (via Chief of Staff); pushed to art/phase0-pack @ 122a66a"
    },
    "gloomgrub": {
     "name": "Gloomgrub",
@@ -1657,7 +1668,8 @@
      22
     ],
     "flying": false,
-    "status": "draft_pending_approval"
+    "status": "approved",
+    "approval": "approved 2026-09-28 by Kyle (via Chief of Staff); pushed to art/phase0-pack @ 122a66a"
    },
    "dripfang": {
     "name": "Dripfang",
@@ -1680,7 +1692,8 @@
      1
     ],
     "flying": false,
-    "status": "draft_pending_approval"
+    "status": "approved",
+    "approval": "approved 2026-09-28 by Kyle (via Chief of Staff); pushed to art/phase0-pack @ 122a66a"
    },
    "pebble_squire": {
     "name": "Pebble Squire",
@@ -1703,7 +1716,8 @@
      2
     ],
     "flying": false,
-    "status": "draft_pending_approval"
+    "status": "approved",
+    "approval": "approved 2026-09-28 by Kyle (via Chief of Staff); pushed to art/phase0-pack @ 122a66a"
    },
    "hollow_helm": {
     "name": "Hollow Helm",
@@ -1726,7 +1740,8 @@
      1
     ],
     "flying": true,
-    "status": "draft_pending_approval"
+    "status": "approved",
+    "approval": "approved 2026-09-28 by Kyle (via Chief of Staff); pushed to art/phase0-pack @ 122a66a"
    },
    "cobble_rat": {
     "name": "Cobble Rat",
@@ -1749,9 +1764,12 @@
      28
     ],
     "flying": false,
-    "status": "draft_pending_approval"
+    "status": "approved",
+    "approval": "approved 2026-09-28 by Kyle (via Chief of Staff); pushed to art/phase0-pack @ 122a66a"
    }
   },
-  "status": "draft_pending_approval"
+  "status": "approved",
+  "approval": "approved 2026-09-28 by Kyle (via Chief of Staff); pushed to art/phase0-pack @ 122a66a",
+  "existing_names_note": "data side is renaming the existing 8 monsters to match their art (ids unchanged here); no redraws needed."
  }
 }

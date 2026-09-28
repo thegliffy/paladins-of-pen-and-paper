@@ -26,9 +26,22 @@ def LN(W, H, p0, p1, w):
 
 # ---------------- pseudo-3D shading ----------------
 LIGHT = np.array([-0.55, -0.75, 0.9]); LIGHT = LIGHT / np.linalg.norm(LIGHT)
-def shade_idx(mask, n_tones, bulge=1.0, flat=False, th=None):
+def shade_rim(mask, n_tones):
+    """small-icon shading: mid fill, light rim where the top/left neighbour is outside, dark rim bottom/right."""
+    def out(dx, dy):
+        m = np.pad(mask, 1)[1 + dy:1 + dy + mask.shape[0], 1 + dx:1 + dx + mask.shape[1]]; return ~m
+    mid = 1 if n_tones >= 3 else 0
+    idx = np.full(mask.shape, mid)
+    if n_tones >= 2: idx[out(1, 0) | out(0, 1) | out(1, 1)] = 0
+    if n_tones >= 3: idx[(out(-1, 0) | out(0, -1)) & ~(out(1, 0) | out(0, 1))] = 2
+    if n_tones >= 4: idx[out(-1, -1) & ~out(-1, 0) & ~out(0, -1) & ~(out(1, 0) | out(0, 1))] = 3
+    if n_tones == 2: idx[~(out(1, 0) | out(0, 1) | out(1, 1))] = 1
+    return np.where(mask, idx, -1)
+
+def shade_idx(mask, n_tones, bulge=1.0, flat=False, th=None, rim=False):
     """0=darkest .. n_tones-1=lightest; dome profile from the distance transform, lambert-lit from the top-left."""
     if flat: return np.where(mask, n_tones // 2, -1)
+    if rim: return shade_rim(mask, n_tones)
     d = ndi.distance_transform_edt(np.pad(mask, 1))[1:-1, 1:-1]
     dm = max(d.max(), 1.0); t = np.clip(d / dm, 0, 1)
     h = np.sqrt(1 - (1 - t) ** 2) * dm * bulge
@@ -43,11 +56,11 @@ class Sprite:
     """Parts painted back to front; outer 1px outline + internal separator lines."""
     def __init__(s, W, H):
         s.W, s.H = W, H; s.rgb = np.zeros((H, W, 3), np.uint8); s.pid = np.zeros((H, W), np.int32); s.n = 0; s.meta = {}
-    def add(s, mask, ramp, sep=True, line=None, flat=False, bulge=1.0, th=None, clip=None):
+    def add(s, mask, ramp, sep=True, line=None, flat=False, bulge=1.0, th=None, clip=None, rim=False):
         if clip is not None: mask = mask & clip
         if not mask.any(): return mask
         s.n += 1; k = s.n
-        idx = shade_idx(mask, len(ramp), bulge, flat, th)
+        idx = shade_idx(mask, len(ramp), bulge, flat, th, rim)
         for i, nm in enumerate(ramp): s.rgb[idx == i] = C[nm]
         if sep:
             behind = (s.pid > 0) & ~mask

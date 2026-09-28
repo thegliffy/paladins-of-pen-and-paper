@@ -1,4 +1,4 @@
-"""DRAFT (pending approval): Greenmere location backdrops + region monsters. Writes art + tools/_work/meta_regions.json."""
+"""APPROVED 2026-09-28 (Kyle via Chief of Staff; pushed art/phase0-pack @122a66a): Greenmere location backdrops + region monsters. Writes art + tools/_work/meta_regions.json."""
 import json, numpy as np
 from PIL import Image
 import pal
@@ -7,14 +7,15 @@ from draft_backdrops import LOCS
 from draft_monsters import DRAFT
 OUT = pal.OUT
 META = {}
-STATUS = 'draft_pending_approval'
+STATUS = 'approved'
+APPROVED = 'approved 2026-09-28 by Kyle (via Chief of Staff); pushed to art/phase0-pack @ 122a66a'
 
 # ---------------- backdrops ----------------
 for lid, (fn, name, kind) in LOCS.items():
     rel = f'combat/bg_{lid}_portrait.png'
     save(fn().image(), rel)
     META[rel] = dict(anchor=[0, 0], status=STATUS, location=lid, location_name=name, region=kind, horizon_y=141, monster_feet_band=[222, 266],
-        notes=f'DRAFT {name} ({kind}) combat backdrop, 270x480, same framing as bg_forest_portrait: sky/landmarks above the horizon (y141), '
+        approval=APPROVED, notes=f'{name} ({kind}) combat backdrop, 270x480, same framing as bg_forest_portrait: sky/landmarks above the horizon (y141), '
               'monster stand zone y~180-270 kept low-contrast, calmer texture below y~300 (table y343-382, seats and bars below). '
               'Procedural, flat shading, pack palette, alpha 255.' + (' Candlewick has no monsters in data/region.json (town / inn); backdrop provided for completeness.' if lid == 'candlewick' else ''))
 
@@ -77,7 +78,7 @@ for n, (fn, region, size, name, concept) in DRAFT.items():
     META[f'monsters/{n}/{n}_portrait.png'] = dict(notes=f'20x20 head crop (rect {PR} of the rest frame) for the initiative strip.', status=STATUS)
     save(fr0, f'monsters/{n}/{n}_still.png')
     META[f'monsters/{n}/{n}_still.png'] = dict(anchor=[FW // 2, BASE], hp_bar_anchor=hp_anchor, notes='single rest frame (portraits / initiative).', status=STATUS)
-    MON[n] = dict(name=name, region=region, size=size, concept=concept, sprite_size=[w, h], top=BASE + 1 - h, portrait_rect=PR, hp_bar_anchor=hp_anchor, flying=n in FLY, status=STATUS)
+    MON[n] = dict(name=name, region=region, size=size, concept=concept, sprite_size=[w, h], top=BASE + 1 - h, portrait_rect=PR, hp_bar_anchor=hp_anchor, flying=n in FLY, status=STATUS, approval=APPROVED)
 
 # ---------------- region table (from data/region.json + data/monsters.json on cursor/phase-0-playable-slice-9a5e) ----------------
 EXISTING = {  # id: (name, size, pack sprite used by data/monsters.json)
@@ -108,6 +109,7 @@ REGIONS = dict(source='thegliffy/paladins-of-pen-and-paper @ cursor/phase-0-play
     note='The region is the place "kind" (town/meadow/coast/cave/keep); the map itself is one region file (greenmere). Town (Candlewick) has no monsters by design, so it is excluded from the 4-regular/1-large rule.',
     places=[dict(id=pid, name=pn, region=k, level=l, monsters=m, suggested_new=[n for n, pp in SUGGEST_PLACE.items() if pp == pid],
                  backdrop=f'combat/bg_{pid}_portrait.png') for pid, pn, k, l, m in PLACES],
-    regions=REG, existing=EXISTING, draft_monsters=MON, status=STATUS)
+    regions=REG, existing=EXISTING, draft_monsters=MON, status=STATUS, approval=APPROVED,
+    existing_names_note='data side is renaming the existing 8 monsters to match their art (ids unchanged here); no redraws needed.')
 json.dump(dict(meta=META, regions=REGIONS), open(OUT + 'tools/_work/meta_regions.json', 'w'), indent=1)
 for k, v in REG.items(): print(k, v['regular'], v['large'], v['meets_4_regular_1_large'], v['new'])
