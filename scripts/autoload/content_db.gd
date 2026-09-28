@@ -99,6 +99,20 @@ func place(id: String) -> Dictionary:
 	return places[id]
 
 
+func region_monster_ids() -> Array:
+	## Each monster once, in the order the region's places introduce them.
+	var ids: Array = []
+	var seen := {}
+	for place_row in region.get("places", []):
+		for monster_id in place_row.get("monsters", []):
+			var key := str(monster_id)
+			if seen.has(key) or not monsters.has(key):
+				continue
+			seen[key] = true
+			ids.append(key)
+	return ids
+
+
 func threat_rules() -> Dictionary:
 	return threat
 

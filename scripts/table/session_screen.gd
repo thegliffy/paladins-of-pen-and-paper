@@ -27,6 +27,7 @@ var _modal: Control
 var _dice: Control
 var _dice_labels: Array = []
 var _targeting := false
+var _seats_front := false
 var _flickers: Array = []
 var _table: TextureRect
 var _gm: TextureRect
@@ -69,7 +70,7 @@ func show_hub() -> void:
 	_banner.text = "%s   %d gold" % [place["name"], GameState.gold]
 	_caption.text = str(place["description"])
 	_sync_party()
-	var fight: bool = (place.get("monsters", []) as Array).size() > 0
+	var fight: bool = not ContentDB.region_monster_ids().is_empty()
 	set_actions([
 		{"id": "travel", "label": "Travel", "icon": "icon_run"},
 		{"id": "fight", "label": "Fight", "icon": "icon_attack", "disabled": not fight},
@@ -536,6 +537,9 @@ func _fill_inspect(card: Dictionary, action_id: String = "") -> void:
 		frames = 1
 		hint_copy = "ON COOLDOWN: %d" % _first_int(str(card.get("cooldown", "")))
 		hint_color = Color("cfd0d4")
+	elif hint == "Pick a target":
+		hint_copy = "PICK A TARGET"
+		hint_color = Color("f8d040")
 	elif hint.begins_with("Not enough") or hint == "Not learned yet":
 		strip_path = "ui/portrait/skill_card_strip_nomp.png"
 		frames = 1
@@ -559,6 +563,7 @@ func _fill_inspect(card: Dictionary, action_id: String = "") -> void:
 	var hint_label := PixelFont.label(hint_copy, hint_color)
 	hint_label.position = Vector2((strip.size.x - hint_label.size.x) * 0.5, 5)
 	hint_label.name = "Hint"
+	_inspect.set_meta("hint", hint_copy)
 	strip.add_child(hint_label)
 	_strip_panel = strip
 	_strip_frames = frames
@@ -740,10 +745,18 @@ func death_blink(id: String) -> void:
 		visual.modulate = Color(1, 1, 1, 0.35)
 
 
-func set_target_mode(valid_ids: Array, hint: String) -> void:
+func set_target_mode(valid_ids: Array, _hint: String) -> void:
 	_targeting = true
-	_caption.text = hint
 	_stop_flickers()
+	var allies := false
+	for id in valid_ids:
+		if str(id).begins_with("p"):
+			allies = true
+	if allies and _seat_layer:
+		move_child(_seat_layer, get_child_count() - 1)
+		_seats_front = true
+	elif _seats_front:
+		_restore_seat_layer()
 	for id in _monsters.keys():
 		var visual := _visual(_monsters[id])
 		if visual == null:
@@ -766,6 +779,8 @@ func set_target_mode(valid_ids: Array, hint: String) -> void:
 
 func clear_target_mode() -> void:
 	_targeting = false
+	if _seats_front:
+		_restore_seat_layer()
 	_stop_flickers()
 	for id in _monsters.keys():
 		var visual := _visual(_monsters[id])
@@ -957,6 +972,11 @@ func _build_chrome() -> void:
 	bg.texture = ArtPack.texture("combat/bg_forest_portrait.png")
 	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(bg)
+	_inspect_catcher = Control.new()
+	_inspect_catcher.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_inspect_catcher.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_inspect_catcher.gui_input.connect(_on_dismiss_input)
+	add_child(_inspect_catcher)
 	_monster_layer = Control.new()
 	_monster_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_monster_layer.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -1004,11 +1024,6 @@ func _build_chrome() -> void:
 	_caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_caption.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	add_child(_caption)
-	_inspect_catcher = Control.new()
-	_inspect_catcher.set_anchors_preset(Control.PRESET_FULL_RECT)
-	_inspect_catcher.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_inspect_catcher.gui_input.connect(_on_dismiss_input)
-	add_child(_inspect_catcher)
 	_turn_tab = Panel.new()
 	var tab_box := StyleBoxTexture.new()
 	tab_box.texture = ArtPack.texture("ui/portrait/name_tab.png")
@@ -1181,12 +1196,16 @@ func _sync_from_units(units: Array) -> void:
 func _add_monster(unit: Dictionary) -> void:
 	var sprite_name := ArtPack.monster_sprite(str(unit["kind"]))
 	var frame_size := ArtPack.monster_size(sprite_name)
+	var hit := Vector2(maxf(frame_size.x, 24.0), maxf(frame_size.y, 24.0))
+	var origin := (hit - frame_size) * 0.5
 	var node := Control.new()
-	node.size = frame_size
+	node.size = hit
+	node.mouse_filter = Control.MOUSE_FILTER_STOP
 	node.set_meta("back", bool(unit.get("back_row", false)))
 	node.set_meta("kind", str(unit["kind"]))
 	node.set_meta("sprite", sprite_name)
-	var anchor := ArtPack.monster_hp_anchor(sprite_name)
+	node.set_meta("feet", ArtPack.monster_feet(sprite_name) + origin)
+	var anchor := ArtPack.monster_hp_anchor(sprite_name) + origin
 	var trough := _icon_rect("ui/enemy_bar_bg.png")
 	trough.position = anchor - Vector2(16, 4)
 	trough.size = Vector2(32, 5)
@@ -1198,7 +1217,7 @@ func _add_monster(unit: Dictionary) -> void:
 	_bars[str(unit["id"])] = {"hp_art": hp_fill}
 	var sprite := TextureRect.new()
 	sprite.name = "Sprite"
-	sprite.position = Vector2.ZERO
+	sprite.position = origin
 	sprite.size = frame_size
 	sprite.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	sprite.stretch_mode = TextureRect.STRETCH_SCALE
@@ -1208,12 +1227,13 @@ func _add_monster(unit: Dictionary) -> void:
 	node.move_child(sprite, 0)
 	var conds := Widgets.label("", Layout.font_tiny(), SpriteCatalog.LIGHT)
 	conds.name = "Conds"
-	conds.position = Vector2(0, 56)
+	conds.position = origin + Vector2(0, 56)
 	conds.size = Vector2(64, 12)
 	node.add_child(conds)
 	var uid := str(unit["id"])
 	node.gui_input.connect(func(event: InputEvent):
 		if Widgets.is_press(event):
+			_pulse_node(node)
 			target_pressed.emit(uid)
 	)
 	_monster_layer.add_child(node)
@@ -1228,8 +1248,7 @@ func _layout_monsters() -> void:
 	var origin_x := 135.0 - span * 0.5
 	for i in ids.size():
 		var node: Control = _monsters[ids[i]]
-		var sprite_name := str(node.get_meta("sprite"))
-		var feet := ArtPack.monster_feet(sprite_name)
+		var feet: Vector2 = node.get_meta("feet")
 		var feet_x := origin_x + span * (float(i) + 0.5) / float(count)
 		var feet_y := 222.0 if bool(node.get_meta("back", false)) else 262.0
 		if marks.size() == ids.size():
@@ -1304,7 +1323,24 @@ func _visual(node: Control) -> Control:
 
 func _card_input(event: InputEvent, pid: String) -> void:
 	if Widgets.is_press(event):
+		_pulse_node(_node_for(pid))
 		target_pressed.emit(pid)
+
+
+func _pulse_node(node: Control) -> void:
+	var visual := _visual(node)
+	if visual == null:
+		return
+	visual.modulate = Color(1.45, 1.22, 0.55)
+	var tween := create_tween()
+	tween.tween_property(visual, "modulate", Color.WHITE, 0.16)
+
+
+func _restore_seat_layer() -> void:
+	_seats_front = false
+	if _seat_layer == null or _initiative == null:
+		return
+	move_child(_seat_layer, _initiative.get_index())
 
 
 func _clipped_fill(rel: String, at: Vector2, full_size: Vector2) -> Dictionary:

@@ -13,6 +13,11 @@ static func run(host: Node) -> int:
 	await _hub(host, tree, failures)
 	await _map(host, tree, failures)
 	await _combat(host, tree, failures)
+	await _tap_attack(host, tree, failures)
+	await _tap_skill(host, tree, failures)
+	await _tap_cancel(host, tree, failures)
+	await _tap_ally(host, tree, failures)
+	await _builder(host, tree, failures)
 	if failures.is_empty():
 		print("TOUCH_CHECK_OK")
 		return 0
@@ -129,6 +134,323 @@ static func _combat(host: Node, tree: SceneTree, failures: Array[String]) -> voi
 	if str(action["id"]) != "attack":
 		failures.append("combat")
 		push_error("Touch check: combat Attack did not fire")
+	session.queue_free()
+	await tree.process_frame
+
+
+static func _hero(persona: String, race: String, class_id: String) -> Dictionary:
+	return GameState.make_member(persona, race, class_id, {
+		"skin": 0, "head": 0, "hair": 0, "hair_color": 0, "outfit_color": 0,
+	})
+
+
+static func _boot_turn(host: Node, tree: SceneTree, members: Array, monster_ids: Array) -> Dictionary:
+	var session := SessionScreen.new()
+	await _mount(host, tree, session)
+	GameState.new_campaign(members)
+	session._sync_party()
+	for member in GameState.party:
+		member["mp"] = 500
+	var flow := BattleFlow.new()
+	flow.hurry = true
+	flow.view = session
+	session.add_child(flow)
+	flow._listen(true)
+	var rows: Array = []
+	for monster_id in monster_ids:
+		rows.append({"id": monster_id})
+	flow._build_units(rows)
+	for unit in flow.units:
+		if str(unit["side"]) == "monster":
+			unit["hp"] = 800
+			unit["max_hp"] = 800
+		else:
+			unit["mp"] = 500
+	session.present_units(flow.units)
+	if not flow.units.is_empty():
+		session.raise_member(0, true)
+		flow._player_turn(flow.units[0])
+	await tree.process_frame
+	await tree.process_frame
+	return {"session": session, "flow": flow}
+
+
+static func _unit_hp(flow: BattleFlow, unit_id: String) -> int:
+	for unit in flow.units:
+		if str(unit["id"]) == unit_id:
+			return int(unit["hp"])
+	return -1
+
+
+static func _unit_mp(flow: BattleFlow, unit_id: String) -> int:
+	for unit in flow.units:
+		if str(unit["id"]) == unit_id:
+			return int(unit["mp"])
+	return -1
+
+
+static func _until(tree: SceneTree, cond: Callable, frames: int = 90) -> bool:
+	for _i in frames:
+		if bool(cond.call()):
+			return true
+		await tree.process_frame
+	return false
+
+
+static func _tap_attack(host: Node, tree: SceneTree, failures: Array[String]) -> void:
+	var pack: Dictionary = await _boot_turn(host, tree, [_hero("mason", "delver", "paladin")], ["puddleblob", "thicket_imp"])
+	var session := pack["session"] as SessionScreen
+	var flow := pack["flow"] as BattleFlow
+	var node := session._monsters["m1"] as Control
+	if node == null or node.size.x < 24.0 or node.size.y < 24.0:
+		failures.append("hitbox")
+		push_error("Touch check: enemy hitbox is under 24px")
+		session.queue_free()
+		return
+	var before := _unit_hp(flow, "m1")
+	await _tap(tree, node.get_global_rect().get_center())
+	var hit: bool = await _until(tree, func() -> bool: return _unit_hp(flow, "m1") < before)
+	if not hit:
+		failures.append("tap_attack")
+		push_error("Touch check: tapping an enemy did not attack it")
+	elif _unit_hp(flow, "m0") != 800:
+		failures.append("tap_attack_target")
+		push_error("Touch check: the tap hit the wrong enemy")
+	session.queue_free()
+	await tree.process_frame
+
+
+static func _tap_skill(host: Node, tree: SceneTree, failures: Array[String]) -> void:
+	var pack: Dictionary = await _boot_turn(host, tree, [_hero("mason", "delver", "paladin")], ["puddleblob", "thicket_imp"])
+	var session := pack["session"] as SessionScreen
+	var flow := pack["flow"] as BattleFlow
+	var button := _find_action(session, "skill:oathstrike")
+	if button == null:
+		failures.append("skill_button")
+		session.queue_free()
+		return
+	await _tap(tree, button.get_global_rect().get_center())
+	var armed: bool = await _until(tree, func() -> bool:
+		return session._targeting and str(session._inspect.get_meta("hint", "")) == "PICK A TARGET"
+	)
+	if not armed:
+		failures.append("skill_arm")
+		push_error("Touch check: Oathstrike did not enter targeting")
+		session.queue_free()
+		return
+	if session._caption.text == "Pick a target" or session._caption.text == "Choose a foe":
+		failures.append("skill_hint")
+		push_error("Touch check: the target hint floated instead of staying on the card")
+	var before_hp := _unit_hp(flow, "m0")
+	var before_mp := _unit_mp(flow, "p0")
+	var node := session._monsters["m0"] as Control
+	await _tap(tree, node.get_global_rect().get_center())
+	var cast: bool = await _until(tree, func() -> bool:
+		return _unit_hp(flow, "m0") < before_hp and _unit_mp(flow, "p0") < before_mp
+	)
+	if not cast:
+		failures.append("skill_cast")
+		push_error("Touch check: tapping the enemy did not cast the armed skill")
+	session.queue_free()
+	await tree.process_frame
+
+
+static func _tap_cancel(host: Node, tree: SceneTree, failures: Array[String]) -> void:
+	var pack: Dictionary = await _boot_turn(host, tree, [_hero("mason", "delver", "paladin")], ["puddleblob", "thicket_imp"])
+	var session := pack["session"] as SessionScreen
+	var flow := pack["flow"] as BattleFlow
+	var strike := _find_action(session, "skill:oathstrike")
+	if strike == null:
+		failures.append("cancel_button")
+		session.queue_free()
+		return
+	await _tap(tree, strike.get_global_rect().get_center())
+	var armed: bool = await _until(tree, func() -> bool: return session._targeting)
+	if not armed:
+		failures.append("cancel_arm")
+		session.queue_free()
+		return
+	var before := _unit_hp(flow, "m0")
+	await _tap(tree, Vector2(135, 120))
+	var cleared: bool = await _until(tree, func() -> bool: return not session._targeting and not session._inspect.visible)
+	if not cleared or _unit_hp(flow, "m0") != before:
+		failures.append("cancel_empty")
+		push_error("Touch check: an empty tap did not cancel targeting")
+		session.queue_free()
+		return
+	strike = _find_action(session, "skill:oathstrike")
+	if strike == null:
+		failures.append("cancel_rearm")
+		session.queue_free()
+		return
+	await _tap(tree, strike.get_global_rect().get_center())
+	var rearmed: bool = await _until(tree, func() -> bool: return session._targeting)
+	if not rearmed:
+		failures.append("cancel_rearm")
+		session.queue_free()
+		return
+	var wall := _find_action(session, "skill:shieldwall")
+	if wall == null:
+		failures.append("cancel_switch")
+		session.queue_free()
+		return
+	await _tap(tree, wall.get_global_rect().get_center())
+	var switched: bool = await _until(tree, func() -> bool:
+		return not session._targeting and session._inspect.visible and str(session._inspect.get_meta("hint", "")) != "PICK A TARGET"
+	)
+	if not switched:
+		failures.append("cancel_switch")
+		push_error("Touch check: another skill did not leave targeting")
+	session.queue_free()
+	await tree.process_frame
+
+
+static func _tap_ally(host: Node, tree: SceneTree, failures: Array[String]) -> void:
+	var pack: Dictionary = await _boot_turn(host, tree, [
+		_hero("mason", "delver", "paladin"),
+		_hero("nim", "glenfolk", "wizard"),
+	], ["puddleblob"])
+	var session := pack["session"] as SessionScreen
+	var flow := pack["flow"] as BattleFlow
+	flow.units[1]["hp"] = 20
+	session.sync_unit(flow.units[1])
+	var button := _find_action(session, "skill:rallying_brand")
+	if button == null:
+		failures.append("ally_button")
+		session.queue_free()
+		return
+	await _tap(tree, button.get_global_rect().get_center())
+	var armed: bool = await _until(tree, func() -> bool: return session._targeting)
+	if not armed:
+		failures.append("ally_arm")
+		push_error("Touch check: Rallying Brand did not ask for an ally")
+		session.queue_free()
+		return
+	var seat := session._seats[1] as Control
+	var at := Vector2(seat.get_global_rect().get_center().x, seat.get_global_rect().end.y - 6.0)
+	await _tap(tree, at)
+	var healed: bool = await _until(tree, func() -> bool: return _unit_hp(flow, "p1") > 20)
+	if not healed:
+		failures.append("ally_cast")
+		push_error("Touch check: tapping an ally did not cast the heal")
+	session.queue_free()
+	await tree.process_frame
+
+
+static func _builder(host: Node, tree: SceneTree, failures: Array[String]) -> void:
+	GameState.new_campaign([_hero("mason", "delver", "paladin")])
+	GameState.place_id = "millpond"
+	GameState.lineups = {}
+	var builder := BattleBuilder.new()
+	builder.setup("millpond")
+	await _mount(host, tree, builder)
+	var blob := builder.find_child("Count_puddleblob", true, false) as Label
+	var imp := builder.find_child("Count_thicket_imp", true, false) as Label
+	var gold := builder.find_child("Gold", true, false) as Label
+	if blob == null or imp == null or gold == null or blob.text != "1":
+		failures.append("builder_default")
+		push_error("Touch check: the builder did not start with one foe")
+		builder.queue_free()
+		return
+	var gold_one := int(gold.text.trim_prefix("Gold "))
+	var plus_blob := builder.find_child("Plus_puddleblob", true, false) as Button
+	for _i in 8:
+		await _tap(tree, plus_blob.get_global_rect().get_center())
+	if blob.text != "5":
+		failures.append("builder_cap")
+		push_error("Touch check: the lineup did not cap at 5 (got %s)" % blob.text)
+	var plus_imp := builder.find_child("Plus_thicket_imp", true, false) as Button
+	await _tap(tree, plus_imp.get_global_rect().get_center())
+	if imp.text != "0":
+		failures.append("builder_cap_mix")
+		push_error("Touch check: a full table accepted another monster")
+	var gold_five := int(gold.text.trim_prefix("Gold "))
+	var xp := builder.find_child("Xp", true, false) as Label
+	var xp_five := int(xp.text.trim_prefix("XP "))
+	if gold_five <= gold_one:
+		failures.append("builder_gold")
+		push_error("Touch check: expected gold did not rise with more foes")
+	var minus_blob := builder.find_child("Minus_puddleblob", true, false) as Button
+	await _tap(tree, minus_blob.get_global_rect().get_center())
+	await _tap(tree, plus_imp.get_global_rect().get_center())
+	if blob.text != "4" or imp.text != "1":
+		failures.append("builder_mix")
+		push_error("Touch check: mixed steppers landed on %s and %s" % [blob.text, imp.text])
+	var xp_mix := int(xp.text.trim_prefix("XP "))
+	if xp_mix <= 0 or xp_five <= 0:
+		failures.append("builder_xp")
+		push_error("Touch check: expected xp was empty")
+	var one: Dictionary = Formulas.expected_battle_rewards([{"id": "a", "level": 1}], 1.0)
+	var two: Dictionary = Formulas.expected_battle_rewards([
+		{"id": "a", "level": 1}, {"id": "a", "level": 1},
+	], 1.0)
+	var high: Dictionary = Formulas.expected_battle_rewards([{"id": "b", "level": 4}], 1.0)
+	if int(two["xp"]) <= int(one["xp"]) or int(two["gold"]) <= int(one["gold"]) or int(high["xp"]) <= int(one["xp"]) or int(high["gold"]) <= int(one["gold"]):
+		failures.append("builder_scale")
+		push_error("Touch check: rewards did not scale with count and level")
+	var started := {"rows": []}
+	builder.closed.connect(func(rows: Array): started["rows"] = rows)
+	var start := _find_button(builder, "Start")
+	await _tap(tree, start.get_global_rect().get_center())
+	await tree.process_frame
+	await tree.process_frame
+	var rows: Array = started["rows"]
+	var wanted := ["puddleblob", "puddleblob", "puddleblob", "puddleblob", "thicket_imp"]
+	var got: Array = []
+	for row in rows:
+		got.append(str(row.get("id", "")))
+	if got != wanted:
+		failures.append("builder_rows")
+		push_error("Touch check: start rows %s" % str(got))
+	var flow := BattleFlow.new()
+	flow._build_units(rows)
+	var kinds: Array = []
+	for unit in flow.units:
+		if str(unit["side"]) == "monster":
+			kinds.append(str(unit["kind"]))
+	if kinds != wanted:
+		failures.append("builder_spawn")
+		push_error("Touch check: spawned %s" % str(kinds))
+	builder.queue_free()
+	await tree.process_frame
+	var again := BattleBuilder.new()
+	again.setup("millpond")
+	await _mount(host, tree, again)
+	var remembered := again.find_child("Count_thicket_imp", true, false) as Label
+	var remembered_blob := again.find_child("Count_puddleblob", true, false) as Label
+	if remembered == null or remembered.text != "1" or remembered_blob == null or remembered_blob.text != "4":
+		failures.append("builder_memory")
+		push_error("Touch check: the lineup was not remembered")
+	again.queue_free()
+	await tree.process_frame
+	var session := SessionScreen.new()
+	await _mount(host, tree, session)
+	GameState.place_id = "briar_cross"
+	session.show_hub()
+	host.set("screen", session)
+	host.set("_busy", false)
+	var fight_action := Callable(host, "_on_hub_action")
+	if not session.action_pressed.is_connected(fight_action):
+		session.action_pressed.connect(fight_action)
+	var fight := _find_button(session, "Fight")
+	if fight == null or fight.disabled:
+		failures.append("builder_fight")
+		push_error("Touch check: Fight was not available")
+		session.queue_free()
+		return
+	await _tap(tree, fight.get_global_rect().get_center())
+	var opened: bool = await _until(tree, func() -> bool: return session.find_child("BattleBuilder", true, false) != null)
+	if not opened:
+		failures.append("builder_open")
+		push_error("Touch check: Fight did not open the builder")
+		session.queue_free()
+		return
+	var back := _find_button(session, "Back")
+	await _tap(tree, back.get_global_rect().get_center())
+	var gone: bool = await _until(tree, func() -> bool: return session.find_child("BattleBuilder", true, false) == null)
+	if not gone:
+		failures.append("builder_back")
+		push_error("Touch check: Back did not leave the builder")
 	session.queue_free()
 	await tree.process_frame
 

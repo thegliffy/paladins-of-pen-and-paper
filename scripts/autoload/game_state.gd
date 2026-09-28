@@ -6,6 +6,7 @@ const START_GOLD := 500
 
 var gold := START_GOLD
 var place_id := "candlewick"
+var lineups := {}
 var party: Array = []
 var inventory := {"tonic": 3, "vial": 2}
 var quests_done: Array = []
@@ -32,6 +33,7 @@ func new_campaign(members: Array) -> void:
 	inventory = {"tonic": 3, "vial": 2}
 	quests_done = []
 	hops = 0
+	lineups = {}
 	in_battle = false
 	battle_lock = {}
 	campaign_started = true
@@ -177,6 +179,30 @@ func take_item(item_id: String) -> bool:
 	return true
 
 
+func lineup_counts(place_id_key: String, order: Array) -> Dictionary:
+	var saved: Dictionary = lineups.get(place_id_key, {})
+	var counts := {}
+	var total := 0
+	var any := false
+	for monster_id in order:
+		var copies := maxi(0, int(saved.get(str(monster_id), 0)))
+		if total + copies > Formulas.LINEUP_CAP:
+			copies = Formulas.LINEUP_CAP - total
+		counts[str(monster_id)] = copies
+		total += copies
+		if copies > 0:
+			any = true
+	if not any and not order.is_empty():
+		counts[str(order[0])] = 1
+	return counts
+
+
+func remember_lineup(place_id_key: String, counts: Dictionary) -> void:
+	lineups[place_id_key] = counts.duplicate()
+	if campaign_started and not in_battle:
+		save_game()
+
+
 func arm_battle() -> void:
 	battle_lock = _capture()
 	in_battle = true
@@ -208,6 +234,14 @@ func load_game() -> bool:
 	gold = int(data.get("gold", START_GOLD))
 	place_id = str(data.get("place_id", "candlewick"))
 	hops = int(data.get("hops", 0))
+	lineups = {}
+	var raw_lineups: Dictionary = data.get("lineups", {})
+	for saved_place in raw_lineups.keys():
+		var counts := {}
+		var raw_counts: Dictionary = raw_lineups[saved_place]
+		for monster_id in raw_counts.keys():
+			counts[str(monster_id)] = maxi(0, int(raw_counts[monster_id]))
+		lineups[str(saved_place)] = counts
 	quests_done = []
 	for quest_id in data.get("quests_done", []):
 		quests_done.append(str(quest_id))
@@ -259,6 +293,7 @@ func _capture() -> Dictionary:
 		"inventory": inventory.duplicate(true),
 		"quests_done": quests_done.duplicate(),
 		"hops": hops,
+		"lineups": lineups.duplicate(true),
 	}
 
 

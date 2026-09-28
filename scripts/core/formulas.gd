@@ -7,6 +7,7 @@ const DR_CAP := 0.5
 const DMG_RANGE := 0.25
 const SPELL_VARIANCE := 0.1
 const MONSTER_GOLD_MULTIPLIER := 15.0
+const LINEUP_CAP := 5
 
 
 static func compose_stats(
@@ -500,6 +501,106 @@ static func skill_button_state(skill: Dictionary, rank: int, hp: int, mp: int, c
 	if not skill_usable(skill, rank, hp, mp, cooldowns, buildup):
 		return "disabled"
 	return "ready"
+
+
+static func needs_chosen_target(target_mode: String, passive: bool) -> bool:
+	## Self, every foe, and every ally resolve without a tap on the table.
+	## One foe or one ally waits for that tap.
+	if passive:
+		return false
+	return target_mode == "enemy" or target_mode == "ally"
+
+
+static func turn_tap(state: Dictionary, tapped: String, can_cast: bool, needs_pick: bool) -> Dictionary:
+	## armed / picking / cast. A targeted skill arms into pick mode.
+	## Tapping it again cancels. Attack's second tap also enters pick mode.
+	## Anything with no target choice still casts on the second tap.
+	## A skill that cannot be paid for shows its card and never arms a pick.
+	var armed := str(state.get("armed", ""))
+	var picking := bool(state.get("picking", false))
+	if tapped == "":
+		return {"armed": "", "picking": false, "cast": false}
+	if not can_cast:
+		return {"armed": tapped, "picking": false, "cast": false}
+	if tapped == "attack":
+		if armed == "attack" and picking:
+			return {"armed": "", "picking": false, "cast": false}
+		if armed == "attack":
+			return {"armed": "attack", "picking": true, "cast": false}
+		return {"armed": "attack", "picking": false, "cast": false}
+	if needs_pick:
+		if armed == tapped and picking:
+			return {"armed": "", "picking": false, "cast": false}
+		return {"armed": tapped, "picking": true, "cast": false}
+	if armed != tapped or picking:
+		return {"armed": tapped, "picking": false, "cast": false}
+	return {"armed": "", "picking": false, "cast": true}
+
+
+static func lineup_from_counts(order: Array, counts: Dictionary) -> Array:
+	## Monster ids, in catalog order, repeating each type. Never more than 5.
+	var rows: Array = []
+	for monster_id in order:
+		var copies := maxi(0, int(counts.get(str(monster_id), 0)))
+		for _i in copies:
+			if rows.size() >= LINEUP_CAP:
+				return rows
+			rows.append(str(monster_id))
+	return rows
+
+
+static func adjust_count(order: Array, counts: Dictionary, monster_id: String, delta: int) -> Dictionary:
+	var next := {}
+	var total := 0
+	for raw_id in order:
+		var copies := maxi(0, int(counts.get(str(raw_id), 0)))
+		next[str(raw_id)] = copies
+		total += copies
+	var key := str(monster_id)
+	if not next.has(key):
+		next[key] = 0
+	var current := int(next.get(key, 0))
+	if delta > 0:
+		var room := LINEUP_CAP - total
+		if room <= 0:
+			return next
+		next[key] = current + mini(delta, room)
+	else:
+		next[key] = maxi(0, current + delta)
+	return next
+
+
+static func expected_battle_rewards(monsters: Array, party_avg: float) -> Dictionary:
+	## monsters: {id, level, elite, boss}. Gold and XP follow the battle formulas
+	## without the random purse rider, so the builder can show a steady number.
+	var entries: Array = []
+	var gold_sum := 0
+	var level_sum := 0.0
+	for monster in monsters:
+		var level := int(monster.get("level", 1))
+		var elite := bool(monster.get("elite", false)) or bool(monster.get("boss", false))
+		entries.append({
+			"level": level,
+			"boss": bool(monster.get("boss", false)),
+			"type_id": str(monster.get("id", level)),
+		})
+		gold_sum += gold_per_kill(level, level_gap(party_avg, level), elite)
+		level_sum += float(level)
+	var count := monsters.size()
+	var average := 0.0 if count <= 0 else level_sum / float(count)
+	var difficulty := "Even"
+	if count <= 0:
+		difficulty = "None"
+	elif average + 1.0 < party_avg:
+		difficulty = "Easy"
+	elif average > party_avg + 1.0:
+		difficulty = "Hard"
+	return {
+		"xp": battle_xp(entries, party_avg),
+		"gold": battle_gold(gold_sum, count),
+		"difficulty": difficulty,
+		"count": count,
+	}
 
 
 static func arm_action(armed_id: String, tapped_id: String, can_cast: bool) -> Dictionary:

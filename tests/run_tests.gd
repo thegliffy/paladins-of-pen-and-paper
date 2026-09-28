@@ -23,6 +23,7 @@ func _init() -> void:
 	_test_party_bar()
 	_test_art_present()
 	_test_wrapped_labels()
+	_test_targeting_and_lineup()
 	print("Tests: %d passed, %d failed" % [passed, failed])
 	quit(1 if failed else 0)
 
@@ -656,3 +657,71 @@ func _test_wrapped_labels() -> void:
 		var wrapped := Widgets.wrap_size(blurb, info.size.x, font_size)
 		check(wrapped.x <= info.size.x + 0.01, str(place["id"]) + " description stays inside the panel")
 		check(wrapped.y <= info.size.y + 0.01, str(place["id"]) + " description wraps inside the panel")
+
+
+func _test_targeting_and_lineup() -> void:
+	check(Formulas.needs_chosen_target("enemy", false), "an enemy skill needs a tap")
+	check(Formulas.needs_chosen_target("ally", false), "an ally skill needs a tap")
+	check(not Formulas.needs_chosen_target("self", false), "a self skill does not need a tap")
+	check(not Formulas.needs_chosen_target("enemies", false), "a crowd skill does not need a tap")
+	check(not Formulas.needs_chosen_target("enemy", true), "a passive is not aimed")
+	var armed: Dictionary = Formulas.turn_tap({}, "skill:oathstrike", true, true)
+	eq(str(armed["armed"]), "skill:oathstrike", "first tap arms a targeted skill")
+	check(bool(armed["picking"]), "first tap of a targeted skill starts picking")
+	check(not bool(armed["cast"]), "arming a targeted skill does not cast")
+	var cancelled: Dictionary = Formulas.turn_tap(armed, "skill:oathstrike", true, true)
+	eq(str(cancelled["armed"]), "", "tapping the armed skill again cancels")
+	check(not bool(cancelled["picking"]), "cancel leaves pick mode")
+	var blocked: Dictionary = Formulas.turn_tap({}, "skill:oathstrike", false, true)
+	check(not bool(blocked["picking"]), "an unaffordable skill is not armed for a pick")
+	check(not bool(blocked["cast"]), "an unaffordable skill does not cast")
+	var wall: Dictionary = Formulas.turn_tap({}, "skill:shieldwall", true, false)
+	check(not bool(wall["picking"]), "a self skill does not enter pick mode")
+	var wall_cast: Dictionary = Formulas.turn_tap(wall, "skill:shieldwall", true, false)
+	check(bool(wall_cast["cast"]), "a self skill still casts on the second tap")
+	var attack: Dictionary = Formulas.turn_tap({}, "attack", true, false)
+	check(not bool(attack["picking"]), "the attack button shows its card first")
+	var attack_pick: Dictionary = Formulas.turn_tap(attack, "attack", true, false)
+	check(bool(attack_pick["picking"]) and not bool(attack_pick["cast"]), "the attack button's second tap asks for a target")
+	var dismissed: Dictionary = Formulas.turn_tap(armed, "", true, true)
+	eq(str(dismissed["armed"]), "", "an empty tap clears the card")
+	var order := ["puddleblob", "thicket_imp", "gravel_brute"]
+	var counts := {}
+	for _i in 8:
+		counts = Formulas.adjust_count(order, counts, "puddleblob", 1)
+	eq(Formulas.lineup_from_counts(order, counts).size(), 5, "the lineup caps at five")
+	counts = Formulas.adjust_count(order, counts, "thicket_imp", 1)
+	eq(int(counts["thicket_imp"]), 0, "a full table refuses another type")
+	counts = Formulas.adjust_count(order, counts, "puddleblob", -1)
+	counts = Formulas.adjust_count(order, counts, "thicket_imp", 1)
+	var mixed: Array = Formulas.lineup_from_counts(order, counts)
+	eq(mixed.size(), 5, "a mixed lineup still totals five")
+	eq(int(counts["puddleblob"]), 4, "four of the first type remain")
+	eq(str(mixed[4]), "thicket_imp", "the fifth foe is the second type")
+	var one: Dictionary = Formulas.expected_battle_rewards([{"id": "puddleblob", "level": 1}], 1.0)
+	var two: Dictionary = Formulas.expected_battle_rewards([
+		{"id": "puddleblob", "level": 1},
+		{"id": "puddleblob", "level": 1},
+	], 1.0)
+	var tough: Dictionary = Formulas.expected_battle_rewards([{"id": "gravel_brute", "level": 4}], 1.0)
+	check(int(two["xp"]) > int(one["xp"]), "two foes are worth more xp than one")
+	check(int(two["gold"]) > int(one["gold"]), "two foes are worth more gold than one")
+	check(int(tough["xp"]) > int(one["xp"]), "a higher level foe is worth more xp")
+	check(int(tough["gold"]) > int(one["gold"]), "a higher level foe is worth more gold")
+	eq(str(one["difficulty"]), "Even", "a matching level is even")
+	eq(str(tough["difficulty"]), "Hard", "a much higher level is hard")
+	var easy: Dictionary = Formulas.expected_battle_rewards([{"id": "puddleblob", "level": 1}], 5.0)
+	eq(str(easy["difficulty"]), "Easy", "a weaker foe is easy")
+	var seen := {}
+	var region_ids: Array = []
+	var region_rows: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/region.json"))
+	var places: Array = region_rows["places"]
+	for place in places:
+		for monster_id in place.get("monsters", []):
+			var key := str(monster_id)
+			if seen.has(key):
+				continue
+			seen[key] = true
+			region_ids.append(key)
+	check(region_ids.size() >= 2, "the region offers more than one monster")
+	eq(str(region_ids[0]), "puddleblob", "region monsters follow the places")

@@ -84,7 +84,7 @@ func _on_hub_action(action: String) -> void:
 			if _busy:
 				return
 			_busy = true
-			await _start_battle(_patrol_difficulty(), "patrol")
+			await _open_builder(session)
 			_busy = false
 		"rest":
 			if _busy:
@@ -116,6 +116,23 @@ func _on_arrived(place_id: String, ambush: bool) -> void:
 		await _open_hub(true)
 
 
+func _open_builder(session: SessionScreen) -> void:
+	var builder := BattleBuilder.new()
+	builder.setup(GameState.place_id)
+	session.add_child(builder)
+	builder.set_anchors_preset(Control.PRESET_FULL_RECT)
+	builder.offset_left = 0
+	builder.offset_top = 0
+	builder.offset_right = 0
+	builder.offset_bottom = 0
+	var rows: Array = await builder.closed
+	if is_instance_valid(builder):
+		builder.queue_free()
+	if rows.is_empty():
+		return
+	await _start_battle_rows(rows, "patrol")
+
+
 func _start_battle(difficulty: float, kind: String) -> void:
 	var place: Dictionary = ContentDB.place(GameState.place_id)
 	var pool: Array = []
@@ -129,6 +146,12 @@ func _start_battle(difficulty: float, kind: String) -> void:
 		picks.append(randi())
 	var alive := maxi(1, GameState.living_members().size())
 	var rows: Array = Formulas.compose_encounter(pool, Formulas.encounter_target_power(GameState.party_power(), difficulty, alive), picks)
+	await _start_battle_rows(rows, kind)
+
+
+func _start_battle_rows(rows: Array, kind: String) -> void:
+	if rows.is_empty():
+		return
 	GameState.arm_battle()
 	var session := SessionScreen.new()
 	await _swap(session)
@@ -319,11 +342,25 @@ func _shots() -> void:
 	session.show_member_bar(0, preview_cd, "skill:oathstrike", ranks, 130)
 	session.present_inspect(0, "skill:oathstrike", preview_cd, ranks, 130)
 	await _capture("skills")
+	var aim: Dictionary = session._inspect_card("skill:oathstrike", ranks, 80, 130, preview_cd, {})
+	aim["hint"] = "Pick a target"
+	session.set_target_mode(["m0", "m1", "m2"], "")
+	session.show_inspect(aim, "skill:oathstrike")
+	await _capture("targeting")
+	session.clear_target_mode()
 	session.hide_inspect()
 	session.show_member_bar(0, {}, "", {})
 	session.open_party()
 	await _capture("party")
 	session.hide_choices()
+	GameState.place_id = "briar_cross"
+	GameState.remember_lineup("briar_cross", {"cinder_mite": 2, "briar_hound": 1, "thicket_imp": 1})
+	var builder := BattleBuilder.new()
+	builder.setup("briar_cross")
+	session.add_child(builder)
+	builder.set_anchors_preset(Control.PRESET_FULL_RECT)
+	await _capture("builder")
+	builder.queue_free()
 	var flow := BattleFlow.new()
 	flow.view = session
 	session.add_child(flow)

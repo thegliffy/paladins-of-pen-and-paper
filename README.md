@@ -17,10 +17,10 @@ godot --path .
 On a phone the window is portrait. On desktop the window opens at 810×1440, which is exactly three times the native grid.
 
 1. **New game** seats one to five heroes. Eight classes are on the Class tab: Paladin, Wizard, Ranger, Bard, Cleric, Rogue, Barbarian, and Druid. Each persona and each class can be used only once. There are five personas, so a full party can still keep them unique. Random fills the paper doll; the arrows and the rows under it edit the current tab. Next seats this hero and opens another slot. Begin starts the campaign with the heroes seated so far, including the one on screen.
-2. The table hub has Travel, Fight, Rest, Quest, and Party along the bottom.
+2. The table hub has Travel, Fight, Rest, Quest, and Party along the bottom. Fight opens a builder for the monsters in the current region: pick how many of each, from one to five, then Start. The last lineup is remembered at that place. Expected gold and XP follow the battle formulas.
 3. **Travel** opens the Greenmere map. Drag to scroll. Tap a place, then tap it again or press Travel. Stop ends a multi-hop trip after the hop you are already on.
 4. Roads with monsters roll a d20 around the middle of the hop. 1 is lost, 2 through p is an ambush, p+1 through 19 is safe, 20 is lucky. `p = clamp(destination level − party average + 7, 2, 10)`.
-5. Combat is stacked for one hand: a wooden initiative strip for up to eight combatants, monsters in the meadow, the GM behind the table with his screen and dice, and up to five heroes seated at the table edge with HP and MP bars on the chair. The acting hero's bar is Attack, Cover, the class's five skills, Item, and Run. The first tap inspects the slot. The second tap uses it. A passive, a locked skill, a cooling skill, and a skill you cannot pay for show the reason and do not cast. The name tab above the bar is whose turn it is. Passives also show in the creator and on the party panel with a Passive tag.
+5. Combat is stacked for one hand: a wooden initiative strip for up to eight combatants, monsters in the meadow, the GM behind the table with his screen and dice, and up to five heroes seated at the table edge with HP and MP bars on the chair. The acting hero's bar is Attack, Cover, the class's five skills, Item, and Run. Tapping an enemy on that hero's turn is a basic attack. A skill that needs one foe or one ally shows its card and highlights the valid targets; tap one to cast. Tap that skill again, tap another skill, or tap empty ground to cancel. Skills that choose their own targets (self, every foe) still open the card on the first tap and cast on the second. The Attack button can still open pick-a-target. A passive, a locked skill, a cooling skill, and a skill you cannot pay for show the reason and cannot be armed. The name tab above the bar is whose turn it is. Passives also show in the creator and on the party panel with a Passive tag.
 
 The save is `user://paladins_save.json`. It is written when the app pauses or closes. A fight in progress reloads from the checkpoint taken when the battle started, so a kill during the fight does not keep half-applied rewards.
 
@@ -55,6 +55,10 @@ Native 270×480 captures of the production art:
 
 ![Skill list](docs/screenshots/skills.png)
 
+![Pick a target](docs/screenshots/targeting.png)
+
+![Fight builder](docs/screenshots/builder.png)
+
 ![Party panel](docs/screenshots/party.png)
 
 ## Android
@@ -62,12 +66,12 @@ Native 270×480 captures of the production art:
 [`export_presets.cfg`](export_presets.cfg) has a debug Android preset locked to portrait (`screen/orientation=1`) and arm64-v8a, plus a Linux preset. The project setting `display/window/handheld/orientation` is portrait.
 
 ```bash
-godot --headless --export-debug Android build/paladins-0.2.4-debug.apk
+godot --headless --export-debug Android build/paladins-0.2.5-debug.apk
 ```
 
 The export needs the Godot 4.7.2 Android templates (installed into `android/build`, which is gitignored), a `.build_version` of `4.7.2.stable`, Android SDK 36, build-tools 36.1.0, NDK 29.0.14206865, and a JDK. The project enables ETC2/ASTC import, which the Android exporter requires. Non-resource files (`*.json`, `*.md`) are in the preset include filter. Art is loaded with `load()` / `ResourceLoader`, not `FileAccess.file_exists` on the raw PNG.
 
-The published debug APK is [v0.2.4](https://github.com/thegliffy/paladins-of-pen-and-paper/releases/tag/v0.2.4): [paladins-0.2.4-debug.apk](https://github.com/thegliffy/paladins-of-pen-and-paper/releases/download/v0.2.4/paladins-0.2.4-debug.apk). It is arm64-v8a, portrait, package `com.thegliffy.paladinspenpaper`, version code 6. v0.2.4 makes finger taps register on the map and the other screens without relying on mouse emulation. v0.2.3, v0.2.2, v0.2.1, v0.2.0, and v0.1.0 are left as-is.
+The published debug APK is [v0.2.5](https://github.com/thegliffy/paladins-of-pen-and-paper/releases/tag/v0.2.5): [paladins-0.2.5-debug.apk](https://github.com/thegliffy/paladins-of-pen-and-paper/releases/download/v0.2.5/paladins-0.2.5-debug.apk). It is arm64-v8a, portrait, package `com.thegliffy.paladinspenpaper`, version code 7. v0.2.5 taps an enemy to attack, aims single-target skills by tapping the table, and opens a fight builder for the region. v0.2.4, v0.2.3, v0.2.2, v0.2.1, v0.2.0, and v0.1.0 are left as-is.
 
 ## Where numbers live
 

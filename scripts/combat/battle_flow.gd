@@ -10,6 +10,7 @@ var turn_index := 0
 var _action := ""
 var _target := ""
 var _listening := false
+var hurry := false
 
 
 func _ready() -> void:
@@ -240,46 +241,89 @@ func _take_turn(unit: Dictionary) -> String:
 
 func _player_turn(unit: Dictionary) -> String:
 	var armed := ""
+	var picking := false
 	while true:
-		_show_actor_bar(unit, armed, false)
-		if armed == "":
-			view.hide_inspect()
-		else:
-			view.show_inspect(_inspect_card(unit, armed), armed)
-		var action := await _wait_action()
+		_present_turn(unit, armed, picking)
+		var event: Dictionary = await _wait_turn_input()
+		if str(event.get("kind", "")) == "target":
+			var target_id := str(event.get("id", ""))
+			if picking and _target_ok(armed, target_id):
+				if await _resolve_player_action(unit, armed, target_id):
+					return ""
+				armed = ""
+				picking = false
+				continue
+			if not picking and _target_ok("attack", target_id):
+				if await _resolve_player_action(unit, "attack", target_id):
+					return ""
+			continue
+		var action := str(event.get("id", ""))
 		if action == "dismiss":
 			armed = ""
+			picking = false
 			continue
 		if action == "run":
 			view.hide_inspect()
+			view.clear_target_mode()
 			await _run()
 			return "flee"
-		var step: Dictionary = Formulas.arm_action(armed, action, _action_can_cast(unit, action))
-		if not bool(step["cast"]):
-			armed = str(step["armed"])
+		var step: Dictionary = Formulas.turn_tap(
+			{"armed": armed, "picking": picking},
+			action,
+			_action_can_cast(unit, action),
+			_action_needs_pick(action)
+		)
+		if bool(step.get("cast", false)):
+			if await _resolve_player_action(unit, action, ""):
+				return ""
+			armed = ""
+			picking = false
 			continue
-		armed = ""
-		view.hide_inspect()
-		view.set_actions_enabled(false)
-		if action == "attack":
-			var target := await _choose_enemy(unit, false, "attack")
-			if target.is_empty():
-				continue
-			await _player_basic(unit, target, true)
-			return ""
-		if action.begins_with("skill:"):
-			var skill_id := action.trim_prefix("skill:")
-			if not await _use_skill(unit, skill_id):
-				continue
-			return ""
-		if action == "item":
-			if not await _choose_item(unit):
-				continue
-			return ""
-		if action == "cover":
-			await _cover(unit)
-			return ""
+		armed = str(step.get("armed", ""))
+		picking = bool(step.get("picking", false))
 	return ""
+
+
+func _present_turn(unit: Dictionary, armed: String, picking: bool) -> void:
+	_show_actor_bar(unit, armed, false)
+	if armed == "":
+		view.hide_inspect()
+		view.clear_target_mode()
+		return
+	var card := _inspect_card(unit, armed)
+	if picking:
+		card["hint"] = "Pick a target"
+		view.set_target_mode(_ids_for(armed), "")
+	else:
+		view.clear_target_mode()
+	view.show_inspect(card, armed)
+
+
+func _resolve_player_action(unit: Dictionary, action: String, target_id: String) -> bool:
+	view.hide_inspect()
+	view.clear_target_mode()
+	view.set_actions_enabled(false)
+	if action == "attack":
+		var foe := _unit(target_id)
+		if foe.is_empty() or int(foe.get("hp", 0)) <= 0:
+			return false
+		await _player_basic(unit, foe, true)
+		return true
+	if action.begins_with("skill:"):
+		return await _use_skill(unit, action.trim_prefix("skill:"), target_id)
+	if action == "item":
+		return await _choose_item(unit)
+	if action == "cover":
+		await _cover(unit)
+		return true
+	return false
+
+
+func _action_needs_pick(action_id: String) -> bool:
+	if not action_id.begins_with("skill:"):
+		return false
+	var skill: Dictionary = ContentDB.skill(action_id.trim_prefix("skill:"))
+	return Formulas.needs_chosen_target(str(skill.get("target", "")), Formulas.is_passive(skill))
 
 
 func _action_can_cast(unit: Dictionary, action_id: String) -> bool:
@@ -377,7 +421,7 @@ func _strike(attacker: Dictionary, defender: Dictionary, base: float, variance: 
 		await _reflect(defender, attacker)
 
 
-func _use_skill(user: Dictionary, skill_id: String) -> bool:
+func _use_skill(user: Dictionary, skill_id: String, preset_id: String = "") -> bool:
 	var skill: Dictionary = ContentDB.skill(skill_id)
 	var rank := int(user.get("skill_ranks", {}).get(skill_id, 1))
 	_ensure_resources(user)
@@ -386,6 +430,13 @@ func _use_skill(user: Dictionary, skill_id: String) -> bool:
 	if not Formulas.skill_usable(skill, rank, int(user["hp"]), int(user["mp"]), cds, stacks):
 		view.set_caption("Can't use that yet.")
 		return false
+	var preset: Dictionary = {}
+	if preset_id != "":
+		preset = _unit(preset_id)
+		if preset.is_empty() or int(preset.get("hp", 0)) <= 0:
+			return false
+		if not _ids_for("skill:%s" % skill_id).has(preset_id):
+			return false
 	var before := {
 		"hp": int(user["hp"]),
 		"mp": int(user["mp"]),
@@ -404,7 +455,9 @@ func _use_skill(user: Dictionary, skill_id: String) -> bool:
 	var cancelled := false
 	var kind := str(skill.get("kind", "spell"))
 	var target_mode := str(skill.get("target", "enemy"))
-	if target_mode == "self":
+	if not preset.is_empty():
+		await _resolve_skill(user, skill, [preset], rank)
+	elif target_mode == "self":
 		await _resolve_skill(user, skill, [user], rank)
 	elif kind == "heal" or kind == "cleanse" or target_mode == "ally":
 		var ally := await _choose_ally(user, "skill:%s" % skill_id)
@@ -736,29 +789,61 @@ func _show_actor_bar(unit: Dictionary, selected_id: String, cancel_selected: boo
 	)
 
 
-func _choose_enemy(user: Dictionary, allow_back: bool, selected_id: String) -> Dictionary:
-	var valid: Array = []
+func _enemy_ids(allow_back: bool) -> Array:
 	var front := false
 	for unit in units:
 		if str(unit["side"]) == "monster" and int(unit["hp"]) > 0 and not bool(unit["back_row"]):
 			front = true
+	var ids: Array = []
 	for unit in units:
 		if str(unit["side"]) != "monster" or int(unit["hp"]) <= 0:
 			continue
 		if bool(unit["back_row"]) and front and not allow_back:
 			continue
-		valid.append(unit)
-	if valid.is_empty():
-		return {}
-	if valid.size() == 1:
-		return valid[0]
-	var ids: Array = []
-	for unit in valid:
 		ids.append(str(unit["id"]))
+	return ids
+
+
+func _ally_ids() -> Array:
+	var ids: Array = []
+	for unit in units:
+		if str(unit["side"]) == "player" and int(unit["hp"]) > 0:
+			ids.append(str(unit["id"]))
+	return ids
+
+
+func _ids_for(action_id: String) -> Array:
+	if action_id == "attack":
+		return _enemy_ids(false)
+	if not action_id.begins_with("skill:"):
+		return []
+	var skill: Dictionary = ContentDB.skill(action_id.trim_prefix("skill:"))
+	var mode := str(skill.get("target", "enemy"))
+	if mode == "ally":
+		return _ally_ids()
+	if mode == "enemy":
+		return _enemy_ids(bool(skill.get("can_target_back_row", false)))
+	return []
+
+
+func _target_ok(action_id: String, target_id: String) -> bool:
+	return _ids_for(action_id).has(target_id)
+
+
+func _choose_enemy(user: Dictionary, allow_back: bool, selected_id: String) -> Dictionary:
+	var ids := _enemy_ids(allow_back)
+	if ids.is_empty():
+		return {}
+	if ids.size() == 1:
+		return _unit(str(ids[0]))
 	_show_actor_bar(user, selected_id, true)
-	view.set_target_mode(ids, "Choose a foe")
+	view.set_target_mode(ids, "")
+	var card := _inspect_card(user, selected_id)
+	card["hint"] = "Pick a target"
+	view.show_inspect(card, selected_id)
 	var picked := await _wait_target()
 	view.clear_target_mode()
+	view.hide_inspect()
 	if picked == "":
 		return {}
 	return _unit(picked)
@@ -770,9 +855,13 @@ func _choose_ally(user: Dictionary, selected_id: String) -> Dictionary:
 		if str(unit["side"]) == "player":
 			ids.append(str(unit["id"]))
 	_show_actor_bar(user, selected_id, true)
-	view.set_target_mode(ids, "Choose an ally")
+	view.set_target_mode(ids, "")
+	var card := _inspect_card(user, selected_id)
+	card["hint"] = "Pick a target"
+	view.show_inspect(card, selected_id)
 	var picked := await _wait_target()
 	view.clear_target_mode()
+	view.hide_inspect()
 	if picked == "":
 		return {}
 	return _unit(picked)
@@ -917,13 +1006,29 @@ func _wait_action() -> String:
 	return chosen
 
 
+func _wait_turn_input() -> Dictionary:
+	_action = ""
+	_target = ""
+	while _action == "" and _target == "":
+		await get_tree().process_frame
+	if _target != "":
+		var target_id := _target
+		_target = ""
+		_action = ""
+		return {"kind": "target", "id": target_id}
+	var chosen := _action
+	_action = ""
+	return {"kind": "action", "id": chosen}
+
+
 func _wait_target() -> String:
 	_target = ""
 	_action = ""
-	while _target == "" and _action != "back":
+	while _target == "" and _action != "back" and _action != "dismiss":
 		await get_tree().process_frame
-	if _action == "back":
+	if _action == "back" or _action == "dismiss":
 		_action = ""
+		_target = ""
 		return ""
 	var chosen := _target
 	_target = ""
@@ -935,7 +1040,8 @@ func _gap(unit: Dictionary) -> void:
 
 
 func _wait(seconds: float) -> void:
-	if seconds <= 0.0:
+	if hurry or seconds <= 0.0:
+		await get_tree().process_frame
 		return
 	await get_tree().create_timer(seconds).timeout
 
