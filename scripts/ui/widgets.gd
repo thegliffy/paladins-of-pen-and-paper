@@ -35,7 +35,104 @@ static func make_button(text: String, minimum: Vector2) -> Button:
 	button.custom_minimum_size = minimum
 	button.clip_text = true
 	skin_button(button)
+	bind_pointer(button)
 	return button
+
+
+static func is_emulated(event: InputEvent) -> bool:
+	return event.device == InputEvent.DEVICE_ID_EMULATION
+
+
+static func is_press(event: InputEvent) -> bool:
+	if is_emulated(event):
+		return false
+	if event is InputEventScreenTouch:
+		return (event as InputEventScreenTouch).pressed
+	if event is InputEventMouseButton:
+		var mouse := event as InputEventMouseButton
+		return mouse.pressed and _primary_button(mouse)
+	return false
+
+
+static func is_release(event: InputEvent) -> bool:
+	if is_emulated(event):
+		return false
+	if event is InputEventScreenTouch:
+		return not (event as InputEventScreenTouch).pressed
+	if event is InputEventMouseButton:
+		var mouse := event as InputEventMouseButton
+		return not mouse.pressed and _primary_button(mouse)
+	return false
+
+
+static func is_drag(event: InputEvent) -> bool:
+	if is_emulated(event):
+		return false
+	return event is InputEventScreenDrag or event is InputEventMouseMotion
+
+
+static func event_position(event: InputEvent) -> Vector2:
+	if event is InputEventScreenTouch:
+		return (event as InputEventScreenTouch).position
+	if event is InputEventScreenDrag:
+		return (event as InputEventScreenDrag).position
+	if event is InputEventMouse:
+		return (event as InputEventMouse).position
+	return Vector2.ZERO
+
+
+static func event_relative(event: InputEvent) -> Vector2:
+	if event is InputEventScreenDrag:
+		return (event as InputEventScreenDrag).relative
+	if event is InputEventMouseMotion:
+		return (event as InputEventMouseMotion).relative
+	return Vector2.ZERO
+
+
+static func _primary_button(mouse: InputEventMouseButton) -> bool:
+	# Some Android devices report a finger as mouse button 0, which is not Left.
+	return mouse.button_index == MOUSE_BUTTON_LEFT or mouse.button_index == MOUSE_BUTTON_NONE
+
+
+static func bind_pointer(button: Button) -> void:
+	## Finger taps fire the button even when touch-to-mouse emulation is off.
+	## Emulated echoes are ignored so one finger does not click twice.
+	if button.has_meta("pointer_bound"):
+		return
+	button.set_meta("pointer_bound", true)
+	button.set_meta("finger_down", false)
+	button.gui_input.connect(_on_button_pointer.bind(button))
+
+
+static func _on_button_pointer(event: InputEvent, button: Button) -> void:
+	if is_emulated(event) or button == null:
+		return
+	var arm := false
+	var release := false
+	if event is InputEventScreenTouch:
+		if Input.is_emulating_mouse_from_touch():
+			return
+		var touch := event as InputEventScreenTouch
+		arm = touch.pressed
+		release = not touch.pressed
+	elif event is InputEventMouseButton:
+		var mouse := event as InputEventMouseButton
+		if mouse.button_index != MOUSE_BUTTON_NONE:
+			return
+		arm = mouse.pressed
+		release = not mouse.pressed
+	else:
+		return
+	if arm:
+		button.set_meta("finger_down", true)
+		button.get_viewport().set_input_as_handled()
+		return
+	if release and bool(button.get_meta("finger_down", false)):
+		button.set_meta("finger_down", false)
+		var local := event_position(event)
+		if not button.disabled and Rect2(Vector2.ZERO, button.size).has_point(local):
+			button.pressed.emit()
+		button.get_viewport().set_input_as_handled()
 
 
 static func panel(path: String = "res://art/ui/panel_tan.png") -> Panel:

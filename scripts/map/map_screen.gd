@@ -45,6 +45,7 @@ func stage_preview() -> void:
 func _build() -> void:
 	var parchment := ColorRect.new()
 	parchment.color = SpriteCatalog.CREAM_DARK
+	parchment.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	parchment.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(parchment)
 
@@ -64,6 +65,7 @@ func _build() -> void:
 	var content_size := Layout.vec("map", "content")
 	_content = Control.new()
 	_content.name = "Content"
+	_content.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_content.set_script(load("res://scripts/map/map_canvas.gd"))
 	_content.size = content_size
 	_content.custom_minimum_size = content_size
@@ -111,24 +113,28 @@ func _build() -> void:
 	_stop_button.visible = false
 	_stop_button.pressed.connect(func(): _stop = true)
 	row.add_child(_stop_button)
+	clip.mouse_filter = Control.MOUSE_FILTER_STOP
 	clip.gui_input.connect(_on_clip_input)
 
 
 func _on_clip_input(event: InputEvent) -> void:
 	if _traveling:
 		return
-	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
-		if event.pressed:
-			_drag = true
-			_moved = 0.0
-		else:
-			_drag = false
-			if _moved < 8.0:
-				_tap(event.position)
-	elif event is InputEventMouseMotion and _drag:
-		_moved += event.relative.length()
+	if Widgets.is_press(event):
+		_drag = true
+		_moved = 0.0
+		get_viewport().set_input_as_handled()
+	elif Widgets.is_release(event):
+		_drag = false
+		get_viewport().set_input_as_handled()
+		if _moved < 8.0:
+			_tap(Widgets.event_position(event))
+	elif Widgets.is_drag(event) and _drag:
+		var rel := Widgets.event_relative(event)
+		_moved += rel.length()
 		if _moved >= 8.0:
-			_pan(-event.relative)
+			_pan(-rel)
+		get_viewport().set_input_as_handled()
 
 
 func _tap(local_pos: Vector2) -> void:

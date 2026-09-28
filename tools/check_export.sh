@@ -30,3 +30,17 @@ if [[ -z "${nodes}" || "$nodes" -le 0 ]]; then
 	exit 1
 fi
 grep -q "EXPORT_CHECK_OK" "$LOG"
+
+TOUCH_LOG="$OUT/touch.log"
+set +e
+(
+	cd "$OUT"
+	xvfb-run -a -s "-screen 0 900x1600x24" "$GODOT" --main-pack "$OUT/game.pck" -- --touch-check
+) | tee "$TOUCH_LOG"
+touch_code=${PIPESTATUS[0]}
+set -e
+echo "touch check exit=$touch_code"
+if [[ "$touch_code" -ne 0 ]]; then
+	exit "$touch_code"
+fi
+grep -q "TOUCH_CHECK_OK" "$TOUCH_LOG"

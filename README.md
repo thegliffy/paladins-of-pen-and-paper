@@ -33,7 +33,7 @@ bash tools/check_export.sh
 
 The first command covers the stat, HP, energy, damage, crit, XP, gold, travel-table, dice, timing, path, portrait-layout, party seats, skill-button states, the arm-then-cast inspect card, cooldown, HP-cost, build-up, mana regen, threat raffle, and on-hit passive examples. It runs against the project directory.
 
-`tools/check_export.sh` exports a PCK and runs that pack from an empty directory with `--export-check`. The map must spawn more than 0 place nodes, and the grass, combat backdrop, skill icon, seat doll, creator doll, UI icon, and tap sound must load. That is the check that matches an APK, where imported textures are resources and `FileAccess.file_exists` on the raw PNG is false.
+`tools/check_export.sh` exports a PCK and runs that pack from an empty directory. `--export-check` requires the map to spawn more than 0 place nodes, and the grass, combat backdrop, skill icon, seat doll, creator doll, UI icon, and tap sound must load. `--touch-check` then injects `InputEventScreenTouch` press and release (with mouse emulation off) into the title, creator, hub, map, and combat action bar. A map tap selects a place; the second tap walks the pawn. That is the check that matches an APK.
 
 The older files under `art/` are still generated with `python3 tools/gen_art.py` and stay in the repo for the title backdrop and the file checks. The creator, map, and combat screens use the production pack.
 
@@ -62,12 +62,12 @@ Native 270×480 captures of the production art:
 [`export_presets.cfg`](export_presets.cfg) has a debug Android preset locked to portrait (`screen/orientation=1`) and arm64-v8a, plus a Linux preset. The project setting `display/window/handheld/orientation` is portrait.
 
 ```bash
-godot --headless --export-debug Android build/paladins-0.2.3-debug.apk
+godot --headless --export-debug Android build/paladins-0.2.4-debug.apk
 ```
 
 The export needs the Godot 4.7.2 Android templates (installed into `android/build`, which is gitignored), a `.build_version` of `4.7.2.stable`, Android SDK 36, build-tools 36.1.0, NDK 29.0.14206865, and a JDK. The project enables ETC2/ASTC import, which the Android exporter requires. Non-resource files (`*.json`, `*.md`) are in the preset include filter. Art is loaded with `load()` / `ResourceLoader`, not `FileAccess.file_exists` on the raw PNG.
 
-The published debug APK is [v0.2.3](https://github.com/thegliffy/paladins-of-pen-and-paper/releases/tag/v0.2.3): [paladins-0.2.3-debug.apk](https://github.com/thegliffy/paladins-of-pen-and-paper/releases/download/v0.2.3/paladins-0.2.3-debug.apk). It is arm64-v8a, portrait, package `com.thegliffy.paladinspenpaper`, version code 5. v0.2.3 fixes the empty travel map on device: imported sprites load even when the raw PNG is not in the PCK. v0.2.2, v0.2.1, v0.2.0, and v0.1.0 are left as-is.
+The published debug APK is [v0.2.4](https://github.com/thegliffy/paladins-of-pen-and-paper/releases/tag/v0.2.4): [paladins-0.2.4-debug.apk](https://github.com/thegliffy/paladins-of-pen-and-paper/releases/download/v0.2.4/paladins-0.2.4-debug.apk). It is arm64-v8a, portrait, package `com.thegliffy.paladinspenpaper`, version code 6. v0.2.4 makes finger taps register on the map and the other screens without relying on mouse emulation. v0.2.3, v0.2.2, v0.2.1, v0.2.0, and v0.1.0 are left as-is.
 
 ## Where numbers live
 

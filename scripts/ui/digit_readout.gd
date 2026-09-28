@@ -12,6 +12,10 @@ var letters_sheet := ""
 var letters_order := ""
 
 
+func _ready() -> void:
+	mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+
 func set_text(value: String) -> void:
 	text = value
 	queue_redraw()

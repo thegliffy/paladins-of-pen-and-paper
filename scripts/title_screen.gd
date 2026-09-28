@@ -8,16 +8,19 @@ signal continue_game
 func _ready() -> void:
 	var bg := ColorRect.new()
 	bg.color = Color("6a9a48")
+	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(bg)
 	var tex := TextureRect.new()
 	tex.texture = SpriteCatalog.background("meadow")
+	tex.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	tex.set_anchors_preset(Control.PRESET_FULL_RECT)
 	tex.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	tex.stretch_mode = TextureRect.STRETCH_SCALE
 	add_child(tex)
 	var shade := ColorRect.new()
 	shade.color = Color(0.1, 0.08, 0.05, 0.35)
+	shade.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	shade.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(shade)
 

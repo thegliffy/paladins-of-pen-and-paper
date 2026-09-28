@@ -305,6 +305,7 @@ func show_actor_bar(actor_name: String, skills: Array, ranks: Dictionary, hp: in
 		button.add_theme_stylebox_override("pressed", empty)
 		button.add_theme_stylebox_override("focus", empty)
 		button.set_meta("action_id", action_id)
+		Widgets.bind_pointer(button)
 		var face := _icon_rect(str(entry["file"]))
 		face.position = Vector2.ZERO
 		face.size = local.size
@@ -605,7 +606,7 @@ func _target_icon(label: String) -> String:
 
 
 func _on_dismiss_input(event: InputEvent) -> void:
-	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+	if Widgets.is_press(event):
 		_emit_action("dismiss")
 
 
@@ -1212,7 +1213,7 @@ func _add_monster(unit: Dictionary) -> void:
 	node.add_child(conds)
 	var uid := str(unit["id"])
 	node.gui_input.connect(func(event: InputEvent):
-		if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		if Widgets.is_press(event):
 			target_pressed.emit(uid)
 	)
 	_monster_layer.add_child(node)
@@ -1302,7 +1303,7 @@ func _visual(node: Control) -> Control:
 
 
 func _card_input(event: InputEvent, pid: String) -> void:
-	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+	if Widgets.is_press(event):
 		target_pressed.emit(pid)
 
 

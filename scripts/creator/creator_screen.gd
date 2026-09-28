@@ -59,9 +59,11 @@ func _apply_preview() -> void:
 func _build() -> void:
 	var bg := ColorRect.new()
 	bg.color = SpriteCatalog.CREAM
+	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(bg)
 	var frame := Widgets.panel()
+	frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	frame.set_anchors_preset(Control.PRESET_FULL_RECT)
 	frame.offset_left = 2
 	frame.offset_top = 2

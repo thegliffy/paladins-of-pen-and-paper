@@ -1,5 +1,7 @@
 extends Control
 
+const TouchSuite := preload("res://tests/touch_suite.gd")
+
 var screen: Node
 var _busy := false
 
@@ -11,6 +13,10 @@ func _ready() -> void:
 	_apply_theme()
 	if OS.get_cmdline_user_args().has("--export-check"):
 		await _export_check()
+		return
+	if OS.get_cmdline_user_args().has("--touch-check"):
+		var touch_code: int = await TouchSuite.run(self)
+		get_tree().quit(touch_code)
 		return
 	if OS.get_cmdline_user_args().has("--shots"):
 		await _shots()
