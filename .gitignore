@@ -5,3 +5,5 @@ build/
 *.keystore
 export_logs/
 .DS_Store
+__pycache__/
+*.pyc
