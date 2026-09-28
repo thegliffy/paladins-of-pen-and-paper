@@ -2,7 +2,7 @@
   {
     "id": "puddleblob",
     "size": "regular",
-    "name": "Puddleblob",
+    "name": "Blueslime",
     "level": 1,
     "body": 2,
     "senses": 1,
@@ -15,14 +15,14 @@
     "attacks": 1,
     "damage_frame": 2,
     "skills": [],
-    "blurb": "A smiling puddle with a bite.",
+    "blurb": "A blue slime with a wide smile.",
     "sprite": "slime",
     "unique": "blob_crown"
   },
   {
     "id": "thicket_imp",
     "size": "regular",
-    "name": "Thicket Imp",
+    "name": "Crimson Imp",
     "level": 1,
     "body": 3,
     "senses": 2,
@@ -35,13 +35,13 @@
     "attacks": 1,
     "damage_frame": 2,
     "skills": [],
-    "blurb": "A reed-green rascal with a knotted stick.",
+    "blurb": "A red imp, small and mean.",
     "sprite": "imp"
   },
   {
     "id": "cinder_mite",
     "size": "regular",
-    "name": "Cinder Mite",
+    "name": "Thorn Gob",
     "level": 2,
     "body": 3,
     "senses": 2,
@@ -56,13 +56,13 @@
     "skills": [
       "cinder_spit"
     ],
-    "blurb": "A spark-bellied beetle.",
+    "blurb": "A squat green goblin. The sparks are in the mouth.",
     "sprite": "goblin"
   },
   {
     "id": "briar_hound",
     "size": "large",
-    "name": "Briar Hound",
+    "name": "Briar Wolf",
     "level": 2,
     "body": 4,
     "senses": 3,
@@ -75,13 +75,13 @@
     "attacks": 2,
     "damage_frame": 2,
     "skills": [],
-    "blurb": "Two snaps, then it circles.",
+    "blurb": "A brown wolf. Two snaps, then it circles.",
     "sprite": "wolf"
   },
   {
     "id": "lantern_wisp",
     "size": "regular",
-    "name": "Lantern Wisp",
+    "name": "Orangecap",
     "level": 3,
     "body": 2,
     "senses": 4,
@@ -90,20 +90,20 @@
     "elite": false,
     "boss": false,
     "power": 36,
-    "back_row": true,
+    "back_row": false,
     "attacks": 1,
     "damage_frame": 2,
     "skills": [
       "spark"
     ],
-    "blurb": "A floating wick with opinions.",
+    "blurb": "An orange mushroom with a pale cap.",
     "sprite": "mushroom",
     "unique": "wisp_jar"
   },
   {
     "id": "marshlurker",
     "size": "large",
-    "name": "Marshlurker",
+    "name": "Reedbones",
     "level": 3,
     "body": 5,
     "senses": 2,
@@ -118,14 +118,14 @@
     "skills": [
       "bog_breath"
     ],
-    "blurb": "Shoulders like a wet log.",
+    "blurb": "A bone-pale skeleton standing in the reeds.",
     "sprite": "skeleton",
     "unique": "lurker_scale"
   },
   {
     "id": "cave_howler",
     "size": "regular",
-    "name": "Cave Howler",
+    "name": "Duskbat",
     "level": 4,
     "body": 4,
     "senses": 4,
@@ -140,14 +140,14 @@
     "skills": [
       "shriek"
     ],
-    "blurb": "Hangs in the back and screams.",
+    "blurb": "A purple bat that hangs in the back and screams.",
     "sprite": "bat",
     "unique": "howl_fang"
   },
   {
     "id": "gravel_brute",
     "size": "large",
-    "name": "Gravel Brute",
+    "name": "Cairn Golem",
     "level": 4,
     "body": 6,
     "senses": 2,
@@ -162,8 +162,218 @@
     "skills": [
       "gravel_slam"
     ],
-    "blurb": "A walking cairn with fists.",
+    "blurb": "A grey golem of stacked stone.",
     "sprite": "golem",
     "unique": "brute_heart"
+  },
+  {
+    "id": "bramblet",
+    "size": "regular",
+    "name": "Bramblet",
+    "level": 2,
+    "body": 3,
+    "senses": 3,
+    "mind": 1,
+    "dr": 1,
+    "elite": false,
+    "boss": false,
+    "power": 30,
+    "back_row": false,
+    "attacks": 1,
+    "damage_frame": 2,
+    "skills": [
+      "bramble_prick"
+    ],
+    "blurb": "A rolling hedge-ball with leaf ears and a grudge against the shears.",
+    "sprite": "bramblet"
+  },
+  {
+    "id": "grinmud_toad",
+    "size": "regular",
+    "name": "Grinmud Toad",
+    "level": 1,
+    "body": 3,
+    "senses": 1,
+    "mind": 1,
+    "dr": 0,
+    "elite": false,
+    "boss": false,
+    "power": 16,
+    "back_row": false,
+    "attacks": 1,
+    "damage_frame": 2,
+    "skills": [
+      "mud_grin"
+    ],
+    "blurb": "The thing that grins from the Millpond mud, lily pad and all.",
+    "sprite": "grinmud_toad"
+  },
+  {
+    "id": "bottlecrab",
+    "size": "regular",
+    "name": "Bottlecrab",
+    "level": 2,
+    "body": 3,
+    "senses": 2,
+    "mind": 1,
+    "dr": 2,
+    "elite": false,
+    "boss": false,
+    "power": 28,
+    "back_row": false,
+    "attacks": 1,
+    "damage_frame": 2,
+    "skills": [
+      "bottle_snip"
+    ],
+    "blurb": "A hermit crab in a washed-up bottle. It snips first.",
+    "sprite": "bottlecrab"
+  },
+  {
+    "id": "squallgull",
+    "size": "regular",
+    "name": "Squallgull",
+    "level": 2,
+    "body": 2,
+    "senses": 4,
+    "mind": 1,
+    "dr": 0,
+    "elite": false,
+    "boss": false,
+    "power": 26,
+    "back_row": true,
+    "attacks": 1,
+    "damage_frame": 2,
+    "skills": [
+      "squall_peck"
+    ],
+    "blurb": "A grey gull that keeps a scrap of storm over the lighthouse.",
+    "sprite": "squallgull"
+  },
+  {
+    "id": "kelpback",
+    "size": "large",
+    "name": "Kelpback Snapper",
+    "level": 2,
+    "body": 5,
+    "senses": 2,
+    "mind": 1,
+    "dr": 6,
+    "elite": false,
+    "boss": false,
+    "power": 48,
+    "back_row": false,
+    "attacks": 1,
+    "damage_frame": 3,
+    "skills": [
+      "kelp_roll"
+    ],
+    "blurb": "A barnacled snapper draped in kelp, wide as the shallows.",
+    "sprite": "kelpback"
+  },
+  {
+    "id": "gloomgrub",
+    "size": "regular",
+    "name": "Gloomgrub",
+    "level": 3,
+    "body": 3,
+    "senses": 2,
+    "mind": 2,
+    "dr": 1,
+    "elite": false,
+    "boss": false,
+    "power": 36,
+    "back_row": false,
+    "attacks": 1,
+    "damage_frame": 2,
+    "skills": [
+      "gloom_spit"
+    ],
+    "blurb": "A pale cave grub. The spots glow, and the mandibles clack.",
+    "sprite": "gloomgrub"
+  },
+  {
+    "id": "dripfang",
+    "size": "regular",
+    "name": "Dripfang",
+    "level": 3,
+    "body": 4,
+    "senses": 3,
+    "mind": 1,
+    "dr": 3,
+    "elite": false,
+    "boss": false,
+    "power": 44,
+    "back_row": false,
+    "attacks": 1,
+    "damage_frame": 2,
+    "skills": [
+      "drip_bite"
+    ],
+    "blurb": "A stalagmite that is not a stalagmite. Yellow eyes, a stony maw.",
+    "sprite": "dripfang"
+  },
+  {
+    "id": "pebble_squire",
+    "size": "regular",
+    "name": "Pebble Squire",
+    "level": 4,
+    "body": 4,
+    "senses": 2,
+    "mind": 2,
+    "dr": 8,
+    "elite": false,
+    "boss": false,
+    "power": 52,
+    "back_row": false,
+    "attacks": 1,
+    "damage_frame": 2,
+    "skills": [
+      "squire_bash"
+    ],
+    "blurb": "Walking pebbles in a dented bucket helm, with a wooden sword.",
+    "sprite": "pebble_squire"
+  },
+  {
+    "id": "hollow_helm",
+    "size": "regular",
+    "name": "Hollow Helm",
+    "level": 4,
+    "body": 3,
+    "senses": 3,
+    "mind": 3,
+    "dr": 6,
+    "elite": false,
+    "boss": false,
+    "power": 50,
+    "back_row": true,
+    "attacks": 1,
+    "damage_frame": 2,
+    "skills": [
+      "helm_watch"
+    ],
+    "blurb": "An empty helm and two gauntlets, still keeping watch.",
+    "sprite": "hollow_helm"
+  },
+  {
+    "id": "cobble_rat",
+    "size": "regular",
+    "name": "Cobble Rat",
+    "level": 4,
+    "body": 3,
+    "senses": 5,
+    "mind": 1,
+    "dr": 2,
+    "elite": false,
+    "boss": false,
+    "power": 46,
+    "back_row": false,
+    "attacks": 2,
+    "damage_frame": 2,
+    "skills": [
+      "rat_gnaw"
+    ],
+    "blurb": "A courtyard rat wearing a patch of cobbles as a shell.",
+    "sprite": "cobble_rat"
   }
 ]

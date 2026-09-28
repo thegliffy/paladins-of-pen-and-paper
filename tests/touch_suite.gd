@@ -702,9 +702,9 @@ static func _builder(host: Node, tree: SceneTree, failures: Array[String]) -> vo
 		push_error("Touch check: the builder did not start with one foe")
 		builder.queue_free()
 		return
-	if builder.find_child("Count_gravel_brute", true, false) != null or builder.find_child("Count_marshlurker", true, false) == null:
+	if builder.find_child("Count_gravel_brute", true, false) != null or builder.find_child("Count_grinmud_toad", true, false) == null or builder.find_child("Count_kelpback", true, false) != null:
 		failures.append("builder_place")
-		push_error("Touch check: Millpond did not list its own monsters")
+		push_error("Touch check: Millpond did not list the meadow table")
 	var gold_one := int(gold.text.trim_prefix("Gold "))
 	var plus_blob := builder.find_child("Plus_puddleblob", true, false) as Button
 	for _i in 8:

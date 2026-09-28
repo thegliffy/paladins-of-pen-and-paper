@@ -709,7 +709,7 @@
       "max_hp": 18,
       "senses": 1
     },
-    "description": "A ring of dried mud that still smiles.",
+    "description": "A ring of dried blue that still smiles.",
     "tag": "",
     "weight": "",
     "hands": 1,
@@ -737,7 +737,7 @@
       "attack": 7,
       "crit": 8
     },
-    "description": "A cave tooth on a cord. It wants a quiet hand.",
+    "description": "A duskbat tooth on a cord. It wants a quiet hand.",
     "weight": "",
     "stack": 1,
     "kind": "",
@@ -757,7 +757,7 @@
       "body": 2,
       "threat": 5
     },
-    "description": "A stone heart, warm as a hearth brick.",
+    "description": "A stone heart from the cairn golem, warm as a hearth brick.",
     "tag": "",
     "weight": "",
     "hands": 1,
@@ -770,7 +770,7 @@
   },
   {
     "id": "lurker_scale",
-    "name": "Lurker Scale",
+    "name": "Bone Plate",
     "slot": "armor",
     "weight": "medium",
     "rarity": "unique",
@@ -783,7 +783,7 @@
       "dr": 5,
       "max_hp": 16
     },
-    "description": "One plate from a thing that lived in the reeds.",
+    "description": "A pale plate off the reed skeleton.",
     "tag": "",
     "hands": 1,
     "offhand": false,
@@ -794,7 +794,7 @@
   },
   {
     "id": "wisp_jar",
-    "name": "Wisp Jar",
+    "name": "Cap Jar",
     "slot": "trinket",
     "rarity": "unique",
     "level": 2,
@@ -805,7 +805,7 @@
       "max_mp": 24,
       "spell_bonus": 0.1
     },
-    "description": "A corked jar with a patient light inside.",
+    "description": "Light scraped from an orangecap and corked.",
     "tag": "",
     "weight": "",
     "hands": 1,

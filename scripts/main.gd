@@ -271,6 +271,21 @@ func _export_check() -> void:
 		failures.append("skill_icon")
 	if not _texture_ok(ArtPack.texture("combat/bg_forest_portrait.png")):
 		failures.append("combat_bg")
+	for place_id in ContentDB.places.keys():
+		var backdrop := ContentDB.combat_backdrop_path(str(place_id))
+		var place_bg := ArtPack.texture(backdrop)
+		if not _texture_ok(place_bg) or place_bg.get_width() != 270 or place_bg.get_height() != 480:
+			failures.append("place_bg_%s" % place_id)
+			push_error("Export check: %s backdrop did not load (%s)" % [place_id, backdrop])
+		elif str(place_id) != "" and backdrop == "combat/bg_forest_portrait.png":
+			failures.append("place_bg_%s" % place_id)
+			push_error("Export check: %s fell back to the forest" % place_id)
+	for monster_id in ["bramblet", "grinmud_toad", "bottlecrab", "squallgull", "kelpback", "gloomgrub", "dripfang", "pebble_squire", "hollow_helm", "cobble_rat"]:
+		var idle := ArtPack.monster_frame(monster_id, "idle", 0)
+		var attack := ArtPack.monster_frame(monster_id, "attack", 0)
+		if not _texture_ok(idle) or not _texture_ok(attack):
+			failures.append("monster_%s" % monster_id)
+			push_error("Export check: %s did not animate" % monster_id)
 	if not _texture_ok(ArtPack.texture("party/seat_paladin_idle.png")):
 		failures.append("seat")
 	if not _texture_ok(SpriteCatalog.background("meadow")):
@@ -344,6 +359,7 @@ func _shots() -> void:
 	map.stage_preview()
 	await _swap(map)
 	await _capture("map")
+	GameState.place_id = "millpond"
 	var session := SessionScreen.new()
 	await _swap(session)
 	session.stage_battle_preview()
@@ -406,6 +422,23 @@ func _shots() -> void:
 		{"id": "m2", "side": "monster", "kind": "marshlurker", "hp": 28, "max_hp": 28, "mp": 0, "max_mp": 1, "back_row": false},
 	])
 	await _capture("lineup")
+	GameState.place_id = "lantern_reach"
+	session._apply_backdrop()
+	session.present_units([
+		{"id": "m0", "side": "monster", "kind": "bottlecrab", "hp": 24, "max_hp": 24, "mp": 0, "max_mp": 1, "back_row": false},
+		{"id": "m1", "side": "monster", "kind": "squallgull", "hp": 18, "max_hp": 18, "mp": 0, "max_mp": 1, "back_row": true},
+		{"id": "m2", "side": "monster", "kind": "kelpback", "hp": 40, "max_hp": 40, "mp": 0, "max_mp": 1, "back_row": false},
+	])
+	await _capture("coast")
+	GameState.place_id = "howling_cleft"
+	session._apply_backdrop()
+	session.present_units([
+		{"id": "m0", "side": "monster", "kind": "gloomgrub", "hp": 28, "max_hp": 28, "mp": 0, "max_mp": 1, "back_row": false},
+		{"id": "m1", "side": "monster", "kind": "dripfang", "hp": 32, "max_hp": 32, "mp": 0, "max_mp": 1, "back_row": false},
+		{"id": "m2", "side": "monster", "kind": "cave_howler", "hp": 22, "max_hp": 22, "mp": 0, "max_mp": 1, "back_row": true},
+	])
+	await _capture("cave")
+	GameState.place_id = "millpond"
 	session.stage_battle_preview()
 	var flow := BattleFlow.new()
 	flow.view = session

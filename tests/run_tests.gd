@@ -232,7 +232,7 @@ func _test_content_shape() -> void:
 	eq(personas.size(), 5, "5 personas")
 	eq(races.size(), 3, "3 races")
 	eq(classes.size(), 8, "8 classes")
-	check(monsters.size() >= 6 and monsters.size() <= 8, "6–8 monsters")
+	eq(monsters.size(), 18, "eight originals plus ten region monsters")
 	var places: Array = region["places"]
 	check(places.size() >= 5 and places.size() <= 6, "5–6 places")
 	var by_id := {}
@@ -275,7 +275,7 @@ func _test_content_shape() -> void:
 	for skill in skills:
 		if str(skill["owner"]) == "monster":
 			monster_skills += 1
-	eq(monster_skills, 5, "monster skills stay")
+	eq(monster_skills, 15, "each new region monster has a skill")
 
 
 func _test_skill_resources() -> void:
@@ -592,7 +592,18 @@ func _test_art_present() -> void:
 		check(FileAccess.file_exists("res://art/doll/back/outfit_%s.png" % class_id), class_id + " back outfit")
 	var monsters: Array = JSON.parse_string(FileAccess.get_file_as_string("res://data/monsters.json"))
 	for monster in monsters:
-		check(FileAccess.file_exists("res://art/monsters/%s.png" % monster["id"]), monster["id"] + " sprite")
+		var sprite := str(monster.get("sprite", ""))
+		var legacy := FileAccess.file_exists("res://art/monsters/%s.png" % monster["id"])
+		var idle := FileAccess.file_exists("res://art_source/phase0/monsters/%s/%s_idle.png" % [sprite, sprite])
+		check(legacy or idle, monster["id"] + " sprite")
+		if sprite == "":
+			continue
+		for anim in ["idle", "attack", "hit", "death"]:
+			var frame: Texture2D = ArtPack.monster_frame(sprite, anim, 0)
+			check(frame != null and frame.get_width() > 0, monster["id"] + " " + anim + " frame")
+		var still := FileAccess.file_exists("res://art_source/phase0/monsters/%s/%s_still.png" % [sprite, sprite])
+		var portrait := FileAccess.file_exists("res://art_source/phase0/monsters/%s/%s_portrait.png" % [sprite, sprite])
+		check(still and portrait, monster["id"] + " still and portrait")
 	check(FileAccess.file_exists("res://art/map/greenmere.png"), "region map")
 	check(FileAccess.file_exists("res://art/ui/table.png"), "table")
 	check(FileAccess.file_exists("res://art/ui/gm.png"), "gm")
@@ -749,7 +760,7 @@ func _test_table_space() -> void:
 	eq(Formulas.table_cost("large"), 5, "large cost")
 	eq(Formulas.TABLE_CAPACITY, 15, "table capacity")
 	var monsters: Array = JSON.parse_string(FileAccess.get_file_as_string("res://data/monsters.json"))
-	var large_ids := {"briar_hound": true, "marshlurker": true, "gravel_brute": true}
+	var large_ids := {"briar_hound": true, "marshlurker": true, "gravel_brute": true, "kelpback": true}
 	for monster in monsters:
 		var mid := str(monster["id"])
 		var tag := str(monster.get("size", ""))
@@ -863,26 +874,43 @@ func _test_place_rosters() -> void:
 		monsters[str(row["id"])] = row
 	var region := _region()
 	var wanderers: Array = region.get("wanderers", [])
-	check(not wanderers.is_empty(), "the region lists shared wanderers")
+	check(wanderers.is_empty(), "places do not share a wanderer on top of the region table")
+	var meadow := ["puddleblob", "thicket_imp", "cinder_mite", "briar_hound", "bramblet", "grinmud_toad"]
+	var coast := ["cinder_mite", "briar_hound", "lantern_wisp", "bottlecrab", "squallgull", "kelpback"]
+	var cave := ["cave_howler", "lantern_wisp", "briar_hound", "marshlurker", "gloomgrub", "dripfang"]
+	var keep_table := ["cave_howler", "briar_hound", "marshlurker", "gravel_brute", "pebble_squire", "hollow_helm", "cobble_rat"]
+	var expected := {
+		"candlewick": [],
+		"millpond": meadow,
+		"briar_cross": meadow,
+		"lantern_reach": coast,
+		"howling_cleft": cave,
+		"gravel_keep": keep_table,
+	}
 	for place in region["places"]:
+		var place_id := str(place["id"])
 		var roster: Array = Formulas.encounter_roster(place.get("monsters", []), wanderers)
-		check(roster.size() >= 3, str(place["id"]) + " offers at least three foes")
-		var large := false
+		var wanted: Array = expected[place_id]
+		eq(roster, wanted, place_id + " lists only its region table")
+		var backdrop := str(place.get("backdrop", ""))
+		eq(backdrop, "combat/bg_%s_portrait.png" % place_id, place_id + " names its portrait backdrop")
+		var tex: Texture2D = ArtPack.texture(backdrop)
+		check(tex != null and tex.get_width() == 270 and tex.get_height() == 480, place_id + " backdrop is 270x480")
+		if place_id == "candlewick":
+			check(roster.is_empty(), "the town has no fights")
+			continue
+		var large := 0
+		var regular := 0
 		for monster_id in roster:
-			check(monsters.has(str(monster_id)), str(place["id"]) + " names a real monster")
+			check(monsters.has(str(monster_id)), place_id + " names a real monster")
 			if Formulas.monster_size_tag(monsters[str(monster_id)]) == "large":
-				large = true
-		check(large, str(place["id"]) + " includes a large foe")
-		check(str(place.get("backdrop", "")).begins_with("combat/bg_"), str(place["id"]) + " names a combat backdrop")
-	var by_place := {}
-	for place in region["places"]:
-		by_place[str(place["id"])] = place
-	var mill: Array = by_place["millpond"]["monsters"]
-	check(mill.has("marshlurker"), "the marsh keeps the lurker")
-	check(not mill.has("gravel_brute"), "the marsh does not list the keep brute")
-	var keep: Array = by_place["gravel_keep"]["monsters"]
+				large += 1
+			else:
+				regular += 1
+		check(regular >= 4 and large >= 1, place_id + " has four regulars and a large foe")
+	var keep: Array = expected["gravel_keep"]
 	eq(str(keep[0]), "cave_howler", "the keep's first foe is a regular")
-	check(keep.has("gravel_brute"), "the keep lists its brute")
+	check(keep.has("gravel_brute") and keep.has("kelpback") == false, "the keep lists its brute and not the snapper")
 
 
 func _test_gear() -> void:

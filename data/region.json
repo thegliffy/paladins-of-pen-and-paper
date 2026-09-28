@@ -20,13 +20,9 @@
           "kind": "town",
           "has_inn": true,
           "description": "A hamlet of smoke and bread. The inn keeps a kettle on.",
-          "monsters": [
-            "puddleblob",
-            "thicket_imp",
-            "briar_hound"
-          ],
+          "monsters": [],
           "sprite": "village",
-          "backdrop": "combat/bg_candlewick.png"
+          "backdrop": "combat/bg_candlewick_portrait.png"
         },
         {
           "id": "millpond",
@@ -41,10 +37,13 @@
           "monsters": [
             "puddleblob",
             "thicket_imp",
-            "marshlurker"
+            "cinder_mite",
+            "briar_hound",
+            "bramblet",
+            "grinmud_toad"
           ],
           "sprite": "windmill",
-          "backdrop": "combat/bg_millpond.png"
+          "backdrop": "combat/bg_millpond_portrait.png"
         },
         {
           "id": "briar_cross",
@@ -57,12 +56,15 @@
           "has_inn": false,
           "description": "Four roads and a thorn hedge that never stays cut.",
           "monsters": [
+            "puddleblob",
             "thicket_imp",
             "cinder_mite",
-            "briar_hound"
+            "briar_hound",
+            "bramblet",
+            "grinmud_toad"
           ],
           "sprite": "tavern",
-          "backdrop": "combat/bg_briar_cross.png"
+          "backdrop": "combat/bg_briar_cross_portrait.png"
         },
         {
           "id": "lantern_reach",
@@ -75,12 +77,15 @@
           "has_inn": false,
           "description": "A white tower above a blue shallows. The lamp is never cold.",
           "monsters": [
-            "lantern_wisp",
             "cinder_mite",
-            "briar_hound"
+            "briar_hound",
+            "lantern_wisp",
+            "bottlecrab",
+            "squallgull",
+            "kelpback"
           ],
           "sprite": "shrine",
-          "backdrop": "combat/bg_lantern_reach.png"
+          "backdrop": "combat/bg_lantern_reach_portrait.png"
         },
         {
           "id": "howling_cleft",
@@ -95,10 +100,13 @@
           "monsters": [
             "cave_howler",
             "lantern_wisp",
-            "gravel_brute"
+            "briar_hound",
+            "marshlurker",
+            "gloomgrub",
+            "dripfang"
           ],
           "sprite": "cave",
-          "backdrop": "combat/bg_howling_cleft.png"
+          "backdrop": "combat/bg_howling_cleft_portrait.png"
         },
         {
           "id": "gravel_keep",
@@ -112,11 +120,15 @@
           "description": "A squat keep with no banner. The stones walk at dusk.",
           "monsters": [
             "cave_howler",
+            "briar_hound",
+            "marshlurker",
             "gravel_brute",
-            "briar_hound"
+            "pebble_squire",
+            "hollow_helm",
+            "cobble_rat"
           ],
           "sprite": "castle",
-          "backdrop": "combat/bg_gravel_keep.png"
+          "backdrop": "combat/bg_gravel_keep_portrait.png"
         }
       ],
       "edges": [
@@ -283,9 +295,7 @@
           ]
         }
       ],
-      "wanderers": [
-        "briar_hound"
-      ]
+      "wanderers": []
     }
   ]
 }
