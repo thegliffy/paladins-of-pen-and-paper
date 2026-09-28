@@ -199,7 +199,7 @@ func _loop() -> String:
 
 func _take_turn(unit: Dictionary) -> String:
 	view.set_initiative(_order_entries(), str(unit["id"]))
-	view.set_caption("%s's turn" % unit["name"])
+	view.set_caption("")
 	if str(unit["side"]) != "player":
 		view.clear_actor_bar()
 	_refresh_threat_debug()
@@ -724,7 +724,7 @@ func _show_actor_bar(unit: Dictionary, selected_id: String, cancel_selected: boo
 	var cds: Dictionary = unit.get("cooldowns", {})
 	var stacks: Dictionary = unit.get("buildup", {})
 	view.show_actor_bar(
-		str(unit.get("name", "")),
+		str(cls.get("name", unit.get("name", ""))).to_upper(),
 		skills,
 		ranks,
 		int(unit.get("hp", 0)),

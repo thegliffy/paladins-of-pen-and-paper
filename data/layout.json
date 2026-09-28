@@ -20,11 +20,16 @@
     "party_max": 5,
     "combat": {
       "initiative": [
-        4,
-        3,
-        262,
-        24
+        0,
+        0,
+        270,
+        30
       ],
+      "initiative_origin": [
+        4,
+        3
+      ],
+      "initiative_step": 29,
       "initiative_slots": 8,
       "initiative_slot": 24,
       "monsters": [
@@ -32,6 +37,11 @@
         26,
         270,
         104
+      ],
+      "monster_marks": [
+        [52, 262],
+        [135, 222],
+        [220, 266]
       ],
       "table": [
         2,

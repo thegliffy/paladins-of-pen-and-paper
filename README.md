@@ -20,7 +20,7 @@ On a phone the window is portrait. On desktop the window opens at 810×1440, whi
 2. The table hub has Travel, Fight, Rest, Quest, and Party along the bottom.
 3. **Travel** opens the Greenmere map. Drag to scroll. Tap a place, then tap it again or press Travel. Stop ends a multi-hop trip after the hop you are already on.
 4. Roads with monsters roll a d20 around the middle of the hop. 1 is lost, 2 through p is an ambush, p+1 through 19 is safe, 20 is lucky. `p = clamp(destination level − party average + 7, 2, 10)`.
-5. Combat is stacked for one hand: an initiative strip for up to eight combatants, monsters, the GM behind the table, up to five heroes from behind with HP and MP bars on the chair, then the acting hero's bar. That bar is Attack, Cover, the class's five skills, Item, and Run. The first tap inspects the slot. The second tap uses it. A passive, a locked skill, a cooling skill, and a skill you cannot pay for show the reason and do not cast. The name tab above the bar is whose turn it is. Passives also show in the creator and on the party panel with a Passive tag.
+5. Combat is stacked for one hand: a wooden initiative strip for up to eight combatants, monsters in the meadow, the GM behind the table with his screen and dice, and up to five heroes seated at the table edge with HP and MP bars on the chair. The acting hero's bar is Attack, Cover, the class's five skills, Item, and Run. The first tap inspects the slot. The second tap uses it. A passive, a locked skill, a cooling skill, and a skill you cannot pay for show the reason and do not cast. The name tab above the bar is whose turn it is. Passives also show in the creator and on the party panel with a Passive tag.
 
 The save is `user://paladins_save.json`. It is written when the app pauses or closes. A fight in progress reloads from the checkpoint taken when the battle started, so a kill during the fight does not keep half-applied rewards.
 
@@ -44,6 +44,8 @@ Native 270×480 captures of the production art:
 
 ![Greenmere map](docs/screenshots/map.png)
 
+![Combat beside the art director render](docs/screenshots/combat_compare.png)
+
 ![Combat](docs/screenshots/combat.png)
 
 ![Skill list](docs/screenshots/skills.png)
@@ -55,12 +57,12 @@ Native 270×480 captures of the production art:
 [`export_presets.cfg`](export_presets.cfg) has a debug Android preset locked to portrait (`screen/orientation=1`) and arm64-v8a, plus a Linux preset. The project setting `display/window/handheld/orientation` is portrait.
 
 ```bash
-godot --headless --export-debug Android build/paladins-0.2.1-debug.apk
+godot --headless --export-debug Android build/paladins-0.2.2-debug.apk
 ```
 
 The export needs the Godot 4.7.2 Android templates (installed into `android/build`, which is gitignored), a `.build_version` of `4.7.2.stable`, Android SDK 36, build-tools 36.1.0, NDK 29.0.14206865, and a JDK. The project enables ETC2/ASTC import, which the Android exporter requires.
 
-The published debug APK is [v0.2.1](https://github.com/thegliffy/paladins-of-pen-and-paper/releases/tag/v0.2.1): [paladins-0.2.1-debug.apk](https://github.com/thegliffy/paladins-of-pen-and-paper/releases/download/v0.2.1/paladins-0.2.1-debug.apk). It is arm64-v8a, portrait, package `com.thegliffy.paladinspenpaper`, version code 3. Skill descriptions, the creator stat line, and map place text wrap inside their panels. v0.2.0 and v0.1.0 are left as-is.
+The published debug APK is [v0.2.2](https://github.com/thegliffy/paladins-of-pen-and-paper/releases/tag/v0.2.2): [paladins-0.2.2-debug.apk](https://github.com/thegliffy/paladins-of-pen-and-paper/releases/download/v0.2.2/paladins-0.2.2-debug.apk). It is arm64-v8a, portrait, package `com.thegliffy.paladinspenpaper`, version code 4. The combat screen follows the art director's portrait: forest backdrop, table with the GM, screen, and dice, full seated dolls, chair bars, and the wooden initiative strip. v0.2.1, v0.2.0, and v0.1.0 are left as-is.
 
 ## Where numbers live
 
@@ -101,4 +103,4 @@ A level 1 hero is `class + persona + race + 2` on Body, Senses, and Mind. HP is 
 - Audio is generated tones. There is no music.
 - Combat, the creator, and the map use the production sprite pack. The title screen still uses the meadow backdrop from `art/`.
 
-A basic attack's waits are 0.25 s wind-up, 0.20 s to the hit, and a 0.50 s HP tween (0.95 s). Punch and the red blink run inside that tween. On the machine that captured the screenshots, one measured attack completed in 810 ms, inside the 0.8–1.2 s gate.
+A basic attack's waits are 0.25 s wind-up, 0.20 s to the hit, and a 0.50 s HP tween (0.95 s). Punch and the red blink run inside that tween. On the machine that captured the screenshots, one measured attack completed in 805 ms, inside the 0.8–1.2 s gate.

@@ -14,6 +14,7 @@ const SKIN_KEYS: Array = ["#ec5a44", "#8c5836", "#b27a4e", "#d89c72"]
 static var _manifest: Dictionary = {}
 static var _textures: Dictionary = {}
 static var _baked: Dictionary = {}
+static var _outlined: Dictionary = {}
 
 
 static func manifest() -> Dictionary:
@@ -88,6 +89,93 @@ static func monster_size(sprite: String) -> Vector2:
 static func monster_feet(sprite: String) -> Vector2:
 	var raw: Array = manifest()["monsters"][sprite]["feet_anchor"]
 	return Vector2(float(raw[0]), float(raw[1]))
+
+
+static func monster_hp_anchor(sprite: String) -> Vector2:
+	var raw: Array = manifest()["monsters"][sprite]["hp_bar_anchor"]
+	return Vector2(float(raw[0]), float(raw[1]))
+
+
+static func monster_portrait(sprite: String) -> Texture2D:
+	return texture("monsters/%s/%s_portrait.png" % [sprite, sprite])
+
+
+static func default_look(class_id: String) -> Dictionary:
+	var row: Dictionary = manifest()["classes"]["seat_defaults"][class_id]
+	var look := {
+		"skin": int(row["skin"]) - 1,
+		"head": int(row["head"]) - 1,
+		"hair": int(row["hair"]) - 1,
+		"hair_color": HAIR_RAMPS.find(str(row["hair_color"])),
+		"outfit_color": 0,
+	}
+	if row.get("outfit", null) != null:
+		look["outfit_color"] = OUTFIT_RAMPS.find(str(row["outfit"]))
+	return look
+
+
+static func seat_is_default(class_id: String, look: Dictionary) -> bool:
+	var defaults: Dictionary = manifest()["classes"]["seat_defaults"]
+	if not defaults.has(class_id):
+		return false
+	var row: Dictionary = defaults[class_id]
+	var skin := posmod(int(look.get("skin", 0)), 6) + 1
+	var head := posmod(int(look.get("head", 0)), 6) + 1
+	var hair := posmod(int(look.get("hair", 0)), 8) + 1
+	if skin != int(row["skin"]) or head != int(row["head"]) or hair != int(row["hair"]):
+		return false
+	var hair_name: String = HAIR_RAMPS[posmod(int(look.get("hair_color", 0)), HAIR_RAMPS.size())]
+	if hair_name != str(row["hair_color"]):
+		return false
+	if row.get("outfit", null) == null:
+		return true
+	var outfit: String = OUTFIT_RAMPS[posmod(int(look.get("outfit_color", 0)), OUTFIT_RAMPS.size())]
+	return outfit == str(row["outfit"])
+
+
+static func seat_idle(class_id: String) -> Texture2D:
+	return texture("party/seat_%s_idle.png" % class_id)
+
+
+static func gold_outline(source: Texture2D) -> Texture2D:
+	if source == null:
+		return null
+	if _outlined.has(source):
+		return _outlined[source]
+	var image := source.get_image()
+	if image == null:
+		return source
+	image = image.duplicate()
+	var copy := image.duplicate()
+	var gold := Color("f8d040")
+	var w := image.get_width()
+	var h := image.get_height()
+	for y in h:
+		for x in w:
+			if image.get_pixel(x, y).a > 0.5:
+				continue
+			var edge := false
+			if x > 0 and image.get_pixel(x - 1, y).a > 0.5:
+				edge = true
+			elif x + 1 < w and image.get_pixel(x + 1, y).a > 0.5:
+				edge = true
+			elif y > 0 and image.get_pixel(x, y - 1).a > 0.5:
+				edge = true
+			elif y + 1 < h and image.get_pixel(x, y + 1).a > 0.5:
+				edge = true
+			if edge:
+				copy.set_pixel(x, y, gold)
+	var baked := ImageTexture.create_from_image(copy)
+	_outlined[source] = baked
+	return baked
+
+
+static func front_portrait(look: Dictionary, class_id: String) -> Image:
+	var doll := compose_doll("front", look, class_id)
+	var image := doll.get_image()
+	if image == null:
+		return Image.create(20, 20, false, Image.FORMAT_RGBA8)
+	return image.get_region(Rect2i(6, 8, 20, 20))
 
 
 static func nine_slice(rel: String, left: int, top: int, right: int, bottom: int) -> StyleBoxTexture:

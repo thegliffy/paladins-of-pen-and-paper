@@ -34,6 +34,11 @@ func _process(delta: float) -> void:
 	_show_frame(posmod(index, frames))
 
 
+func freeze(index: int) -> void:
+	set_process(false)
+	_show_frame(posmod(index, frames))
+
+
 func _show_frame(index: int) -> void:
 	if _sheet == null:
 		return

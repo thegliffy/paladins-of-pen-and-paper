@@ -13,9 +13,9 @@ var _monsters := {}
 var _bars := {}
 var _actions: Control
 var _turn_tab: Panel
-var _turn_name: Label
+var _turn_name: TextureRect
 var _caption: Label
-var _initiative: HBoxContainer
+var _initiative: Control
 var _inspect: Panel
 var _action_art: TextureRect
 var _inspect_catcher: Control
@@ -28,6 +28,9 @@ var _targeting := false
 var _flickers: Array = []
 var _table: TextureRect
 var _gm: TextureRect
+var _table_props: Array = []
+var _action_back: ColorRect
+var _freeze_bars := false
 var _idle := 0.0
 var _idle_frame := 0
 var _strip_panel: Panel
@@ -84,13 +87,14 @@ func location_banner(text: String) -> void:
 
 
 func stage_battle_preview() -> void:
+	_dress_reference_party()
 	show_hub()
 	_banner.visible = false
 	_initiative.visible = true
 	var rows := [
-		{"id": "thicket_imp", "hp_ratio": 0.7},
-		{"id": "cave_howler", "hp_ratio": 1.0},
-		{"id": "puddleblob", "hp_ratio": 0.45},
+		{"id": "cinder_mite", "hp_ratio": 1.0},
+		{"id": "cave_howler", "hp_ratio": 0.6},
+		{"id": "puddleblob", "hp_ratio": 0.85},
 	]
 	var units := []
 	for i in rows.size():
@@ -110,19 +114,24 @@ func stage_battle_preview() -> void:
 	for unit in units:
 		_add_monster(unit)
 	_layout_monsters()
-	_caption.text = "Mason's turn"
-	var order := []
-	order.append({"id": "p0", "side": "player", "index": 0})
-	for unit in units:
-		order.append({"id": unit["id"], "side": "monster", "kind": unit["kind"]})
-	for index in range(1, GameState.party.size()):
-		order.append({"id": "p%d" % index, "side": "player", "index": index})
+	_caption.text = ""
+	var order := [
+		{"id": "p0", "side": "player", "index": 0},
+		{"id": "m0", "side": "monster", "kind": "cinder_mite"},
+		{"id": "p4", "side": "player", "index": 4},
+		{"id": "p3", "side": "player", "index": 3},
+		{"id": "m1", "side": "monster", "kind": "cave_howler"},
+		{"id": "p2", "side": "player", "index": 2},
+		{"id": "m2", "side": "monster", "kind": "puddleblob"},
+		{"id": "p1", "side": "player", "index": 1},
+	]
 	set_initiative(order, "p0")
-	if GameState.party.size() > 1:
-		GameState.party[1]["hp"] = int(int(GameState.combat_stats(GameState.party[1])["max_hp"]) * 0.62)
-		_sync_party()
 	_raise(0, true)
-	show_member_bar(0, {}, "", {})
+	_paint_reference_bars()
+	_freeze_reference_fx()
+	var preview_ranks: Dictionary = (GameState.party[0]["skill_ranks"] as Dictionary).duplicate(true)
+	preview_ranks["rallying_brand"] = 0
+	show_member_bar(0, {"shieldwall": 2}, "skill:oathstrike", preview_ranks)
 
 
 func intro(ambush: bool) -> void:
@@ -159,32 +168,45 @@ func present_units(units: Array) -> void:
 
 func set_initiative(order: Array, current_id: String) -> void:
 	for child in _initiative.get_children():
+		if str(child.name) == "Rail":
+			continue
 		child.free()
-	var area := Layout.rect("combat", "initiative")
 	var combat: Dictionary = Layout.cfg()["combat"]
-	var designed := int(combat.get("initiative_slot", 24))
-	var sep := 2
-	var count := maxi(1, order.size())
-	var fit := int(floor((area.size.x - float(sep * (count - 1))) / float(count)))
-	var slot_px := mini(designed, maxi(14, fit))
-	for entry in order:
-		var slot := Panel.new()
-		slot.custom_minimum_size = Vector2(slot_px, slot_px)
-		var box := StyleBoxFlat.new()
-		box.bg_color = Color(0.15, 0.1, 0.08)
-		box.border_color = SpriteCatalog.HIGHLIGHT if str(entry["id"]) == current_id else Color(0.3, 0.22, 0.16)
-		box.set_border_width_all(2 if str(entry["id"]) == current_id else 1)
-		slot.add_theme_stylebox_override("panel", box)
-		var portrait := _mini_portrait(entry)
-		portrait.set_anchors_preset(Control.PRESET_FULL_RECT)
-		slot.add_child(portrait)
-		_initiative.add_child(slot)
+	var origin_raw: Array = combat.get("initiative_origin", [4, 3])
+	var origin := Vector2(float(origin_raw[0]), float(origin_raw[1]))
+	var step := float(combat.get("initiative_step", 29))
+	var clip := Control.new()
+	clip.name = "Clip"
+	clip.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	clip.clip_contents = true
+	clip.position = origin
+	clip.size = Vector2(252.0, 24.0)
+	_initiative.add_child(clip)
+	for i in order.size():
+		var entry: Dictionary = order[i]
+		var slot := _initiative_slot(entry, str(entry["id"]) == current_id)
+		slot.position = Vector2(step * float(i), 0)
+		clip.add_child(slot)
+	if not order.is_empty():
+		var last_x := step * float(order.size() - 1)
+		var divider := ColorRect.new()
+		divider.color = Color("f8d040")
+		divider.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		divider.position = Vector2(last_x + 26.0, 1.0)
+		divider.size = Vector2(1, 22)
+		clip.add_child(divider)
+		var next := _initiative_slot(order[0], false)
+		next.position = Vector2(step * float(order.size()) + 1.0, 0)
+		clip.add_child(next)
+	_initiative.add_child(_scroll_chevron())
 
 
 func set_actions(entries: Array) -> void:
 	hide_inspect()
 	if _turn_tab:
 		_turn_tab.visible = false
+	if _action_back:
+		_action_back.visible = true
 	if _action_art:
 		_action_art.visible = false
 	_clear_action_buttons()
@@ -225,13 +247,15 @@ func show_member_bar(member_index: int, cooldowns: Dictionary, selected_id: Stri
 	var mp := int(member["mp"])
 	if mp_override >= 0:
 		mp = mp_override
-	var persona_name := str(ContentDB.persona(str(member["persona"]))["name"])
-	show_actor_bar(persona_name, skills, ranks, int(member["hp"]), mp, cooldowns, {}, selected_id, false)
+	var class_label := str(cls.get("name", "")).to_upper()
+	show_actor_bar(class_label, skills, ranks, int(member["hp"]), mp, cooldowns, {}, selected_id, false)
 
 
 func show_actor_bar(actor_name: String, skills: Array, ranks: Dictionary, hp: int, mp: int, cooldowns: Dictionary, buildup: Dictionary, selected_id: String, cancel_selected: bool = false) -> void:
 	_turn_tab.visible = true
-	_turn_name.text = actor_name
+	_set_turn_name(actor_name)
+	if _action_back:
+		_action_back.visible = false
 	if _action_art:
 		_action_art.visible = true
 	_clear_action_buttons()
@@ -269,11 +293,6 @@ func show_actor_bar(actor_name: String, skills: Array, ranks: Dictionary, hp: in
 		var action_id := str(entry["id"])
 		_slot_x[action_id] = float(raw[0]) + local.size.x * 0.5
 		var button_state := str(entry["state"])
-		if button_state == "selected":
-			var armed := FxStrip.new()
-			armed.setup("ui/portrait/skill_slot_armed.png", Vector2(36, 36), 2, 4.0, true)
-			armed.position = local.position + Vector2(-2, -2)
-			_actions.add_child(armed)
 		var button := Button.new()
 		button.focus_mode = Control.FOCUS_NONE
 		button.position = local.position
@@ -300,9 +319,19 @@ func show_actor_bar(actor_name: String, skills: Array, ranks: Dictionary, hp: in
 				dim.size = Vector2(24, 24)
 				button.add_child(dim)
 			elif button_state == "cooldown":
+				var left := int(entry.get("badge", "0")) if str(entry.get("badge", "0")).is_valid_int() else 0
+				var total := int(entry["skill"].get("cooldown", left))
+				var open_px := 0
+				if total > 0:
+					open_px = int(round((1.0 - float(left) / float(total)) * 24.0))
+				open_px = clampi(open_px, 0, 23)
 				var mask := _icon_rect("ui/skills/skill_cooldown_mask.png")
-				mask.position = Vector2(4, 4)
-				mask.size = Vector2(24, 24)
+				var region := AtlasTexture.new()
+				region.atlas = ArtPack.texture("ui/skills/skill_cooldown_mask.png")
+				region.region = Rect2(0, open_px, 24, 24 - open_px)
+				mask.texture = region
+				mask.position = Vector2(4, 4 + open_px)
+				mask.size = Vector2(24, 24 - open_px)
 				button.add_child(mask)
 			elif button_state == "locked":
 				var mask_l := _icon_rect("ui/skills/skill_cooldown_mask.png")
@@ -315,25 +344,59 @@ func show_actor_bar(actor_name: String, skills: Array, ranks: Dictionary, hp: in
 				button.add_child(lock)
 			elif button_state == "disabled":
 				button.modulate = Color(0.55, 0.55, 0.55)
+		if button_state == "passive":
+			var plum := ColorRect.new()
+			plum.color = Color("52288a")
+			plum.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			plum.position = Vector2(24, 23)
+			plum.size = Vector2(7, 8)
+			button.add_child(plum)
+			var tag := PixelFont.label("P", Color("fcf0a0"))
+			tag.position = Vector2(26, 24)
+			button.add_child(tag)
+		elif button_state == "cooldown" and str(entry.get("badge", "")).is_valid_int():
+			var box := ColorRect.new()
+			box.color = Color("120c18")
+			box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			box.position = Vector2(12, 12)
+			box.size = Vector2(8, 8)
+			button.add_child(box)
+			var turns := DigitReadout.new()
+			turns.sheet = "ui/portrait/digits_3x5.png"
+			turns.cell = Vector2i(4, 5)
+			turns.advance = 4
+			turns.position = Vector2(2, 2)
+			turns.size = Vector2(6, 5)
+			turns.set_text(str(entry.get("badge", "")))
+			box.add_child(turns)
 		var badge_text := str(entry.get("badge", ""))
-		if badge_text != "" and badge_text.is_valid_int():
-			var pill := _icon_rect("ui/portrait/cost_badge.png")
+		var show_cost := badge_text.is_valid_int() and button_state != "passive" and button_state != "cooldown" and button_state != "locked"
+		if show_cost and badge_text.length() == 1:
+			var pill := _icon_rect("ui/portrait/cost_badge_0_9.png")
+			pill.texture = ArtPack.frame_texture("ui/portrait/cost_badge_0_9.png", int(badge_text), Vector2(16, 7))
 			pill.position = Vector2(8, 34)
 			pill.size = Vector2(16, 7)
 			button.add_child(pill)
+		elif show_cost:
+			var pill_wide := _icon_rect("ui/portrait/cost_badge.png")
+			pill_wide.position = Vector2(8, 34)
+			pill_wide.size = Vector2(16, 7)
+			button.add_child(pill_wide)
 			var badge := DigitReadout.new()
 			badge.sheet = "ui/portrait/digits_3x5.png"
 			badge.cell = Vector2i(4, 5)
 			badge.advance = 4
-			badge.position = Vector2(6, 1)
-			badge.size = Vector2(10, 5)
+			var digit_w := badge_text.length() * 4
+			badge.position = Vector2(float(16 - digit_w) * 0.5, 1)
+			badge.size = Vector2(digit_w, 5)
 			badge.set_text(badge_text)
-			pill.add_child(badge)
+			pill_wide.add_child(badge)
 		var emit_id := action_id
 		if cancel_selected and emit_id == selected_id:
 			emit_id = "back"
 		button.pressed.connect(_emit_action.bind(emit_id))
 		_actions.add_child(button)
+	_paint_bar_words()
 
 
 func clear_actor_bar() -> void:
@@ -363,7 +426,7 @@ func show_inspect(card: Dictionary, action_id: String) -> void:
 	var size_rect := Layout.rect("combat", "skill_card")
 	var center := float(_slot_x.get(action_id, 135.0))
 	var width := size_rect.size.x
-	var height := Widgets.inspect_card_height(str(card.get("description", "")), width)
+	var height := Widgets.pixel_card_height(str(card.get("description", "")), width)
 	var left := clampf(center - width * 0.5, 4.0, Layout.viewport_size().x - width - 4.0)
 	var bar_top := 480.0
 	for point in Layout.party_seat_points(maxi(1, _seats.size())):
@@ -372,6 +435,8 @@ func show_inspect(card: Dictionary, action_id: String) -> void:
 	_inspect.position = Vector2(left, top)
 	_inspect.size = Vector2(width, height)
 	_fill_inspect(card, action_id)
+	_dim_other_slots(action_id)
+	_arm_slot(action_id)
 	_inspect.visible = true
 	_inspect.mouse_filter = Control.MOUSE_FILTER_STOP
 	if _inspect_catcher:
@@ -384,6 +449,8 @@ func hide_inspect() -> void:
 		_inspect.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	if _inspect_catcher:
 		_inspect_catcher.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_clear_slot_dims()
+	_clear_arm_glow()
 
 
 func _inspect_card(action_id: String, ranks: Dictionary, hp: int, mp: int, cooldowns: Dictionary, buildup: Dictionary) -> Dictionary:
@@ -415,10 +482,8 @@ func _fill_inspect(card: Dictionary, action_id: String = "") -> void:
 	icon.position = Vector2(18, 14)
 	icon.size = Vector2(40, 40)
 	_inspect.add_child(icon)
-	var title := Widgets.label(str(card.get("name", "")), Layout.font_size(), SpriteCatalog.INK)
-	title.position = Vector2(66, 12)
-	title.size = Vector2(_inspect.size.x - 110, 16)
-	title.clip_text = true
+	var title := PixelFont.label(str(card.get("name", "")), Color("120c18"), 2)
+	title.position = Vector2(66, 13)
 	_inspect.add_child(title)
 	var tag_path := "ui/portrait/skill_tag_passive.png" if passive else "ui/portrait/skill_tag_active.png"
 	var tag := _icon_rect(tag_path)
@@ -427,30 +492,55 @@ func _fill_inspect(card: Dictionary, action_id: String = "") -> void:
 	tag.position = Vector2(_inspect.size.x - 8.0 - tag_size.x, 12)
 	tag.size = tag_size
 	_inspect.add_child(tag)
-	_inspect_row("Cost", str(card.get("cost", "")), "", Vector2(66, 28))
-	_inspect_row("Target", str(card.get("target", "")), _target_icon(str(card.get("target", ""))), Vector2(66, 38))
-	_inspect_row("Cd", str(card.get("cooldown", "")), "ui/portrait/icon_cooldown.png", Vector2(66, 48))
-	var body := Widgets.label(str(card.get("description", "")), Layout.font_size(), SpriteCatalog.INK)
-	Widgets.enable_wrap(body)
-	var body_size := Widgets.wrap_size(body.text, _inspect.size.x - 28.0, Layout.font_size())
-	body.position = Vector2(16, 62)
-	body.size = Vector2(_inspect.size.x - 28.0, body_size.y)
-	_inspect.add_child(body)
+	_fill_cost_row(card, passive)
+	var target_at := Vector2(66, 35)
+	var target_icon := _target_icon(str(card.get("target", "")))
+	if target_icon != "":
+		var mark := _icon_rect(target_icon)
+		mark.position = target_at
+		mark.size = Vector2(9, 7)
+		_inspect.add_child(mark)
+	var target_label := PixelFont.label(str(card.get("target", "")), Color("744526"))
+	target_label.position = target_at + Vector2(12, 1)
+	_inspect.add_child(target_label)
+	var cd_at := Vector2(66, 45)
+	var cd_icon := _icon_rect("ui/portrait/icon_cooldown.png")
+	cd_icon.position = cd_at
+	cd_icon.size = Vector2(9, 7)
+	_inspect.add_child(cd_icon)
+	var cd_copy := "ALWAYS ON" if passive else _cooldown_line(str(card.get("cooldown", "")))
+	var cd_label := PixelFont.label(cd_copy, Color("744526"))
+	cd_label.position = cd_at + Vector2(12, 1)
+	_inspect.add_child(cd_label)
+	var chars := int((_inspect.size.x - 32.0 + 1.0) / 4.0)
+	var lines := PixelFont.wrap(str(card.get("description", "")), chars)
+	for i in lines.size():
+		var line := PixelFont.label(lines[i], Color("2c1810"))
+		line.position = Vector2(16, 62 + i * 8)
+		_inspect.add_child(line)
 	var hint := str(card.get("hint", ""))
 	var strip_path := "ui/portrait/skill_card_strip_ready.png"
 	var frames := 2
+	var hint_copy := "TAP AGAIN TO CAST"
+	var hint_color := Color("f8d040")
 	if passive or hint == "Always on":
 		strip_path = "ui/portrait/skill_card_strip_passive.png"
 		frames = 1
+		hint_copy = "PASSIVE: ALWAYS ACTIVE"
+		hint_color = Color("fcb8d4")
 	elif hint == "On cooldown":
 		strip_path = "ui/portrait/skill_card_strip_cooldown.png"
 		frames = 1
+		hint_copy = "ON COOLDOWN: %d" % _first_int(str(card.get("cooldown", "")))
+		hint_color = Color("cfd0d4")
 	elif hint.begins_with("Not enough") or hint == "Not learned yet":
 		strip_path = "ui/portrait/skill_card_strip_nomp.png"
 		frames = 1
+		hint_copy = "NOT LEARNED YET" if hint == "Not learned yet" else "NOT ENOUGH MP"
+		hint_color = Color("ec5a44")
 	var strip := Panel.new()
 	strip.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	strip.position = Vector2(8, _inspect.size.y - 18)
+	strip.position = Vector2(8, _inspect.size.y - 19)
 	strip.size = Vector2(_inspect.size.x - 16, 14)
 	var atlas := AtlasTexture.new()
 	atlas.atlas = ArtPack.texture(strip_path)
@@ -463,10 +553,9 @@ func _fill_inspect(card: Dictionary, action_id: String = "") -> void:
 	box.axis_stretch_vertical = StyleBoxTexture.AXIS_STRETCH_MODE_STRETCH
 	strip.add_theme_stylebox_override("panel", box)
 	_inspect.add_child(strip)
-	var hint_label := Widgets.label(hint.to_upper(), Layout.font_size(), Color("fcf0a0"))
-	hint_label.set_anchors_preset(Control.PRESET_FULL_RECT)
-	hint_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	hint_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	var hint_label := PixelFont.label(hint_copy, hint_color)
+	hint_label.position = Vector2((strip.size.x - hint_label.size.x) * 0.5, 5)
+	hint_label.name = "Hint"
 	strip.add_child(hint_label)
 	_strip_panel = strip
 	_strip_frames = frames
@@ -615,7 +704,10 @@ func react_hit(id: String, texts: Array, hp_ratio: float, mp_ratio: float) -> vo
 		flash.tween_property(sprite, "modulate", Color(1, 0.3, 0.3, base.a), Timing.HIT_BLINK_IN)
 		flash.tween_property(sprite, "modulate", base, Timing.HIT_BLINK_OUT)
 	if _bars.has(id):
-		Widgets.tween_bar(_bars[id]["hp"], hp_ratio, Timing.HP_TWEEN)
+		if _bars[id].has("hp"):
+			Widgets.tween_bar(_bars[id]["hp"], hp_ratio, Timing.HP_TWEEN)
+		if _bars[id].has("hp_art"):
+			_tween_clip(_bars[id]["hp_art"], hp_ratio, Timing.HP_TWEEN)
 		if _bars[id].has("mp"):
 			Widgets.tween_bar(_bars[id]["mp"], mp_ratio, Timing.HP_TWEEN)
 	var delay := 0.0
@@ -831,6 +923,9 @@ func sync_unit(unit: Dictionary) -> void:
 	var info: Dictionary = _bars[id]
 	if info.has("hp"):
 		Widgets.set_bar(info["hp"], hp_ratio)
+	if info.has("hp_art"):
+		var art: Dictionary = info["hp_art"]
+		art["clip"].size.x = float(int(30.0 * clampf(hp_ratio, 0.0, 1.0)))
 	if info.has("mp"):
 		Widgets.set_bar(info["mp"], mp_ratio)
 	if info.has("hp_fill"):
@@ -869,7 +964,7 @@ func _build_chrome() -> void:
 	var gm_size := Vector2(44, 46)
 	_gm.size = gm_size
 	var gm_feet := Layout.vec("combat", "gm")
-	_gm.position = gm_feet - Vector2(gm_size.x * 0.5, gm_size.y)
+	_gm.position = gm_feet - Vector2(22, 45)
 	add_child(_gm)
 	_table = TextureRect.new()
 	_table.texture = ArtPack.texture("combat/table_portrait.png")
@@ -878,15 +973,25 @@ func _build_chrome() -> void:
 	_table.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	Layout.place(_table, Layout.rect("combat", "table"))
 	add_child(_table)
+	_add_table_props()
 	_seat_layer = Control.new()
 	_seat_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_seat_layer.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(_seat_layer)
-	_initiative = HBoxContainer.new()
+	_initiative = Control.new()
+	_initiative.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	Layout.place(_initiative, Layout.rect("combat", "initiative"))
-	_initiative.alignment = BoxContainer.ALIGNMENT_CENTER
-	_initiative.add_theme_constant_override("separation", 2)
 	add_child(_initiative)
+	var rail := Panel.new()
+	rail.name = "Rail"
+	rail.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	rail.set_anchors_preset(Control.PRESET_FULL_RECT)
+	rail.offset_left = 0
+	rail.offset_top = 0
+	rail.offset_right = 0
+	rail.offset_bottom = 0
+	rail.add_theme_stylebox_override("panel", ArtPack.nine_slice("ui/panel_dark.png", 6, 6, 6, 6))
+	_initiative.add_child(rail)
 	_banner = Widgets.label("", Layout.font_small())
 	Layout.place(_banner, Layout.rect("hub", "banner"))
 	add_child(_banner)
@@ -904,21 +1009,27 @@ func _build_chrome() -> void:
 	_turn_tab = Panel.new()
 	var tab_box := StyleBoxTexture.new()
 	tab_box.texture = ArtPack.texture("ui/portrait/name_tab.png")
+	tab_box.content_margin_left = 0
+	tab_box.content_margin_right = 0
+	tab_box.content_margin_top = 0
+	tab_box.content_margin_bottom = 0
 	_turn_tab.add_theme_stylebox_override("panel", tab_box)
 	_turn_tab.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_turn_tab.visible = false
 	Layout.place(_turn_tab, Layout.rect("combat", "name_tab"))
 	add_child(_turn_tab)
-	_turn_name = Widgets.label("", Layout.font_tiny(), SpriteCatalog.INK)
-	_turn_name.set_anchors_preset(Control.PRESET_FULL_RECT)
-	_turn_name.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_turn_name.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	_turn_name.clip_text = true
+	_turn_name = TextureRect.new()
+	_turn_name.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_turn_name.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	_turn_name.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_turn_name.stretch_mode = TextureRect.STRETCH_SCALE
+	_turn_name.position = Vector2(5, 2)
 	_turn_tab.add_child(_turn_name)
-	var action_back := ColorRect.new()
-	action_back.color = Color(0.12, 0.08, 0.05, 0.92)
-	Layout.place(action_back, Layout.rect("combat", "action_bar"))
-	add_child(action_back)
+	_action_back = ColorRect.new()
+	_action_back.color = Color(0.12, 0.08, 0.05, 0.92)
+	_action_back.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	Layout.place(_action_back, Layout.rect("combat", "action_bar"))
+	add_child(_action_back)
 	_action_art = TextureRect.new()
 	_action_art.texture = ArtPack.texture("ui/portrait/action_bar_v2.png")
 	_action_art.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
@@ -973,17 +1084,27 @@ func _sync_party() -> void:
 			var aura := FxStrip.new()
 			aura.name = "TauntAura"
 			aura.setup("fx/taunt_aura.png", Vector2(56, 16), 3, 6.0, true)
-			aura.position = Vector2(24, 77) - Vector2(28, 8)
+			aura.position = Vector2(-4, 65)
 			seat.add_child(aura)
 			var badge := FxStrip.new()
 			badge.name = "TauntBadge"
 			badge.setup("fx/taunt_badge.png", Vector2(12, 13), 2, 3.0, true)
-			badge.position = Vector2(18, -14)
+			badge.position = Vector2(30, -7)
 			seat.add_child(badge)
 		var doll := PaperDoll.new()
 		doll.name = "Doll"
-		doll.set_look(member["look"], str(member["class_id"]), str(member["race"]), "back")
+		var class_id := str(member["class_id"])
+		if ArtPack.seat_is_default(class_id, member["look"]):
+			doll.show_sheet(ArtPack.seat_idle(class_id), canvas)
+		else:
+			doll.set_look(member["look"], class_id, str(member["race"]), "back")
 		seat.add_child(doll)
+		if _class_regens_mp(class_id):
+			var plus := FxStrip.new()
+			plus.name = "MpPlus"
+			plus.setup("fx/mp_plus.png", Vector2(19, 14), 4, 8.0, true)
+			plus.position = Vector2(13, -16)
+			seat.add_child(plus)
 		if seat.has_node("TauntAura"):
 			seat.move_child(seat.get_node("TauntAura"), 1)
 		if seat.has_node("TauntBadge"):
@@ -1001,6 +1122,7 @@ func _sync_party() -> void:
 		var pid := "p%d" % index
 		seat.gui_input.connect(_card_input.bind(pid))
 		_attach_chair_bars(seat, member, stats, pid)
+	_order_seats(points)
 	var bg := get_child(0) as TextureRect
 	if bg:
 		bg.texture = ArtPack.texture("combat/bg_forest_portrait.png")
@@ -1061,11 +1183,16 @@ func _add_monster(unit: Dictionary) -> void:
 	node.set_meta("back", bool(unit.get("back_row", false)))
 	node.set_meta("kind", str(unit["kind"]))
 	node.set_meta("sprite", sprite_name)
-	var bar := Widgets.bar(mini(48, int(frame_size.x)), 6, SpriteCatalog.HP, SpriteCatalog.HP_BACK)
-	bar["root"].position = Vector2((frame_size.x - bar["root"].size.x) * 0.5, 0)
-	node.add_child(bar["root"])
-	Widgets.set_bar(bar, float(unit["hp"]) / float(maxi(1, int(unit["max_hp"]))))
-	_bars[str(unit["id"])] = {"hp": bar}
+	var anchor := ArtPack.monster_hp_anchor(sprite_name)
+	var trough := _icon_rect("ui/enemy_bar_bg.png")
+	trough.position = anchor - Vector2(16, 4)
+	trough.size = Vector2(32, 5)
+	node.add_child(trough)
+	var hp_fill := _clipped_fill("ui/enemy_bar_hp.png", trough.position + Vector2(1, 1), Vector2(30, 3))
+	node.add_child(hp_fill["clip"])
+	var ratio := float(unit["hp"]) / float(maxi(1, int(unit["max_hp"])))
+	hp_fill["clip"].size.x = float(int(30.0 * clampf(ratio, 0.0, 1.0)))
+	_bars[str(unit["id"])] = {"hp_art": hp_fill}
 	var sprite := TextureRect.new()
 	sprite.name = "Sprite"
 	sprite.position = Vector2.ZERO
@@ -1075,6 +1202,7 @@ func _add_monster(unit: Dictionary) -> void:
 	sprite.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	sprite.texture = ArtPack.monster_frame(sprite_name, "idle", 0)
 	node.add_child(sprite)
+	node.move_child(sprite, 0)
 	var conds := Widgets.label("", Layout.font_tiny(), SpriteCatalog.LIGHT)
 	conds.name = "Conds"
 	conds.position = Vector2(0, 56)
@@ -1091,6 +1219,7 @@ func _add_monster(unit: Dictionary) -> void:
 
 func _layout_monsters() -> void:
 	var ids: Array = _monsters.keys()
+	var marks: Array = Layout.cfg()["combat"].get("monster_marks", [])
 	var count := maxi(1, ids.size())
 	var span := 168.0
 	var origin_x := 135.0 - span * 0.5
@@ -1100,6 +1229,10 @@ func _layout_monsters() -> void:
 		var feet := ArtPack.monster_feet(sprite_name)
 		var feet_x := origin_x + span * (float(i) + 0.5) / float(count)
 		var feet_y := 222.0 if bool(node.get_meta("back", false)) else 262.0
+		if marks.size() == ids.size():
+			var mark: Array = marks[i]
+			feet_x = float(mark[0])
+			feet_y = float(mark[1])
 		node.position = Vector2(feet_x, feet_y) - feet
 
 
@@ -1120,13 +1253,24 @@ func _raise(index: int, up: bool) -> void:
 		var digits: DigitReadout = seat.get_node_or_null("BarHost/HpDigits") as DigitReadout
 		if digits:
 			digits.position.y = -7.0 if raised else -6.0
-		seat.get_node("Bracket").visible = up and i == index
-		seat.get_node("Arrow").visible = up and i == index
+		var doll := seat.get_node_or_null("Doll") as PaperDoll
+		if doll:
+			doll.set_raised(raised)
+		if seat.has_node("TauntAura"):
+			seat.get_node("TauntAura").position = Vector2(-4, 68 if raised else 65)
+		if seat.has_node("TauntBadge"):
+			seat.get_node("TauntBadge").position = Vector2(30, -4 if raised else -7)
+		seat.get_node("Bracket").visible = false
+		seat.get_node("Arrow").visible = false
 
 
 func _set_table_visible(show_table: bool) -> void:
 	_gm.visible = show_table
 	_table.visible = show_table
+	for prop in _table_props:
+		var node := prop as CanvasItem
+		if node:
+			node.visible = show_table
 	_seat_layer.visible = show_table
 
 
@@ -1197,7 +1341,7 @@ func _pulse_ready_strip(delta: float) -> void:
 
 
 func _pulse_low_hp() -> void:
-	var frame := int(Time.get_ticks_msec() / 180) % 2
+	var frame := 0 if _freeze_bars else int(Time.get_ticks_msec() / 180) % 2
 	for id in _bars.keys():
 		var info: Dictionary = _bars[id]
 		if not info.has("hp_fill"):
@@ -1237,7 +1381,7 @@ func _ensure_taunt(id: String) -> void:
 	var badge := FxStrip.new()
 	badge.name = "TauntBadge"
 	badge.setup("fx/taunt_badge.png", Vector2(12, 13), 2, 3.0, true)
-	badge.position = Vector2(18, -14)
+	badge.position = Vector2(30, -7)
 	seat.add_child(badge)
 
 
@@ -1443,3 +1587,317 @@ func _spend(member_index: int, skill_id: String) -> void:
 
 func _backdrop_kind() -> void:
 	pass
+
+
+func _dress_reference_party() -> void:
+	var classes: Array = ["paladin", "cleric", "rogue", "druid", "wizard"]
+	for i in mini(classes.size(), GameState.party.size()):
+		var member: Dictionary = GameState.party[i]
+		var class_id := str(classes[i])
+		member["class_id"] = class_id
+		member["look"] = ArtPack.default_look(class_id)
+
+
+func _paint_reference_bars() -> void:
+	var numbers: Array = [50, 28, 16, 34, 6]
+	var ratios: Array = [1.0, 28.0 / 40.0, 16.0 / 36.0, 34.0 / 38.0, 6.0 / 30.0]
+	var mp_ratios: Array = [0.5, 1.0, 0.6, 0.8, 0.35]
+	for i in mini(numbers.size(), _seats.size()):
+		var seat: Control = _seats[i]
+		var digits := seat.get_node_or_null("BarHost/HpDigits") as DigitReadout
+		if digits:
+			digits.set_text(str(numbers[i]))
+		var info: Dictionary = _bars.get("p%d" % i, {})
+		if info.has("hp_fill"):
+			var hp_px := maxi(1, int(round(42.0 * float(ratios[i]))))
+			info["hp_fill"]["clip"].size.x = float(hp_px)
+			info["hp_ratio"] = float(ratios[i])
+		if info.has("mp_fill"):
+			var mp_px := maxi(1, int(round(42.0 * float(mp_ratios[i]))))
+			info["mp_fill"]["clip"].size.x = float(mp_px)
+	if _seats.size() > 4:
+		var tick := FxStrip.new()
+		tick.name = "ManaTick"
+		tick.setup("fx/mana_tick.png", Vector2(16, 28), 6, 10.0, true)
+		tick.position = Vector2(float(int(round(42.0 * 0.35))) - 5.0, 48.0)
+		_seats[4].add_child(tick)
+
+
+func _freeze_reference_fx() -> void:
+	_freeze_bars = true
+	_pulse_low_hp()
+	for seat in _seats:
+		var node := seat as Node
+		if node.has_node("TauntAura"):
+			(node.get_node("TauntAura") as FxStrip).freeze(1)
+		if node.has_node("TauntBadge"):
+			(node.get_node("TauntBadge") as FxStrip).freeze(0)
+		if node.has_node("MpPlus"):
+			(node.get_node("MpPlus") as FxStrip).freeze(1)
+		if node.has_node("ManaTick"):
+			(node.get_node("ManaTick") as FxStrip).freeze(3)
+	for id in _monsters.keys():
+		var monster: Control = _monsters[id]
+		monster.set_meta("acting", true)
+		_set_frame(monster, 0)
+
+
+func _order_seats(points: Array) -> void:
+	var order: Array = []
+	for i in _seats.size():
+		order.append(i)
+	for a in order.size():
+		for b in range(a + 1, order.size()):
+			var ia: int = order[a]
+			var ib: int = order[b]
+			var pa: Vector2 = points[ia]
+			var pb: Vector2 = points[ib]
+			var swap := pb.y < pa.y or (pb.y == pa.y and ib < ia)
+			if swap:
+				order[a] = ib
+				order[b] = ia
+	for step in order.size():
+		_seat_layer.move_child(_seats[order[step]], step)
+
+
+func _add_table_props() -> void:
+	_table_props.clear()
+	var screen := _icon_rect("combat/gm_screen.png")
+	screen.position = Vector2(83, 329)
+	screen.size = Vector2(35, 30)
+	add_child(screen)
+	_table_props.append(screen)
+	var die := _icon_rect("combat/d20_roll.png")
+	die.texture = ArtPack.frame_texture("combat/d20_roll.png", 3, Vector2(24, 24))
+	die.position = Vector2(152, 333)
+	die.size = Vector2(24, 24)
+	add_child(die)
+	_table_props.append(die)
+	var blue := _icon_rect("combat/d6_blue.png")
+	blue.texture = ArtPack.frame_texture("combat/d6_blue.png", 4, Vector2(8, 8))
+	blue.position = Vector2(210, 345)
+	blue.size = Vector2(8, 8)
+	add_child(blue)
+	_table_props.append(blue)
+	var red := _icon_rect("combat/d6_red.png")
+	red.texture = ArtPack.frame_texture("combat/d6_red.png", 2, Vector2(8, 8))
+	red.position = Vector2(220, 347)
+	red.size = Vector2(8, 8)
+	add_child(red)
+	_table_props.append(red)
+
+
+func _set_turn_name(text: String) -> void:
+	if _turn_name == null:
+		return
+	var label := text.to_upper()
+	_turn_name.texture = PixelFont.texture(label, Color("120c18"))
+	_turn_name.size = Vector2(PixelFont.width(label), 5)
+
+
+func _paint_bar_words() -> void:
+	var attack := PixelFont.label("ATTACK", Color("cfd0d4"))
+	attack.position = Vector2(4.0 + 16.0 - float(PixelFont.width("ATTACK")) * 0.5, 38)
+	_actions.add_child(attack)
+	var cover := PixelFont.label("COVER", Color("cfd0d4"))
+	cover.position = Vector2(37.0 + 16.0 - float(PixelFont.width("COVER")) * 0.5, 38)
+	_actions.add_child(cover)
+	var passive_buttons: Array = []
+	for child in _actions.get_children():
+		if child is Button and _button_is_passive(child):
+			passive_buttons.append(child)
+	for child in passive_buttons:
+		var button := child as Button
+		var pas := PixelFont.label("PAS", Color("f8d040"))
+		pas.position = button.position + Vector2(4, 34)
+		_actions.add_child(pas)
+
+
+func _button_is_passive(button: Button) -> bool:
+	for child in button.get_children():
+		if child is ColorRect and (child as ColorRect).color.is_equal_approx(Color("52288a")):
+			return true
+	return false
+
+
+func _scroll_chevron() -> TextureRect:
+	var image := Image.create(3, 5, false, Image.FORMAT_RGBA8)
+	image.fill(Color(0, 0, 0, 0))
+	var cream := Color("fcf0a0")
+	image.set_pixel(0, 0, cream)
+	image.set_pixel(0, 2, cream)
+	image.set_pixel(0, 4, cream)
+	image.set_pixel(1, 1, cream)
+	image.set_pixel(1, 3, cream)
+	image.set_pixel(2, 2, cream)
+	var rect := TextureRect.new()
+	rect.name = "Chevron"
+	rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	rect.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	rect.stretch_mode = TextureRect.STRETCH_SCALE
+	rect.texture = ImageTexture.create_from_image(image)
+	rect.position = Vector2(264, 11)
+	rect.size = Vector2(3, 5)
+	return rect
+
+
+func _initiative_slot(entry: Dictionary, active: bool) -> TextureRect:
+	var image := Image.create(24, 24, false, Image.FORMAT_RGBA8)
+	var frame_rel := "ui/portrait_frame_active.png" if active else "ui/portrait_frame.png"
+	var frame := ArtPack.texture(frame_rel)
+	if frame and frame.get_image():
+		image.blit_rect(frame.get_image(), Rect2i(0, 0, 24, 24), Vector2i.ZERO)
+	var face := _initiative_face(entry)
+	image.blend_rect(face, Rect2i(0, 0, mini(20, face.get_width()), mini(20, face.get_height())), Vector2i(2, 2))
+	var slot := TextureRect.new()
+	slot.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	slot.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	slot.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	slot.stretch_mode = TextureRect.STRETCH_SCALE
+	slot.texture = ImageTexture.create_from_image(image)
+	slot.size = Vector2(24, 24)
+	return slot
+
+
+func _initiative_face(entry: Dictionary) -> Image:
+	if str(entry.get("side", "")) == "player":
+		var index := int(entry.get("index", 0))
+		if index >= 0 and index < GameState.party.size():
+			var member: Dictionary = GameState.party[index]
+			return ArtPack.front_portrait(member["look"], str(member["class_id"]))
+	var sprite := ArtPack.monster_sprite(str(entry.get("kind", "puddleblob")))
+	var portrait := ArtPack.monster_portrait(sprite)
+	if portrait and portrait.get_image():
+		return portrait.get_image()
+	return Image.create(20, 20, false, Image.FORMAT_RGBA8)
+
+
+func _fill_cost_row(card: Dictionary, passive: bool) -> void:
+	var at := Vector2(66, 25)
+	if passive:
+		var none := PixelFont.label("NO COST", Color("9c6636"))
+		none.position = at + Vector2(0, 1)
+		_inspect.add_child(none)
+		return
+	var cost := str(card.get("cost", ""))
+	var amount := _first_int(cost)
+	if cost.find("energy") >= 0 and cost != "Free":
+		var words := PixelFont.label("MP COST", Color("243a8a"))
+		if amount <= 9:
+			var pill := _icon_rect("ui/portrait/cost_badge_0_9.png")
+			pill.texture = ArtPack.frame_texture("ui/portrait/cost_badge_0_9.png", amount, Vector2(16, 7))
+			pill.position = at
+			pill.size = Vector2(16, 7)
+			_inspect.add_child(pill)
+			words.position = at + Vector2(19, 1)
+		else:
+			var number := PixelFont.label(str(amount), Color("243a8a"))
+			number.position = at + Vector2(0, 1)
+			_inspect.add_child(number)
+			words.position = at + Vector2(number.size.x + 3.0, 1)
+		_inspect.add_child(words)
+		return
+	var line := PixelFont.label(cost, Color("243a8a") if cost.find("energy") >= 0 else Color("9c6636"))
+	line.position = at + Vector2(0, 1)
+	_inspect.add_child(line)
+
+
+func _cooldown_line(text: String) -> String:
+	if text == "None" or text == "":
+		return "NO COOLDOWN"
+	var n := _first_int(text)
+	if text.find("left") >= 0:
+		return "COOLDOWN %d LEFT" % n
+	if n == 1:
+		return "COOLDOWN 1 TURN"
+	return "COOLDOWN %d TURNS" % n
+
+
+func _first_int(text: String) -> int:
+	var digits := ""
+	for i in text.length():
+		var ch := text.substr(i, 1)
+		if ch >= "0" and ch <= "9":
+			digits += ch
+		elif digits != "":
+			break
+	if digits == "":
+		return 0
+	return int(digits)
+
+
+func _dim_other_slots(selected_id: String) -> void:
+	_clear_slot_dims()
+	if _actions == null:
+		return
+	for child in _actions.get_children():
+		if not (child is Button):
+			continue
+		var button := child as Button
+		if str(button.get_meta("action_id", "")) == selected_id:
+			continue
+		if button.size.x < 30.0:
+			continue
+		var dim := _icon_rect("ui/portrait/bar_dim_mask.png")
+		dim.name = "Dim"
+		dim.position = button.position
+		dim.size = button.size
+		_actions.add_child(dim)
+
+
+func _arm_slot(action_id: String) -> void:
+	_clear_arm_glow()
+	if _actions == null:
+		return
+	for child in _actions.get_children():
+		if not (child is Button):
+			continue
+		var button := child as Button
+		if str(button.get_meta("action_id", "")) != action_id:
+			continue
+		var armed := FxStrip.new()
+		armed.name = "ArmedGlow"
+		armed.setup("ui/portrait/skill_slot_armed.png", Vector2(36, 36), 2, 4.0, true)
+		armed.position = button.position + Vector2(-2, -2)
+		armed.freeze(0)
+		_actions.add_child(armed)
+		_actions.move_child(armed, button.get_index())
+		return
+
+
+func _clear_arm_glow() -> void:
+	if _actions == null:
+		return
+	var glow := _actions.get_node_or_null("ArmedGlow")
+	if glow:
+		glow.free()
+
+
+func _clear_slot_dims() -> void:
+	if _actions == null:
+		return
+	var stale: Array = []
+	for child in _actions.get_children():
+		if str(child.name) == "Dim":
+			stale.append(child)
+	for child in stale:
+		(child as Node).free()
+
+
+func _tween_clip(fill: Dictionary, ratio: float, duration: float) -> void:
+	var clip: Control = fill["clip"]
+	var tween := clip.create_tween()
+	tween.tween_property(clip, "size:x", float(int(30.0 * clampf(ratio, 0.0, 1.0))), duration)
+
+
+func _class_regens_mp(class_id: String) -> bool:
+	var cls: Dictionary = ContentDB.class_def(class_id)
+	for skill_id in cls.get("skills", []):
+		var skill: Dictionary = ContentDB.skill(str(skill_id))
+		if not Formulas.is_passive(skill):
+			continue
+		for effect in skill.get("effects", []):
+			if float(effect.get("mp_regen_pct", 0.0)) > 0.0:
+				return true
+	return false

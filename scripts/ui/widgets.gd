@@ -75,6 +75,13 @@ static func inspect_card_height(description: String, width: float) -> float:
 	return maxf(100.0, 62.0 + block.y + 22.0)
 
 
+static func pixel_card_height(description: String, width: float) -> float:
+	## Pack 3x5 description: 8px lines under the icon block, then the prompt strip.
+	var chars := int((width - 32.0 + 1.0) / 4.0)
+	var lines := PixelFont.wrap(description, chars)
+	return maxf(100.0, 62.0 + float(lines.size()) * 8.0 + 22.0)
+
+
 static func place_blurb(place: Dictionary, hops: int, cost: int, here: bool) -> String:
 	if here:
 		return "%s  Lv %d\nYou are here.\n%s" % [place["name"], int(place["level"]), place["description"]]
