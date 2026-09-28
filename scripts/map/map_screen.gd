@@ -78,9 +78,10 @@ func _build() -> void:
 	Layout.place(controls, Layout.rect("map", "controls"))
 	add_child(controls)
 	_info = Widgets.label("Pick a place.", Layout.font_tiny())
-	_info.position = Vector2(8, 4)
-	_info.size = Vector2(controls.size.x - 16, 48)
-	_info.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	Widgets.enable_wrap(_info)
+	var info_rect := Layout.rect("map", "info")
+	_info.position = info_rect.position
+	_info.size = info_rect.size
 	controls.add_child(_info)
 	_die = Widgets.label("", Layout.font_small())
 	_die.position = Vector2(8, 4)
@@ -88,8 +89,9 @@ func _build() -> void:
 	_die.visible = false
 	controls.add_child(_die)
 	var row := HBoxContainer.new()
-	row.position = Vector2(6, 54)
-	row.size = Vector2(controls.size.x - 12, 48)
+	var row_rect := Layout.rect("map", "travel_row")
+	row.position = row_rect.position
+	row.size = row_rect.size
 	row.add_theme_constant_override("separation", 6)
 	controls.add_child(row)
 	_back_button = Widgets.make_button("Back", Vector2(70, 46))
@@ -371,7 +373,7 @@ func _refresh_hud() -> void:
 	var place: Dictionary = ContentDB.place(_selected)
 	var here := _selected == GameState.place_id
 	if here:
-		_info.text = "%s  Lv %d\nYou are here.\n%s" % [place["name"], int(place["level"]), place["description"]]
+		_info.text = Widgets.place_blurb(place, 0, 0, true)
 		_travel_button.disabled = true
 		return
 	var path: Array = RouteFinder.fewest_hops(GameState.place_id, _selected, ContentDB.edges)
@@ -379,9 +381,7 @@ func _refresh_hud() -> void:
 	var cost := 0
 	for i in range(1, path.size()):
 		cost += Formulas.hop_gold(int(ContentDB.place(str(path[i - 1]))["level"]), int(ContentDB.place(str(path[i]))["level"]))
-	_info.text = "%s  Lv %d\n%d hop%s, %d gold\n%s" % [
-		place["name"], int(place["level"]), hops, "" if hops == 1 else "s", cost, place["description"]
-	]
+	_info.text = Widgets.place_blurb(place, hops, cost, false)
 	_travel_button.disabled = hops <= 0
 	_travel_button.text = "Travel %d" % cost
 

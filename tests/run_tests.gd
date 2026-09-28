@@ -22,6 +22,7 @@ func _init() -> void:
 	_test_portrait_layout()
 	_test_party_bar()
 	_test_art_present()
+	_test_wrapped_labels()
 	print("Tests: %d passed, %d failed" % [passed, failed])
 	quit(1 if failed else 0)
 
@@ -594,3 +595,47 @@ func _test_art_present() -> void:
 			continue
 		var icon := str(skill.get("icon", ""))
 		check(icon != "" and FileAccess.file_exists("res://art_source/phase0/ui/skills/%s.png" % icon), str(skill["id"]) + " icon")
+
+
+func _test_wrapped_labels() -> void:
+	var font: Font = Widgets.ui_font()
+	var font_size := Layout.font_size()
+	var line_h := font.get_height(font_size)
+	var card := Layout.rect("combat", "skill_card")
+	var text_w := card.size.x - 28.0
+	var skill_rows: Array = JSON.parse_string(FileAccess.get_file_as_string("res://data/skills.json"))
+	for skill in skill_rows:
+		if str(skill.get("owner", "")) == "monster":
+			continue
+		var desc := str(skill.get("description", ""))
+		var block := Widgets.wrap_size(desc, text_w, font_size)
+		var height := Widgets.inspect_card_height(desc, card.size.x)
+		check(block.x <= text_w + 0.01, str(skill["id"]) + " description stays inside the card")
+		check(62.0 + block.y + 22.0 <= height + 0.01, str(skill["id"]) + " card grows for the wrapped description")
+	var oath := Widgets.wrap_size("A heavy blow that draws enemy attention until your next turn.", text_w, font_size)
+	check(oath.y >= line_h * 2.0 - 0.01, "oathstrike description wraps onto a second line")
+	var stats := Formulas.compose_stats(1, 2, 3, 0, 0, 3, 0, 1, 0)
+	var attack := Formulas.player_attack(1, int(stats["body"]))
+	var attack_range := Formulas.damage_range(attack)
+	var stat_line := "Nim the Glenfolk Wizard\nB%d S%d M%d  HP %d  EN %d  Atk %d-%d" % [
+		int(stats["body"]), int(stats["senses"]), int(stats["mind"]),
+		Formulas.max_hp(1, int(stats["body"]), int(stats["mind"])),
+		Formulas.max_energy(1, int(stats["body"]), int(stats["mind"])) + 400,
+		attack_range.x, attack_range.y
+	]
+	var stats_rect := Layout.rect("creator", "stats")
+	var actions_rect := Layout.rect("creator", "actions")
+	var stat_block := Widgets.wrap_size(stat_line, stats_rect.size.x, font_size)
+	check(stat_block.y > line_h + 0.01, "creator stats use more than one line")
+	check(stat_block.y <= stats_rect.size.y + 0.01, "creator stats fit above the buttons")
+	check(stat_block.x <= stats_rect.size.x + 0.01, "creator stats stay inside the stats width")
+	check(stats_rect.position.y + stats_rect.size.y <= actions_rect.position.y + 0.01, "creator stats end above Random, Next, and Begin")
+	var info := Layout.rect("map", "info")
+	var row := Layout.rect("map", "travel_row")
+	check(info.position.y + info.size.y <= row.position.y + 0.01, "map description ends above the travel buttons")
+	var region: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/region.json"))
+	for place in region["places"]:
+		var blurb := Widgets.place_blurb(place, 4, 99, false)
+		var wrapped := Widgets.wrap_size(blurb, info.size.x, font_size)
+		check(wrapped.x <= info.size.x + 0.01, str(place["id"]) + " description stays inside the panel")
+		check(wrapped.y <= info.size.y + 0.01, str(place["id"]) + " description wraps inside the panel")

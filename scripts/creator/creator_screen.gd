@@ -126,6 +126,7 @@ func _build() -> void:
 	add_child(_options)
 
 	_stats = Widgets.label("", Layout.font_tiny())
+	Widgets.enable_wrap(_stats)
 	Layout.place(_stats, Layout.rect("creator", "stats"))
 	add_child(_stats)
 

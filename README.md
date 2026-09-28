@@ -55,12 +55,12 @@ Native 270×480 captures of the production art:
 [`export_presets.cfg`](export_presets.cfg) has a debug Android preset locked to portrait (`screen/orientation=1`) and arm64-v8a, plus a Linux preset. The project setting `display/window/handheld/orientation` is portrait.
 
 ```bash
-godot --headless --export-debug Android build/paladins-0.2.0-debug.apk
+godot --headless --export-debug Android build/paladins-0.2.1-debug.apk
 ```
 
 The export needs the Godot 4.7.2 Android templates (installed into `android/build`, which is gitignored), a `.build_version` of `4.7.2.stable`, Android SDK 36, build-tools 36.1.0, NDK 29.0.14206865, and a JDK. The project enables ETC2/ASTC import, which the Android exporter requires.
 
-The published debug APK is [v0.2.0](https://github.com/thegliffy/paladins-of-pen-and-paper/releases/tag/v0.2.0): [paladins-0.2.0-debug.apk](https://github.com/thegliffy/paladins-of-pen-and-paper/releases/download/v0.2.0/paladins-0.2.0-debug.apk). It is arm64-v8a, portrait, package `com.thegliffy.paladinspenpaper`, and includes the eight classes, passives, the threat raffle, the party of five, inspect-to-cast, and the production sprites. v0.1.0 is the earlier portrait slice and is left as-is.
+The published debug APK is [v0.2.1](https://github.com/thegliffy/paladins-of-pen-and-paper/releases/tag/v0.2.1): [paladins-0.2.1-debug.apk](https://github.com/thegliffy/paladins-of-pen-and-paper/releases/download/v0.2.1/paladins-0.2.1-debug.apk). It is arm64-v8a, portrait, package `com.thegliffy.paladinspenpaper`, version code 3. Skill descriptions, the creator stat line, and map place text wrap inside their panels. v0.2.0 and v0.1.0 are left as-is.
 
 ## Where numbers live
 
@@ -101,4 +101,4 @@ A level 1 hero is `class + persona + race + 2` on Body, Senses, and Mind. HP is 
 - Audio is generated tones. There is no music.
 - Combat, the creator, and the map use the production sprite pack. The title screen still uses the meadow backdrop from `art/`.
 
-A basic attack's waits are 0.25 s wind-up, 0.20 s to the hit, and a 0.50 s HP tween (0.95 s). Punch and the red blink run inside that tween. On the machine that captured the screenshots, one measured attack completed in 806 ms, inside the 0.8–1.2 s gate.
+A basic attack's waits are 0.25 s wind-up, 0.20 s to the hit, and a 0.50 s HP tween (0.95 s). Punch and the red blink run inside that tween. On the machine that captured the screenshots, one measured attack completed in 810 ms, inside the 0.8–1.2 s gate.

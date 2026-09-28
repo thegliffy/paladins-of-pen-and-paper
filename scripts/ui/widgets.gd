@@ -53,6 +53,36 @@ static func label(text: String, size: int, color: Color = SpriteCatalog.INK) -> 
 	return node
 
 
+static func ui_font() -> Font:
+	return load("res://art/fonts/m5x7.ttf")
+
+
+static func wrap_size(text: String, width: float, font_size: int) -> Vector2:
+	var font: Font = ui_font()
+	if text == "":
+		return Vector2(0, font.get_height(font_size))
+	return font.get_multiline_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, width, font_size)
+
+
+static func enable_wrap(node: Label) -> void:
+	node.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	node.clip_text = false
+	node.add_theme_constant_override("line_spacing", 0)
+
+
+static func inspect_card_height(description: String, width: float) -> float:
+	var block := wrap_size(description, width - 28.0, Layout.font_size())
+	return maxf(100.0, 62.0 + block.y + 22.0)
+
+
+static func place_blurb(place: Dictionary, hops: int, cost: int, here: bool) -> String:
+	if here:
+		return "%s  Lv %d\nYou are here.\n%s" % [place["name"], int(place["level"]), place["description"]]
+	return "%s  Lv %d\n%d hop%s, %d gold\n%s" % [
+		place["name"], int(place["level"]), hops, "" if hops == 1 else "s", cost, place["description"]
+	]
+
+
 static func bar(width: float, height: float, fill_color: Color, back_color: Color) -> Dictionary:
 	var root := ColorRect.new()
 	root.color = back_color

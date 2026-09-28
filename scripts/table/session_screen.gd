@@ -363,7 +363,7 @@ func show_inspect(card: Dictionary, action_id: String) -> void:
 	var size_rect := Layout.rect("combat", "skill_card")
 	var center := float(_slot_x.get(action_id, 135.0))
 	var width := size_rect.size.x
-	var height := size_rect.size.y
+	var height := Widgets.inspect_card_height(str(card.get("description", "")), width)
 	var left := clampf(center - width * 0.5, 4.0, Layout.viewport_size().x - width - 4.0)
 	var bar_top := 480.0
 	for point in Layout.party_seat_points(maxi(1, _seats.size())):
@@ -431,10 +431,10 @@ func _fill_inspect(card: Dictionary, action_id: String = "") -> void:
 	_inspect_row("Target", str(card.get("target", "")), _target_icon(str(card.get("target", ""))), Vector2(66, 38))
 	_inspect_row("Cd", str(card.get("cooldown", "")), "ui/portrait/icon_cooldown.png", Vector2(66, 48))
 	var body := Widgets.label(str(card.get("description", "")), Layout.font_size(), SpriteCatalog.INK)
+	Widgets.enable_wrap(body)
+	var body_size := Widgets.wrap_size(body.text, _inspect.size.x - 28.0, Layout.font_size())
 	body.position = Vector2(16, 62)
-	body.size = Vector2(_inspect.size.x - 28, 20)
-	body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	body.clip_text = true
+	body.size = Vector2(_inspect.size.x - 28.0, body_size.y)
 	_inspect.add_child(body)
 	var hint := str(card.get("hint", ""))
 	var strip_path := "ui/portrait/skill_card_strip_ready.png"
