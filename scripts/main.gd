@@ -210,6 +210,9 @@ func _shots() -> void:
 	await _swap(session)
 	session.stage_battle_preview()
 	await _capture("combat")
+	session.set_threat_debug(_threat_preview())
+	await _capture("threat")
+	session.set_threat_debug([])
 	session.show_choices(_paladin_skill_preview(), "back")
 	await _capture("skills")
 	session.hide_choices()
@@ -221,6 +224,44 @@ func _shots() -> void:
 	session.add_child(flow)
 	var elapsed := await flow.measure_visible_attack()
 	print("BASIC_ATTACK_MS %d" % elapsed)
+
+
+func _threat_preview() -> Array:
+	var rules: Dictionary = ContentDB.threat_rules()
+	var body_per := float(rules.get("body_per", 0.0))
+	var armor_per := float(rules.get("armor_per", 0.0))
+	var threats: Array = []
+	var total := 0
+	for member in GameState.party:
+		var stats := GameState.combat_stats(member)
+		var cls: Dictionary = ContentDB.class_def(str(member["class_id"]))
+		var effects: Array = []
+		for skill_id in cls["skills"]:
+			var skill: Dictionary = ContentDB.skill(str(skill_id))
+			if not Formulas.is_passive(skill):
+				continue
+			var listed: Array = skill.get("effects", [])
+			for effect in listed:
+				effects.append(effect)
+		var threat := Formulas.member_threat(
+			int(cls.get("base_threat", 1)),
+			int(stats["body"]),
+			int(stats["dr"]),
+			0,
+			Formulas.threat_multiplier(effects),
+			1.0,
+			body_per,
+			armor_per
+		)
+		threats.append(threat)
+		total += threat
+	var rows: Array = []
+	for i in threats.size():
+		var pct := 0
+		if total > 0:
+			pct = int(round(100.0 * float(int(threats[i])) / float(total)))
+		rows.append({"id": "p%d" % i, "text": "%d%%" % pct})
+	return rows
 
 
 func _paladin_skill_preview() -> Array:

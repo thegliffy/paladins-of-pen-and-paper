@@ -6,7 +6,34 @@ Actives are the Skill buttons. Passives are always on. They are tagged Passive i
 
 Mana skills use the energy formula `round((base + rank × 20) × (1 + reduction))`. The button shows that rank-1 cost. Cooldown skills arm on use and tick down by 1 at the start of each of your later turns, including a turn you spend stunned. A cooldown of 3 is ready again on the turn it reaches 0. An HP cost is payable only when it would leave at least 1 health. Build-up skills add points up to a cap, and the spender refuses the action until you have the cost.
 
-Passive hooks are `turn_start`, `on_hit`, `on_damaged`, `threat`, and `stat`. Monster targeting is still Body plus temporary threat. A threat passive multiplies that weight. Cover still removes the unit from the bag.
+Passive hooks are `turn_start`, `on_hit`, `on_damaged`, `threat`, and `stat`.
+
+## Threat raffle
+
+A monster picks one living party member by raffle. Dead members are left out. Threat is never below 1, so a living member is never fully safe.
+
+`P(member) = threat / sum of living threat`
+
+Kyle's example: threats 30, 3, 5, and 1 sum to 39, about 77%, 8%, 13%, and 3%.
+
+The number itself is data. Coefficients live in [`data/threat.json`](../data/threat.json). Each class has `base_threat` in [`data/classes.json`](../data/classes.json).
+
+`threat = max(1, round((base_threat + Body × body_per + DR × armor_per + taunt + passive_add) × passive_mult × cover_mult))`
+
+`body_per` is 2 and `armor_per` is 0.05. Cover multiplies by `cover_mult` (0.5) and still cannot drop the result below 1. Taunt skills add a flat amount until that character's next turn. They do not force the next hit. Oathmagnet multiplies by 2. Blood Price multiplies by 1.5.
+
+| Class | Base threat |
+| --- | --- |
+| Paladin | 16 |
+| Barbarian | 12 |
+| Cleric | 4 |
+| Ranger | 3 |
+| Druid | 3 |
+| Bard | 2 |
+| Wizard | 2 |
+| Rogue | 1 |
+
+A Paladin with Body 8, no armor, and Oathmagnet is `round((16 + 16) × 2) = 64`. A Wizard with Body 3 is `round(2 + 6) = 8`. The same formula is written up in [`docs/DESIGN.md`](DESIGN.md).
 
 | Class | Role | Body / Senses / Mind | Actives | Passive |
 | --- | --- | --- | --- | --- |
@@ -25,7 +52,7 @@ Passive hooks are `turn_start`, `on_hit`, `on_damaged`, `threat`, and `stat`. Mo
 | Paladin | Hearthmend | Active | Mana | base 150 (170 EN at rank 1) | One ally | Heal 28 + 2×Mind + 6 per rank above 1. You also heal 16 if the target is someone else. |
 | Paladin | Shieldwall | Active | Cooldown | 3 turns | Self | +10 damage reduction for 2 of your turns. Threat +2. |
 | Paladin | Rallying Brand | Active | Free | Free | One ally | Heal 14 + 1×Mind + 4 per rank above 1. |
-| Paladin | Oathmagnet | Passive | Threat, on damaged | Always on | Self | Foes weigh you ×2 (Body + threat). A hit against you deals 4 damage back. |
+| Paladin | Oathmagnet | Passive | Threat, on damaged | Always on | Self | Multiplies threat by 2. A hit against you deals 4 damage back. |
 | Wizard | Emberburst | Active | Mana | base 150 (170 EN at rank 1) | One foe, back row allowed | Spell 22 + 3×Mind. Half of that splashes to neighbors. Burn 8, Senses save. |
 | Wizard | Frostpin | Active | Mana | base 150 (170 EN at rank 1) | One foe, back row allowed | Spell 18 + 2×Mind. Stun, Body save. |
 | Wizard | Cinder Needle | Active | Free | Free | One foe, back row allowed | Spell 10 + 2×Mind. |
@@ -55,7 +82,7 @@ Passive hooks are `turn_start`, `on_hit`, `on_damaged`, `threat`, and `stat`. Mo
 | Barbarian | Roar | Active | Free | +2 Rage (cap 6) | Self | Gain Rage. Threat +2. |
 | Barbarian | Rage Crash | Active | Rage | 4 Rage | One front foe | Weapon hit at 1.9× attack. Half splashes to neighbors. |
 | Barbarian | Thick Hide | Active | Cooldown | 3 turns | Self | +12 damage reduction for 2 of your turns. |
-| Barbarian | Blood Price | Passive | Threat, stat | Always on | Self | Foes weigh you ×1.5. Damage rises as health falls, up to +50% when empty. |
+| Barbarian | Blood Price | Passive | Threat, stat | Always on | Self | Multiplies threat by 1.5. Damage rises as health falls, up to +50% when empty. |
 | Druid | Briar Seed | Active | Mana | base 120 (140 EN at rank 1) | One foe, back row allowed | Spell 10 + 2×Mind. Poison 8, Body save. |
 | Druid | Mossknit | Active | Mana | base 120 (140 EN at rank 1) | One ally | Heal 22 + 2×Mind + 6 per rank above 1. |
 | Druid | Wildshape Guard | Active | Cooldown | 3 turns | Self | +8 damage reduction for 2 of your turns. |

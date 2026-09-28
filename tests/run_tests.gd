@@ -18,6 +18,7 @@ func _init() -> void:
 	_test_content_shape()
 	_test_skill_resources()
 	_test_passives()
+	_test_threat_raffle()
 	_test_portrait_layout()
 	_test_art_present()
 	print("Tests: %d passed, %d failed" % [passed, failed])
@@ -87,9 +88,6 @@ func _test_damage_and_crit() -> void:
 	eq(Formulas.mp_cost(100, 1), 120, "mp cost 100")
 	eq(Formulas.rolled_damage(55, 0.0), 41, "low roll")
 	eq(Formulas.rolled_damage(55, 1.0), 69, "high roll")
-	eq(Formulas.aggro_weight(0, 0, false), 1, "aggro floor")
-	eq(Formulas.aggro_weight(8, 3, false), 11, "aggro body plus threat")
-	eq(Formulas.aggro_weight(8, 3, true), 0, "cover zeroes aggro")
 
 
 func _test_xp_curve_and_rewards() -> void:
@@ -381,13 +379,19 @@ func _test_passives() -> void:
 	var oath: Dictionary = by_id["oathmagnet"]
 	var oath_fx: Array = oath["effects"]
 	near(Formulas.threat_multiplier(oath_fx), 2.0, 0.001, "paladin threat multiplier")
-	eq(Formulas.aggro_weight(8, 3, false, 2.0), 22, "threat multiplier doubles body plus threat")
-	eq(Formulas.aggro_weight(8, 3, true, 2.0), 0, "cover still zeroes a multiplied weight")
-	eq(Formulas.aggro_weight(8, 0, false, 1.0), 8, "multiplier of 1 leaves body weighting")
+	var plain := Formulas.member_threat(16, 8, 0, 0, 1.0, 1.0, 2.0, 0.0)
+	var doubled := Formulas.member_threat(16, 8, 0, 0, Formulas.threat_multiplier(oath_fx), 1.0, 2.0, 0.0)
+	eq(plain, 32, "threat before the aggro passive")
+	eq(doubled, 64, "aggro passive doubles threat")
+	var share_plain := float(plain) / float(plain + 9)
+	var share_aggro := float(doubled) / float(doubled + 9)
+	check(share_aggro > share_plain + 0.05, "aggro passive raises threat share")
 	var price: Dictionary = by_id["blood_price"]
 	var price_fx: Array = price["effects"]
 	near(Formulas.threat_multiplier(price_fx), 1.5, 0.001, "barbarian threat multiplier")
-	eq(Formulas.aggro_weight(10, 0, false, 1.5), 15, "1.5 threat multiplier on body 10")
+	var bare := Formulas.member_threat(12, 5, 0, 0, 1.0, 1.0, 2.0, 0.0)
+	var priced := Formulas.member_threat(12, 5, 0, 0, Formulas.threat_multiplier(price_fx), 1.0, 2.0, 0.0)
+	check(priced > bare, "barbarian threat passive raises threat")
 	var nick: Dictionary = by_id["keen_nick"]
 	var nick_fx: Array = nick["effects"]
 	eq(Formulas.on_hit_bonus(nick_fx), 6, "on-hit passive adds 6")
@@ -406,6 +410,54 @@ func _test_passives() -> void:
 	var chorus: Dictionary = by_id["hearth_chorus"]
 	var chorus_fx: Array = chorus["effects"]
 	eq(Formulas.party_dr_aura(chorus_fx), 3, "bard aura")
+
+
+func _test_threat_raffle() -> void:
+	eq(Formulas.member_threat(0, 0, 0, 0, 1.0, 1.0, 2.0, 0.05), 1, "threat floor is 1")
+	eq(Formulas.member_threat(0, 0, 0, -40, 1.0, 1.0, 2.0, 0.05), 1, "negative threat clamps to 1")
+	eq(Formulas.member_threat(4, 0, 0, 0, 1.0, 0.0, 2.0, 0.05), 1, "a zero multiplier still leaves 1")
+	var open_threat := Formulas.member_threat(16, 8, 0, 0, 1.0, 1.0, 2.0, 0.0)
+	var ducked := Formulas.member_threat(16, 8, 0, 0, 1.0, 0.5, 2.0, 0.0)
+	check(ducked >= 1 and ducked < open_threat, "cover lowers threat without hiding")
+	var quiet := Formulas.member_threat(16, 8, 0, 0, 2.0, 1.0, 2.0, 0.0)
+	var taunted := Formulas.member_threat(16, 8, 0, 3, 2.0, 1.0, 2.0, 0.0)
+	check(taunted > quiet, "taunt adds threat instead of forcing a target")
+	var weights := [30, 3, 5, 1]
+	eq(Formulas.raffle_index(weights, 1), 0, "roll 1 is the high threat")
+	eq(Formulas.raffle_index(weights, 30), 0, "roll 30 is still the high threat")
+	eq(Formulas.raffle_index(weights, 31), 1, "roll 31 is the second weight")
+	eq(Formulas.raffle_index(weights, 33), 1, "roll 33 is still the second weight")
+	eq(Formulas.raffle_index(weights, 34), 2, "roll 34 is the third weight")
+	eq(Formulas.raffle_index(weights, 38), 2, "roll 38 is still the third weight")
+	eq(Formulas.raffle_index(weights, 39), 3, "roll 39 is the last weight")
+	var counts: Array = Formulas.raffle_counts(weights, 4000, 30)
+	var expected := [30.0 / 39.0, 3.0 / 39.0, 5.0 / 39.0, 1.0 / 39.0]
+	for i in 4:
+		near(float(int(counts[i])) / 4000.0, expected[i], 0.04, "raffle share %d" % i)
+	var living: Array = Formulas.living_threats([
+		{"hp": 0, "threat": 30},
+		{"hp": 12, "threat": 3},
+		{"hp": 9, "threat": 5},
+		{"hp": 4, "threat": 0},
+	])
+	eq(living.size(), 3, "dead member is excluded")
+	eq(int(living[0]), 3, "first living threat")
+	eq(int(living[1]), 5, "second living threat")
+	eq(int(living[2]), 1, "a living zero is clamped to 1")
+	var rules: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/threat.json"))
+	var classes: Array = JSON.parse_string(FileAccess.get_file_as_string("res://data/classes.json"))
+	var bases := {}
+	for cls in classes:
+		bases[str(cls["id"])] = int(cls["base_threat"])
+		check(int(cls["base_threat"]) >= 1, str(cls["name"]) + " base threat")
+	check(int(bases["paladin"]) > int(bases["wizard"]), "paladin base threat beats the wizard")
+	check(int(bases["barbarian"]) > int(bases["rogue"]), "barbarian base threat beats the rogue")
+	check(int(bases["paladin"]) > int(bases["bard"]), "paladin base threat beats the bard")
+	var body_per := float(rules["body_per"])
+	var armor_per := float(rules["armor_per"])
+	var tank := Formulas.member_threat(int(bases["paladin"]), 8, 0, 0, 2.0, 1.0, body_per, armor_per)
+	var mage := Formulas.member_threat(int(bases["wizard"]), 3, 0, 0, 1.0, 1.0, body_per, armor_per)
+	check(tank > mage * 2, "tank threat stays well above the mage")
 
 
 func _test_portrait_layout() -> void:

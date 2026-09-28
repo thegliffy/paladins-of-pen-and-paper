@@ -204,6 +204,28 @@ func raise_member(index: int, up: bool) -> void:
 	_raise(index, up)
 
 
+func set_threat_debug(rows: Array) -> void:
+	for card in _cards.get_children():
+		var label := card.get_node_or_null("Threat")
+		if label == null:
+			continue
+		label.visible = false
+		label.text = ""
+	for row in rows:
+		var id := str(row.get("id", ""))
+		if not id.begins_with("p"):
+			continue
+		var index := int(id.trim_prefix("p"))
+		if index < 0 or index >= _cards.get_child_count():
+			continue
+		var label := _cards.get_child(index).get_node_or_null("Threat")
+		if label == null:
+			continue
+		var text := str(row.get("text", ""))
+		label.text = text
+		label.visible = text != ""
+
+
 func set_cover(index: int, on: bool) -> void:
 	if index < 0 or index >= _seats.size():
 		return
@@ -604,6 +626,11 @@ func _sync_party() -> void:
 		card.add_child(mp["root"])
 		Widgets.set_bar(hp, float(member["hp"]) / float(stats["max_hp"]))
 		Widgets.set_bar(mp, float(member["mp"]) / float(stats["max_mp"]))
+		var threat_label := Widgets.label("", Layout.font_tiny(), SpriteCatalog.GOLD)
+		threat_label.name = "Threat"
+		threat_label.position = Vector2(3, 40)
+		threat_label.visible = false
+		card.add_child(threat_label)
 		_bars[pid] = {"hp": hp, "mp": mp}
 		_cards.add_child(card)
 	var kind := str(ContentDB.place(GameState.place_id).get("kind", "meadow"))

@@ -275,13 +275,69 @@ static func compose_encounter(pool: Array, target_power: int, rng_picks: Array, 
 	return result
 
 
-static func aggro_weight(body: int, bonus: int, covering: bool, threat_mult: float = 1.0) -> int:
-	## Body plus temporary threat, then a passive threat multiplier.
-	## Cover still takes the unit out of the bag.
-	if covering:
-		return 0
-	var base := maxi(1, body) + bonus
-	return maxi(1, int(round(float(base) * threat_mult)))
+static func member_threat(
+	base_threat: int,
+	body: int,
+	armor: int,
+	flat_bonus: int,
+	threat_mult: float,
+	cover_mult: float,
+	body_per: float,
+	armor_per: float
+) -> int:
+	## Class base, Body, armor (damage reduction), and taunt, then multipliers.
+	## The result is never below 1, so a living member can always be raffled.
+	var raw := float(base_threat) + float(body) * body_per + float(armor) * armor_per + float(flat_bonus)
+	raw *= threat_mult
+	raw *= cover_mult
+	return maxi(1, int(round(raw)))
+
+
+static func raffle_index(weights: Array, roll_1_to_total: int) -> int:
+	var total := 0
+	for weight in weights:
+		total += maxi(0, int(weight))
+	if total <= 0:
+		return -1
+	var roll := clampi(roll_1_to_total, 1, total)
+	var cursor := 0
+	for i in weights.size():
+		cursor += maxi(0, int(weights[i]))
+		if cursor <= 0:
+			continue
+		if roll <= cursor:
+			return i
+	return weights.size() - 1
+
+
+static func raffle_counts(weights: Array, rolls: int, seed: int) -> Array:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = seed
+	var total := 0
+	for weight in weights:
+		total += maxi(0, int(weight))
+	var counts: Array = []
+	counts.resize(weights.size())
+	for i in counts.size():
+		counts[i] = 0
+	if total <= 0 or rolls <= 0:
+		return counts
+	for _n in rolls:
+		var idx := raffle_index(weights, rng.randi_range(1, total))
+		if idx < 0:
+			continue
+		counts[idx] = int(counts[idx]) + 1
+	return counts
+
+
+static func living_threats(members: Array) -> Array:
+	## members: {hp, threat}. Dead members are omitted. Living threat is at least 1.
+	var weights: Array = []
+	for member in members:
+		if int(member.get("hp", 0)) <= 0:
+			continue
+		weights.append(maxi(1, int(member.get("threat", 1))))
+	return weights
 
 
 static func spell_flat(skill: Dictionary, mind: int, senses: int, rank: int, spell_bonus: float) -> int:
@@ -435,6 +491,15 @@ static func threat_multiplier(effects: Array) -> float:
 			continue
 		mult *= float(effect.get("threat_mult", 1.0))
 	return mult
+
+
+static func threat_flat(effects: Array) -> int:
+	var bonus := 0
+	for effect in effects:
+		if str(effect.get("hook", "")) != "threat":
+			continue
+		bonus += int(effect.get("threat_add", 0))
+	return bonus
 
 
 static func on_hit_bonus(effects: Array) -> int:

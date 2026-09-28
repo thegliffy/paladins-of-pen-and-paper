@@ -13,6 +13,7 @@ var region := {}
 var places := {}
 var edges: Array = []
 var encounters := {}
+var threat := {}
 
 
 func _ready() -> void:
@@ -28,6 +29,7 @@ func _ready() -> void:
 	for place in region.get("places", []):
 		places[str(place["id"])] = place
 	encounters = _read("res://data/encounters.json")
+	threat = _read("res://data/threat.json")
 
 
 func _read(path: String):
@@ -65,6 +67,14 @@ func item(id: String) -> Dictionary:
 
 func place(id: String) -> Dictionary:
 	return places[id]
+
+
+func threat_rules() -> Dictionary:
+	return threat
+
+
+func threat_debug() -> bool:
+	return bool(threat.get("debug", false))
 
 
 func quest(id: String) -> Dictionary:

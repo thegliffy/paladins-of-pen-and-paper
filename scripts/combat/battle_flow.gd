@@ -200,6 +200,7 @@ func _loop() -> String:
 func _take_turn(unit: Dictionary) -> String:
 	view.set_initiative(_order_entries(), str(unit["id"]))
 	view.set_caption("%s's turn" % unit["name"])
+	_refresh_threat_debug()
 	_tick_ward(unit)
 	if str(unit["side"]) == "player":
 		_ensure_resources(unit)
@@ -401,6 +402,7 @@ func _use_skill(user: Dictionary, skill_id: String) -> bool:
 	var track := str(skill.get("buildup_id", ""))
 	if track != "":
 		view.set_caption("%s · %d %s" % [skill["name"], int(user["buildup"].get(track, 0)), str(skill.get("buildup_label", track))])
+	_refresh_threat_debug()
 	return true
 
 
@@ -613,7 +615,8 @@ func _apply_condition_damage(unit: Dictionary, cond: Dictionary) -> void:
 func _cover(unit: Dictionary) -> void:
 	unit["covering"] = true
 	view.set_cover(int(unit["member_index"]), true)
-	view.set_caption("%s takes cover." % unit["name"])
+	view.set_caption("%s ducks, but foes can still reach them." % unit["name"])
+	_refresh_threat_debug()
 	Sfx.play("tap")
 	await _wait(0.35)
 
@@ -971,29 +974,69 @@ func _reflect(defender: Dictionary, attacker: Dictionary) -> void:
 		await view.death_blink(str(attacker["id"]))
 
 
-func _pick_player() -> Dictionary:
-	var bag: Array = []
+func _unit_threat(unit: Dictionary) -> int:
+	var rules: Dictionary = ContentDB.threat_rules()
+	var cls: Dictionary = ContentDB.class_def(str(unit.get("class_id", "paladin")))
+	var effects: Array = unit.get("passives", [])
+	var cover := 1.0
+	if bool(unit.get("covering", false)):
+		cover = float(rules.get("cover_mult", 1.0))
+	var flat := int(unit.get("threat", 0)) + Formulas.threat_flat(effects)
+	return Formulas.member_threat(
+		int(cls.get("base_threat", 1)),
+		int(unit.get("body", 0)),
+		int(unit.get("dr", 0)),
+		flat,
+		Formulas.threat_multiplier(effects),
+		cover,
+		float(rules.get("body_per", 0.0)),
+		float(rules.get("armor_per", 0.0))
+	)
+
+
+func _refresh_threat_debug() -> void:
+	if not ContentDB.threat_debug():
+		view.set_threat_debug([])
+		return
+	var rows: Array = []
 	var total := 0
+	var pending: Array = []
+	for unit in units:
+		if str(unit.get("side", "")) != "player":
+			continue
+		if int(unit.get("hp", 0)) <= 0:
+			pending.append({"id": str(unit["id"]), "threat": 0})
+			continue
+		var threat := _unit_threat(unit)
+		total += threat
+		pending.append({"id": str(unit["id"]), "threat": threat})
+	for row in pending:
+		var threat := int(row["threat"])
+		var text := ""
+		if threat > 0 and total > 0:
+			var pct := int(round(100.0 * float(threat) / float(total)))
+			text = "%d%%" % pct
+		rows.append({"id": str(row["id"]), "text": text})
+	view.set_threat_debug(rows)
+
+
+func _pick_player() -> Dictionary:
+	var living: Array = []
+	var weights: Array = []
 	for unit in units:
 		if str(unit["side"]) != "player" or int(unit["hp"]) <= 0:
 			continue
-		var effects: Array = unit.get("passives", [])
-		var weight := Formulas.aggro_weight(int(unit["body"]), int(unit.get("threat", 0)), bool(unit.get("covering", false)), Formulas.threat_multiplier(effects))
-		if weight > 0:
-			bag.append({"unit": unit, "weight": weight})
-			total += weight
-	if bag.is_empty():
-		for unit in units:
-			if str(unit["side"]) == "player" and int(unit["hp"]) > 0:
-				return unit
+		living.append(unit)
+		weights.append(_unit_threat(unit))
+	if living.is_empty():
 		return {}
-	var roll := rng.randi_range(1, total)
-	var cursor := 0
-	for entry in bag:
-		cursor += int(entry["weight"])
-		if roll <= cursor:
-			return entry["unit"]
-	return bag[0]["unit"]
+	var total := 0
+	for weight in weights:
+		total += int(weight)
+	var idx := Formulas.raffle_index(weights, rng.randi_range(1, maxi(1, total)))
+	if idx < 0 or idx >= living.size():
+		return living[0]
+	return living[idx]
 
 
 func _random_monster() -> Dictionary:

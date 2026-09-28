@@ -30,7 +30,7 @@ The save is `user://paladins_save.json`. It is written when the app pauses or cl
 godot --headless --path . -s res://tests/run_tests.gd
 ```
 
-That covers the stat, HP, energy, damage, crit, XP, gold, travel-table, dice, timing, path, portrait-layout, cooldown, HP-cost, build-up, mana regen, threat weighting, and on-hit passive examples.
+That covers the stat, HP, energy, damage, crit, XP, gold, travel-table, dice, timing, path, portrait-layout, cooldown, HP-cost, build-up, mana regen, threat raffle, and on-hit passive examples.
 
 Placeholder art is generated with `python3 tools/gen_art.py`.
 
@@ -65,7 +65,8 @@ The published debug APK is [v0.1.0](https://github.com/thegliffy/paladins-of-pen
 | Data | File |
 | --- | --- |
 | Personas, races, classes, skills, monsters, items, the quest | `data/*.json` |
-| Class roles and the 32 skills | [`docs/CLASSES.md`](docs/CLASSES.md) |
+| Class roles, passives, and the threat raffle | [`docs/CLASSES.md`](docs/CLASSES.md), [`docs/DESIGN.md`](docs/DESIGN.md) |
+| Threat coefficients | [`data/threat.json`](data/threat.json) |
 | Places, roads, levels | `data/region.json` |
 | Encounter difficulties | `data/encounters.json` |
 | Paper-doll colors and layer counts | `data/appearance.json` |
@@ -88,7 +89,7 @@ A level 1 hero is `class + persona + race + 2` on Body, Senses, and Mind. HP is 
 - You start with **500 gold**, three Hearth Tonics, and two Lamp Vials.
 - Level 1 monsters use the level-1 HP exception (the formula divided by 3), so the pond fight is short.
 - Skill ranks use the energy-cost formula on **mana** skills only. Cooldowns, free actions, HP costs, and build-up tracks (Rogue combo, Bard tempo, Barbarian rage) do not go through that formula. Damage and healing add a small per-rank term. There is no separate power-curve table yet.
-- Each class has one passive besides its actives. Monster targeting is still Body plus threat, then a threat multiplier from the Paladin and the Barbarian. The Wizard regains a share of max energy at the start of each of their turns. Other passives cover crits, healing, initiative, a party damage-reduction aura, health regen, a flat on-hit cut, and damage that rises as health falls.
+- Each class has one passive besides its actives. Monsters raffle a living member by threat. Threat is class base plus Body and a little of damage reduction, then taunt and a passive multiplier, and it never drops below 1. Cover halves it. The Wizard regains a share of max energy at the start of each of their turns. Other passives cover crits, healing, initiative, a party damage-reduction aura, health regen, a flat on-hit cut, and damage that rises as health falls. Set `debug` in `data/threat.json` to show each member's threat percent on the party cards.
 - Cleric, Rogue, Barbarian, and Druid outfits are placeholder pixels until production sprites arrive.
 - No terrain effects, so the 1.5 s terrain intro does not play.
 - No counter-attack skills. The counter delays are still in the timing constants and the tests.
