@@ -210,11 +210,30 @@ func _shots() -> void:
 	await _swap(session)
 	session.stage_battle_preview()
 	await _capture("combat")
+	session.show_choices(_paladin_skill_preview(), "back")
+	await _capture("skills")
+	session.hide_choices()
 	var flow := BattleFlow.new()
 	flow.view = session
 	session.add_child(flow)
 	var elapsed := await flow.measure_visible_attack()
 	print("BASIC_ATTACK_MS %d" % elapsed)
+
+
+func _paladin_skill_preview() -> Array:
+	var entries: Array = []
+	var cooldowns := {"shieldwall": 2}
+	var mp := 130
+	var cls: Dictionary = ContentDB.class_def("paladin")
+	for skill_id in cls["skills"]:
+		var skill: Dictionary = ContentDB.skill(str(skill_id))
+		var usable := Formulas.skill_usable(skill, 1, 80, mp, cooldowns, {})
+		entries.append({
+			"id": "skill:%s" % str(skill_id),
+			"text": Formulas.skill_cost_label(skill, 1, cooldowns, {}),
+			"disabled": not usable,
+		})
+	return entries
 
 
 func _capture(shot_name: String) -> void:

@@ -16,6 +16,7 @@ func _init() -> void:
 	_test_timing()
 	_test_route_and_encounter()
 	_test_content_shape()
+	_test_skill_resources()
 	_test_portrait_layout()
 	_test_art_present()
 	print("Tests: %d passed, %d failed" % [passed, failed])
@@ -221,17 +222,125 @@ func _test_content_shape() -> void:
 	var region: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/region.json"))
 	eq(personas.size(), 4, "4 personas")
 	eq(races.size(), 3, "3 races")
-	eq(classes.size(), 4, "4 classes")
+	eq(classes.size(), 8, "8 classes")
 	check(monsters.size() >= 6 and monsters.size() <= 8, "6–8 monsters")
 	var places: Array = region["places"]
 	check(places.size() >= 5 and places.size() <= 6, "5–6 places")
-	var class_skills := 0
+	var by_id := {}
 	for skill in skills:
-		if str(skill["owner"]) != "monster":
-			class_skills += 1
-	check(class_skills >= 8, "at least two skills on the four classes")
+		by_id[str(skill["id"])] = skill
+	var seen := {}
+	var expected := ["paladin", "wizard", "ranger", "bard", "cleric", "rogue", "barbarian", "druid"]
+	var present := {}
 	for cls in classes:
-		check((cls["skills"] as Array).size() >= 1 and (cls["skills"] as Array).size() <= 2, cls["name"] + " skill count")
+		present[str(cls["id"])] = true
+		var ids: Array = cls["skills"]
+		eq(ids.size(), 4, str(cls["name"]) + " has 4 skills")
+		eq(int(cls["body"]) + int(cls["senses"]) + int(cls["mind"]), 6, str(cls["name"]) + " stat budget")
+		var non_mana := false
+		for skill_id in ids:
+			var sid := str(skill_id)
+			check(not seen.has(sid), "skill used once: " + sid)
+			seen[sid] = true
+			var skill: Dictionary = by_id[sid]
+			eq(str(skill["owner"]), str(cls["id"]), sid + " belongs to " + str(cls["name"]))
+			var resource := str(skill.get("resource", ""))
+			check(resource == "mana" or resource == "cooldown" or resource == "free" or resource == "hp" or resource == "buildup", sid + " resource")
+			if resource != "mana":
+				non_mana = true
+		check(non_mana, str(cls["name"]) + " has a non-mana skill")
+	for id in expected:
+		check(present.has(id), "class " + id)
+	eq(seen.size(), 32, "32 class skills")
+	var monster_skills := 0
+	for skill in skills:
+		if str(skill["owner"]) == "monster":
+			monster_skills += 1
+	eq(monster_skills, 5, "monster skills stay")
+
+
+func _test_skill_resources() -> void:
+	var shield := {
+		"id": "shieldwall",
+		"name": "Shieldwall",
+		"resource": "cooldown",
+		"cooldown": 3,
+	}
+	var cds := {}
+	check(Formulas.skill_usable(shield, 1, 40, 0, cds, {}), "cooldown skill starts ready")
+	var paid: Dictionary = Formulas.apply_skill_payment(shield, 1, 40, 80, cds, {})
+	var left: Dictionary = paid["cooldowns"]
+	eq(int(paid["mp"]), 80, "cooldown does not spend energy")
+	eq(int(paid["hp"]), 40, "cooldown does not spend health")
+	eq(Formulas.cooldown_remaining(left, "shieldwall"), 3, "cooldown armed at 3")
+	check(not Formulas.skill_usable(shield, 1, 40, 80, left, {}), "armed cooldown is unavailable")
+	Formulas.tick_cooldowns(left)
+	eq(Formulas.cooldown_remaining(left, "shieldwall"), 2, "first later turn ticks 3 to 2")
+	Formulas.tick_cooldowns(left)
+	Formulas.tick_cooldowns(left)
+	eq(Formulas.cooldown_remaining(left, "shieldwall"), 0, "three ticks clear a 3-turn cooldown")
+	check(Formulas.skill_usable(shield, 1, 40, 80, left, {}), "cooldown is usable after three ticks")
+	Formulas.tick_cooldowns(left)
+	eq(Formulas.cooldown_remaining(left, "shieldwall"), 0, "cooldown does not go negative")
+	eq(Formulas.skill_cost_label(shield, 1, {"shieldwall": 2}, {}), "Shieldwall  CD 2", "cooldown label")
+	eq(Formulas.skill_cost_label(shield, 1, {}, {}), "Shieldwall  Ready", "ready label")
+
+	var swing := {"id": "bloodswing", "name": "Bloodswing", "resource": "hp", "hp_cost": 12}
+	check(not Formulas.hp_cost_payable(12, 12), "hp cost must leave at least 1")
+	check(Formulas.hp_cost_payable(13, 12), "hp above the cost is payable")
+	check(not Formulas.skill_usable(swing, 1, 12, 0, {}, {}), "cannot pay hp cost with 12 hp")
+	check(Formulas.skill_usable(swing, 1, 13, 0, {}, {}), "hp cost payable at 13")
+	var cut: Dictionary = Formulas.apply_skill_payment(swing, 1, 40, 90, {}, {})
+	eq(int(cut["hp"]), 28, "hp cost subtracts")
+	eq(int(cut["mp"]), 90, "hp skill does not spend energy")
+	eq(Formulas.skill_cost_label(swing, 1, {}, {}), "Bloodswing  12 HP", "hp label")
+
+	var nick := {
+		"id": "pocket_cut",
+		"name": "Pocket Cut",
+		"resource": "free",
+		"buildup_id": "combo",
+		"buildup_gain": 1,
+		"buildup_max": 5,
+		"buildup_label": "Combo",
+	}
+	var ledger := {
+		"id": "ledger_strike",
+		"name": "Ledger Strike",
+		"resource": "buildup",
+		"buildup_id": "combo",
+		"buildup_cost": 4,
+		"buildup_label": "Combo",
+	}
+	var stacks := {}
+	var gained: Dictionary = Formulas.apply_skill_payment(nick, 1, 30, 10, {}, stacks)
+	eq(int(gained["buildup"]["combo"]), 1, "combo gains 1")
+	eq(stacks.size(), 0, "payment does not mutate the caller's buildup")
+	var capped: Dictionary = Formulas.apply_skill_payment(nick, 1, 30, 10, {}, {"combo": 5})
+	eq(int(capped["buildup"]["combo"]), 5, "combo clamps at the cap")
+	check(not Formulas.skill_usable(ledger, 1, 30, 10, {}, {"combo": 3}), "spend refused below the cost")
+	check(Formulas.skill_usable(ledger, 1, 30, 10, {}, {"combo": 4}), "spend allowed at the cost")
+	var spent: Dictionary = Formulas.apply_skill_payment(ledger, 1, 30, 10, {}, {"combo": 5})
+	eq(int(spent["buildup"]["combo"]), 1, "spend subtracts the cost")
+	eq(int(spent["mp"]), 10, "buildup spend does not spend energy")
+	eq(int(spent["hp"]), 30, "buildup spend does not spend health")
+	eq(Formulas.skill_cost_label(ledger, 1, {}, {"combo": 2}), "Ledger Strike  2/4 Combo", "buildup label")
+	eq(Formulas.skill_cost_label(nick, 1, {}, {}), "Pocket Cut  +1 Combo", "gain label")
+
+	var mana := {"id": "oathstrike", "name": "Oathstrike", "resource": "mana", "mp_base": 100}
+	eq(Formulas.skill_mana_cost(mana, 1), 120, "mana skill uses the energy formula")
+	eq(Formulas.skill_mana_cost(swing, 1), 0, "hp skill ignores the energy formula")
+	check(not Formulas.skill_usable(mana, 1, 40, 119, {}, {}), "mana skill unavailable under the cost")
+	check(Formulas.skill_usable(mana, 1, 40, 120, {}, {}), "mana skill ready at the cost")
+	var roared: Dictionary = Formulas.apply_skill_payment({
+		"id": "roar",
+		"resource": "free",
+		"buildup_id": "rage",
+		"buildup_gain": 2,
+		"buildup_max": 6,
+	}, 1, 50, 0, {}, {"rage": 5})
+	eq(int(roared["buildup"]["rage"]), 6, "rage clamps at 6")
+	eq(int(roared["mp"]), 0, "free skill does not spend energy")
 
 
 func _test_portrait_layout() -> void:
@@ -259,9 +368,10 @@ func _test_art_present() -> void:
 	for i in int(appearance["head_count"]):
 		check(FileAccess.file_exists("res://art/doll/front/head_%d.png" % i), "head %d" % i)
 		check(FileAccess.file_exists("res://art/doll/front/hair_%d.png" % i), "hair %d" % i)
-	for class_id in ["paladin", "wizard", "ranger", "bard"]:
+	for class_id in ["paladin", "wizard", "ranger", "bard", "cleric", "rogue", "barbarian", "druid"]:
 		check(FileAccess.file_exists("res://art/doll/front/outfit_%s.png" % class_id), class_id + " outfit")
 		check(FileAccess.file_exists("res://art/doll/front/weapon_%s.png" % class_id), class_id + " weapon")
+		check(FileAccess.file_exists("res://art/doll/back/outfit_%s.png" % class_id), class_id + " back outfit")
 	var monsters: Array = JSON.parse_string(FileAccess.get_file_as_string("res://data/monsters.json"))
 	for monster in monsters:
 		check(FileAccess.file_exists("res://art/monsters/%s.png" % monster["id"]), monster["id"] + " sprite")

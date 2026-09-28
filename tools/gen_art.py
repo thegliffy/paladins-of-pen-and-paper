@@ -231,6 +231,23 @@ def draw_outfit(class_id):
         ellipse(img, 24, 38, 10, 11, HL, MID, SH)
         line(img, 16, 32, 12, 50, SH, 1)
         line(img, 32, 32, 36, 50, SH, 1)
+    elif class_id == "cleric":
+        for y in range(30, 58):
+            half = 7 + (y - 30) // 4
+            line(img, 24 - half, y, 24 + half, y, (236, 214, 150, 255) if y % 4 else (196, 154, 64, 255))
+        rect_blob(img, 21, 32, 6, 8, (240, 220, 120, 255), INK)
+    elif class_id == "rogue":
+        ellipse(img, 24, 38, 9, 11, (70, 64, 82, 255), (48, 42, 58, 255), (28, 24, 36, 255))
+        line(img, 15, 30, 12, 56, (28, 24, 36, 255), 1)
+        line(img, 33, 30, 36, 56, (28, 24, 36, 255), 1)
+    elif class_id == "barbarian":
+        ellipse(img, 24, 38, 11, 10, (196, 140, 96, 255), (160, 104, 68, 255), (110, 70, 44, 255))
+        line(img, 14, 32, 10, 44, (120, 72, 36, 255), 1)
+        line(img, 34, 32, 38, 44, (120, 72, 36, 255), 1)
+    elif class_id == "druid":
+        ellipse(img, 24, 40, 10, 12, (72, 140, 72, 255), (46, 110, 52, 255), (28, 72, 36, 255))
+        disk(img, 16, 34, 3, (90, 160, 70, 255), INK)
+        disk(img, 32, 36, 3, (70, 130, 60, 255), INK)
     else:
         ellipse(img, 24, 38, 9, 10, HL, MID, SH)
         rect_blob(img, 18, 34, 12, 8, gray(235), INK)
@@ -252,6 +269,22 @@ def draw_hat(class_id):
     elif class_id == "ranger":
         ellipse(img, 24, 14, 12, 8, HL, MID, SH)
         ellipse(img, 24, 20, 7, 6, CLEAR, CLEAR, CLEAR, CLEAR)
+    elif class_id == "cleric":
+        ellipse(img, 24, 10, 8, 3, (240, 220, 120, 255), (210, 170, 60, 255), (160, 120, 40, 255))
+        disk(img, 24, 6, 2, (255, 236, 160, 255), INK)
+    elif class_id == "rogue":
+        ellipse(img, 24, 14, 11, 8, (48, 42, 58, 255), (32, 28, 40, 255), (18, 16, 24, 255))
+        line(img, 14, 16, 10, 28, (32, 28, 40, 255), 1)
+        line(img, 34, 16, 38, 28, (32, 28, 40, 255), 1)
+    elif class_id == "barbarian":
+        line(img, 16, 12, 12, 4, (90, 70, 50, 255), 1)
+        line(img, 32, 12, 36, 4, (90, 70, 50, 255), 1)
+        ellipse(img, 24, 14, 8, 4, (120, 72, 36, 255), (90, 54, 28, 255), (60, 36, 18, 255))
+    elif class_id == "druid":
+        line(img, 16, 14, 8, 6, (90, 60, 30, 255), 1)
+        line(img, 32, 14, 40, 6, (90, 60, 30, 255), 1)
+        disk(img, 8, 6, 2, (80, 150, 60, 255), INK)
+        disk(img, 40, 6, 2, (80, 150, 60, 255), INK)
     else:
         ellipse(img, 24, 12, 10, 4, HL, MID, SH)
         line(img, 30, 10, 36, 4, gray(80), 0)
@@ -272,6 +305,18 @@ def draw_weapon(class_id):
         line(img, 10, 24, 10, 50, (92, 64, 36, 255), 0)
         line(img, 8, 28, 12, 46, (40, 40, 40, 255), 0)
         line(img, 12, 28, 8, 46, (40, 40, 40, 255), 0)
+    elif class_id == "cleric":
+        line(img, 40, 18, 40, 58, (196, 154, 64, 255), 1)
+        disk(img, 40, 14, 3, (255, 220, 90, 255), INK)
+    elif class_id == "rogue":
+        line(img, 8, 30, 14, 46, (180, 186, 196, 255), 0)
+        line(img, 40, 28, 34, 44, (180, 186, 196, 255), 0)
+    elif class_id == "barbarian":
+        line(img, 38, 20, 44, 50, (110, 80, 40, 255), 1)
+        rect_blob(img, 34, 16, 10, 8, (170, 176, 184, 255), INK)
+    elif class_id == "druid":
+        line(img, 40, 16, 36, 58, (90, 60, 30, 255), 1)
+        disk(img, 42, 14, 3, (80, 160, 70, 255), INK)
     else:
         ellipse(img, 40, 40, 6, 4, (186, 140, 70, 255), (150, 100, 48, 255), (110, 70, 30, 255), INK)
         line(img, 34, 40, 46, 36, (80, 50, 30, 255), 0)
@@ -309,6 +354,16 @@ def draw_outfit_back(class_id):
     elif class_id == "ranger":
         ellipse(img, 20, 34, 12, 10, HL, MID, SH)
         line(img, 8, 26, 6, 44, SH, 1)
+    elif class_id == "cleric":
+        for y in range(24, 46):
+            half = 7 + (y - 24) // 5
+            line(img, 20 - half, y, 20 + half, y, (220, 196, 130, 255))
+    elif class_id == "rogue":
+        ellipse(img, 20, 34, 11, 10, (48, 42, 58, 255), (32, 28, 40, 255), (18, 16, 24, 255))
+    elif class_id == "barbarian":
+        ellipse(img, 20, 34, 12, 9, (160, 104, 68, 255), (120, 72, 36, 255), (80, 48, 24, 255))
+    elif class_id == "druid":
+        ellipse(img, 20, 34, 12, 10, (46, 110, 52, 255), (28, 72, 36, 255), (18, 48, 24, 255))
     else:
         ellipse(img, 20, 34, 11, 9, HL, MID, SH)
     return img
@@ -325,6 +380,16 @@ def draw_hat_back(class_id):
         ellipse(img, 20, 14, 8, 2, HL, MID, SH)
     elif class_id == "ranger":
         ellipse(img, 20, 14, 10, 8, HL, MID, SH)
+    elif class_id == "cleric":
+        ellipse(img, 20, 10, 7, 2, (240, 220, 120, 255), (210, 170, 60, 255), (160, 120, 40, 255))
+    elif class_id == "rogue":
+        ellipse(img, 20, 14, 9, 6, (32, 28, 40, 255), (18, 16, 24, 255), (10, 8, 14, 255))
+    elif class_id == "barbarian":
+        line(img, 12, 12, 8, 6, (90, 70, 50, 255), 1)
+        line(img, 28, 12, 32, 6, (90, 70, 50, 255), 1)
+    elif class_id == "druid":
+        line(img, 12, 12, 6, 6, (90, 60, 30, 255), 1)
+        line(img, 28, 12, 34, 6, (90, 60, 30, 255), 1)
     else:
         ellipse(img, 20, 12, 8, 3, HL, MID, SH)
     return img
@@ -354,6 +419,14 @@ def draw_weapon_back(class_id):
         line(img, 32, 14, 32, 46, (110, 80, 40, 255), 1)
     elif class_id == "ranger":
         line(img, 6, 18, 6, 40, (92, 64, 36, 255))
+    elif class_id == "cleric":
+        line(img, 32, 14, 32, 44, (196, 154, 64, 255), 1)
+    elif class_id == "rogue":
+        line(img, 6, 24, 12, 36, (180, 186, 196, 255))
+    elif class_id == "barbarian":
+        line(img, 30, 16, 36, 40, (110, 80, 40, 255), 1)
+    elif class_id == "druid":
+        line(img, 32, 14, 28, 44, (90, 60, 30, 255), 1)
     else:
         ellipse(img, 32, 36, 5, 3, (186, 140, 70, 255), (150, 100, 48, 255), (110, 70, 30, 255), INK)
     return img
@@ -381,7 +454,7 @@ def build_dolls():
         save(draw_face(i), "doll", "front", "face_%d.png" % i)
         save(draw_hair(i), "doll", "front", "hair_%d.png" % i)
         save(draw_hair_back(i), "doll", "back", "hair_%d.png" % i)
-    for class_id in ("paladin", "wizard", "ranger", "bard"):
+    for class_id in ("paladin", "wizard", "ranger", "bard", "cleric", "rogue", "barbarian", "druid"):
         save(draw_outfit(class_id), "doll", "front", "outfit_%s.png" % class_id)
         save(draw_hat(class_id), "doll", "front", "hat_%s.png" % class_id)
         save(draw_weapon(class_id), "doll", "front", "weapon_%s.png" % class_id)

@@ -329,8 +329,10 @@ func show_choices(entries: Array, back_id: String) -> void:
 	box.add_theme_constant_override("separation", 4)
 	_modal.add_child(box)
 	for entry in entries:
-		var button := Widgets.make_button(str(entry["text"]), Vector2(230, 36))
+		var button := Widgets.make_button(str(entry["text"]), Vector2(230, 32))
 		button.disabled = bool(entry.get("disabled", false))
+		if button.disabled:
+			button.modulate = Color(0.45, 0.42, 0.38)
 		var choice_id := str(entry["id"])
 		button.pressed.connect(func(): action_pressed.emit(choice_id))
 		box.add_child(button)
@@ -788,20 +790,27 @@ func _open_text_modal(title: String, body: String, extra: Array) -> void:
 	_modal.add_child(heading)
 	var copy := Widgets.label(body, Layout.font_tiny())
 	copy.position = Vector2(8, 28)
-	copy.size = Vector2(234, 200)
+	copy.size = Vector2(234, 200 if extra.is_empty() else 88)
 	copy.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_modal.add_child(copy)
-	var y := 230.0
-	for entry in extra:
-		var button := Widgets.make_button(str(entry["text"]), Vector2(230, 32))
-		button.position = Vector2(8, y)
-		var skill_id := str(entry["id"])
-		var member_index := int(entry["member"])
-		button.pressed.connect(_spend.bind(member_index, skill_id))
-		_modal.add_child(button)
-		y += 34
+	if not extra.is_empty():
+		var scroll := ScrollContainer.new()
+		scroll.position = Vector2(6, 120)
+		scroll.size = Vector2(238, 148)
+		scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+		var box := VBoxContainer.new()
+		box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		box.add_theme_constant_override("separation", 4)
+		scroll.add_child(box)
+		for entry in extra:
+			var button := Widgets.make_button(str(entry["text"]), Vector2(220, 32))
+			var skill_id := str(entry["id"])
+			var member_index := int(entry["member"])
+			button.pressed.connect(_spend.bind(member_index, skill_id))
+			box.add_child(button)
+		_modal.add_child(scroll)
 	var close := Widgets.make_button("Close", Vector2(230, 40))
-	close.position = Vector2(8, 276)
+	close.position = Vector2(8, 272)
 	close.pressed.connect(_close_modal)
 	_modal.add_child(close)
 

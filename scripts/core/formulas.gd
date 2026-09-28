@@ -295,3 +295,104 @@ static func heal_amount(skill: Dictionary, mind: int, rank: int) -> int:
 	amount += float(int(skill.get("heal_per_mind", 0))) * float(mind)
 	amount += float(int(skill.get("heal_per_rank", 0))) * float(maxi(0, rank - 1))
 	return int(round(amount))
+
+
+static func skill_resource(skill: Dictionary) -> String:
+	var resource := str(skill.get("resource", "mana"))
+	if resource == "":
+		return "mana"
+	return resource
+
+
+static func skill_mana_cost(skill: Dictionary, rank: int) -> int:
+	if skill_resource(skill) != "mana":
+		return 0
+	return mp_cost(int(skill.get("mp_base", 0)), rank)
+
+
+static func hp_cost_payable(hp: int, cost: int) -> bool:
+	if cost <= 0:
+		return true
+	return hp > cost
+
+
+static func cooldown_remaining(cooldowns: Dictionary, skill_id: String) -> int:
+	return maxi(0, int(cooldowns.get(skill_id, 0)))
+
+
+static func arm_cooldown(cooldowns: Dictionary, skill_id: String, turns: int) -> void:
+	cooldowns[skill_id] = maxi(0, turns)
+
+
+static func tick_cooldowns(cooldowns: Dictionary) -> void:
+	for key in cooldowns.keys():
+		cooldowns[key] = maxi(0, int(cooldowns[key]) - 1)
+
+
+static func buildup_amount(buildup: Dictionary, buildup_id: String) -> int:
+	return maxi(0, int(buildup.get(buildup_id, 0)))
+
+
+static func skill_usable(skill: Dictionary, rank: int, hp: int, mp: int, cooldowns: Dictionary, buildup: Dictionary) -> bool:
+	var resource := skill_resource(skill)
+	if resource == "mana":
+		return mp >= skill_mana_cost(skill, rank)
+	if resource == "cooldown":
+		return cooldown_remaining(cooldowns, str(skill.get("id", ""))) <= 0
+	if resource == "free":
+		return true
+	if resource == "hp":
+		return hp_cost_payable(hp, int(skill.get("hp_cost", 0)))
+	if resource == "buildup":
+		return buildup_amount(buildup, str(skill.get("buildup_id", ""))) >= int(skill.get("buildup_cost", 0))
+	return false
+
+
+static func apply_skill_payment(skill: Dictionary, rank: int, hp: int, mp: int, cooldowns: Dictionary, buildup: Dictionary) -> Dictionary:
+	var next_cd: Dictionary = cooldowns.duplicate(true)
+	var next_bu: Dictionary = buildup.duplicate(true)
+	var next_hp := hp
+	var next_mp := mp
+	var resource := skill_resource(skill)
+	if resource == "mana":
+		next_mp -= skill_mana_cost(skill, rank)
+	elif resource == "cooldown":
+		arm_cooldown(next_cd, str(skill.get("id", "")), int(skill.get("cooldown", 0)))
+	elif resource == "hp":
+		next_hp -= int(skill.get("hp_cost", 0))
+	elif resource == "buildup":
+		var spend_id := str(skill.get("buildup_id", ""))
+		next_bu[spend_id] = buildup_amount(next_bu, spend_id) - int(skill.get("buildup_cost", 0))
+	var gain := int(skill.get("buildup_gain", 0))
+	if gain > 0:
+		var gain_id := str(skill.get("buildup_id", ""))
+		var cap := int(skill.get("buildup_max", gain))
+		next_bu[gain_id] = mini(cap, buildup_amount(next_bu, gain_id) + gain)
+	return {
+		"hp": next_hp,
+		"mp": next_mp,
+		"cooldowns": next_cd,
+		"buildup": next_bu,
+	}
+
+
+static func skill_cost_label(skill: Dictionary, rank: int, cooldowns: Dictionary, buildup: Dictionary) -> String:
+	var name := str(skill.get("name", "Skill"))
+	var resource := skill_resource(skill)
+	if resource == "mana":
+		return "%s  %d EN" % [name, skill_mana_cost(skill, rank)]
+	if resource == "cooldown":
+		var left := cooldown_remaining(cooldowns, str(skill.get("id", "")))
+		if left > 0:
+			return "%s  CD %d" % [name, left]
+		return "%s  Ready" % name
+	if resource == "hp":
+		return "%s  %d HP" % [name, int(skill.get("hp_cost", 0))]
+	if resource == "buildup":
+		var spend_id := str(skill.get("buildup_id", ""))
+		var spend_label := str(skill.get("buildup_label", "Stack"))
+		return "%s  %d/%d %s" % [name, buildup_amount(buildup, spend_id), int(skill.get("buildup_cost", 0)), spend_label]
+	var gain := int(skill.get("buildup_gain", 0))
+	if gain > 0:
+		return "%s  +%d %s" % [name, gain, str(skill.get("buildup_label", "Stack"))]
+	return "%s  Free" % name

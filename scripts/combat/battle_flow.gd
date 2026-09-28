@@ -105,6 +105,10 @@ func _build_units(monster_rows: Array) -> void:
 			"conditions": [],
 			"skill_ranks": member["skill_ranks"].duplicate(true),
 			"class_id": str(member["class_id"]),
+			"cooldowns": {},
+			"buildup": {},
+			"ward": 0,
+			"ward_turns": 0,
 			"boss": false,
 			"back_row": false,
 		})
@@ -195,7 +199,11 @@ func _loop() -> String:
 func _take_turn(unit: Dictionary) -> String:
 	view.set_initiative(_order_entries(), str(unit["id"]))
 	view.set_caption("%s's turn" % unit["name"])
+	_tick_ward(unit)
 	if str(unit["side"]) == "player":
+		_ensure_resources(unit)
+		var cooling: Dictionary = unit["cooldowns"]
+		Formulas.tick_cooldowns(cooling)
 		unit["covering"] = false
 		unit["threat"] = 0
 		view.set_cover(int(unit["member_index"]), false)
@@ -314,7 +322,7 @@ func _strike(attacker: Dictionary, defender: Dictionary, base: float, variance: 
 		crit = Formulas.is_crit(chance, rng.randi_range(1, 100))
 		if crit:
 			raw *= 2.0
-	var dealt := Formulas.damage_taken(raw, int(defender["dr"]))
+	var dealt := Formulas.damage_taken(raw, int(defender.get("dr", 0)) + int(defender.get("ward", 0)))
 	defender["hp"] = maxi(0, int(defender["hp"]) - dealt)
 	var texts: Array = []
 	if crit:
@@ -332,35 +340,127 @@ func _strike(attacker: Dictionary, defender: Dictionary, base: float, variance: 
 func _use_skill(user: Dictionary, skill_id: String) -> bool:
 	var skill: Dictionary = ContentDB.skill(skill_id)
 	var rank := int(user.get("skill_ranks", {}).get(skill_id, 1))
-	var cost := Formulas.mp_cost(int(skill.get("mp_base", 0)), rank)
-	if str(user["side"]) == "player" and int(user["mp"]) < cost:
-		view.set_caption("Not enough energy.")
+	_ensure_resources(user)
+	var cds: Dictionary = user["cooldowns"]
+	var stacks: Dictionary = user["buildup"]
+	if not Formulas.skill_usable(skill, rank, int(user["hp"]), int(user["mp"]), cds, stacks):
+		view.set_caption("Can't use that yet.")
 		return false
-	if str(user["side"]) == "player":
-		user["mp"] = int(user["mp"]) - cost
+	var before := {
+		"hp": int(user["hp"]),
+		"mp": int(user["mp"]),
+		"cooldowns": (user["cooldowns"] as Dictionary).duplicate(true),
+		"buildup": (user["buildup"] as Dictionary).duplicate(true),
+	}
+	var paid: Dictionary = Formulas.apply_skill_payment(skill, rank, int(user["hp"]), int(user["mp"]), cds, stacks)
+	user["hp"] = int(paid["hp"])
+	user["mp"] = int(paid["mp"])
+	user["cooldowns"] = paid["cooldowns"]
+	user["buildup"] = paid["buildup"]
+	view.sync_unit(user)
+	if Formulas.skill_resource(skill) == "hp":
+		var spent := int(before["hp"]) - int(user["hp"])
+		view.react_hit(str(user["id"]), [{"text": "-%d" % spent, "color": SpriteCatalog.HP}], _ratio(user, "hp"), _ratio(user, "mp"))
+	var cancelled := false
+	var kind := str(skill.get("kind", "spell"))
+	var target_mode := str(skill.get("target", "enemy"))
+	if target_mode == "self":
+		await _resolve_skill(user, skill, [user], rank)
+	elif kind == "heal" or kind == "cleanse" or target_mode == "ally":
+		var ally := await _choose_ally()
+		if ally.is_empty():
+			cancelled = true
+		else:
+			await _resolve_skill(user, skill, [ally], rank)
+	elif target_mode == "enemies":
+		var crowd: Array = _random_enemies(int(skill.get("max_targets", 1)), bool(skill.get("can_target_back_row", false)))
+		if crowd.is_empty():
+			cancelled = true
+		else:
+			await _resolve_skill(user, skill, crowd, rank)
+	else:
+		var picked := await _choose_enemy(user, bool(skill.get("can_target_back_row", false)))
+		if picked.is_empty():
+			cancelled = true
+		else:
+			await _resolve_skill(user, skill, [picked], rank)
+	if cancelled:
+		user["hp"] = int(before["hp"])
+		user["mp"] = int(before["mp"])
+		user["cooldowns"] = before["cooldowns"]
+		user["buildup"] = before["buildup"]
 		view.sync_unit(user)
+		return false
+	var track := str(skill.get("buildup_id", ""))
+	if track != "":
+		view.set_caption("%s · %d %s" % [skill["name"], int(user["buildup"].get(track, 0)), str(skill.get("buildup_label", track))])
+	return true
+
+
+func _resolve_skill(user: Dictionary, skill: Dictionary, targets: Array, rank: int) -> void:
 	var kind := str(skill.get("kind", "spell"))
 	if kind == "heal":
-		var target := await _choose_ally()
-		if target.is_empty():
-			user["mp"] = int(user["mp"]) + cost
-			view.sync_unit(user)
-			return false
-		await _heal(user, skill, target, rank)
-		return true
-	var allow_back := bool(skill.get("can_target_back_row", false))
-	var targets: Array = []
-	if str(skill.get("target", "enemy")) == "enemies":
-		targets = _random_enemies(int(skill.get("max_targets", 1)), allow_back)
-	else:
-		var picked := await _choose_enemy(user, allow_back)
-		if picked.is_empty():
-			user["mp"] = int(user["mp"]) + cost
-			view.sync_unit(user)
-			return false
-		targets = [picked]
+		await _heal(user, skill, targets[0], rank)
+		_grant_threat(user, skill)
+		return
+	if kind == "cleanse":
+		await _cleanse(user, skill, targets[0], rank)
+		return
+	if kind == "buff":
+		await _buff(user, skill, targets[0], rank)
+		return
 	await _cast(user, skill, targets)
-	return true
+
+
+func _grant_threat(user: Dictionary, skill: Dictionary) -> void:
+	var bonus := int(skill.get("threat", 0))
+	if bonus > 0:
+		user["threat"] = int(user.get("threat", 0)) + bonus
+
+
+func _buff(user: Dictionary, skill: Dictionary, target: Dictionary, rank: int) -> void:
+	view.set_caption("%s uses %s" % [user["name"], skill["name"]])
+	var ward := int(skill.get("grant_dr", 0))
+	if ward > 0:
+		target["ward"] = ward
+		target["ward_turns"] = int(skill.get("ward_turns", 2))
+		view.react_hit(str(target["id"]), [{"text": "WARD", "color": SpriteCatalog.SAFE}], _ratio(target, "hp"), _ratio(target, "mp"))
+	if bool(skill.get("grant_cover", false)) and target.has("member_index"):
+		target["covering"] = true
+		view.set_cover(int(target["member_index"]), true)
+	_grant_threat(user, skill)
+	if int(skill.get("heal", 0)) > 0:
+		await _heal(user, skill, target, rank)
+	else:
+		Sfx.play("good")
+		await _wait(0.35)
+	view.sync_unit(target)
+
+
+func _cleanse(user: Dictionary, skill: Dictionary, target: Dictionary, rank: int) -> void:
+	target["conditions"] = []
+	view.sync_unit(target)
+	view.set_caption("%s clears %s" % [user["name"], target["name"]])
+	if int(skill.get("heal", 0)) > 0:
+		await _heal(user, skill, target, rank)
+	else:
+		await _wait(0.3)
+
+
+func _tick_ward(unit: Dictionary) -> void:
+	var turns := int(unit.get("ward_turns", 0))
+	if turns <= 0:
+		return
+	unit["ward_turns"] = turns - 1
+	if int(unit["ward_turns"]) <= 0:
+		unit["ward"] = 0
+
+
+func _ensure_resources(user: Dictionary) -> void:
+	if typeof(user.get("cooldowns", null)) != TYPE_DICTIONARY:
+		user["cooldowns"] = {}
+	if typeof(user.get("buildup", null)) != TYPE_DICTIONARY:
+		user["buildup"] = {}
 
 
 func _cast(user: Dictionary, skill: Dictionary, targets: Array) -> void:
@@ -379,7 +479,13 @@ func _cast(user: Dictionary, skill: Dictionary, targets: Array) -> void:
 			var bonus := 0
 			if int(skill.get("later_init_bonus", 0)) > 0 and _later(user, target):
 				bonus = int(skill["later_init_bonus"])
-			await _strike(user, target, float(user["attack"]) * float(skill.get("attack_mult", 1.0)), float(skill.get("variance", 0.25)), true, bonus)
+			var weapon_power := float(user["attack"]) * float(skill.get("attack_mult", 1.0))
+			await _strike(user, target, weapon_power, float(skill.get("variance", 0.25)), true, bonus)
+			var weapon_splash := float(skill.get("splash", 0.0))
+			if weapon_splash > 0.0:
+				for neighbor in _neighbors(target):
+					await _wait(Timing.MULTI_TARGET_GAP)
+					await _strike(user, neighbor, weapon_power * weapon_splash, float(skill.get("variance", 0.25)), false, 0)
 		else:
 			var flat := Formulas.spell_flat(skill, int(user["mind"]), int(user["senses"]), rank, float(user.get("spell_bonus", 0.0)))
 			if int(skill.get("later_init_bonus", 0)) > 0 and _later(user, target):
@@ -542,14 +648,17 @@ func _choose_item(user: Dictionary) -> bool:
 func _choose_skill(user: Dictionary) -> String:
 	var entries: Array = []
 	var cls: Dictionary = ContentDB.class_def(str(user["class_id"]))
+	_ensure_resources(user)
+	var cds: Dictionary = user["cooldowns"]
+	var stacks: Dictionary = user["buildup"]
 	for skill_id in cls["skills"]:
 		var skill: Dictionary = ContentDB.skill(str(skill_id))
 		var rank := int(user["skill_ranks"].get(str(skill_id), 1))
-		var cost := Formulas.mp_cost(int(skill.get("mp_base", 0)), rank)
+		var usable := Formulas.skill_usable(skill, rank, int(user["hp"]), int(user["mp"]), cds, stacks)
 		entries.append({
 			"id": "skill:%s" % skill_id,
-			"text": "%s  %d EN" % [skill["name"], cost],
-			"disabled": int(user["mp"]) < cost,
+			"text": Formulas.skill_cost_label(skill, rank, cds, stacks),
+			"disabled": not usable,
 		})
 	view.show_choices(entries, "back")
 	var choice := await _wait_action()

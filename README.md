@@ -16,11 +16,11 @@ godot --path .
 
 On a phone the window is portrait. On desktop the window opens at 810×1440, which is exactly three times the native grid.
 
-1. **New game** seats three heroes. Each persona and each class can be used only once. Random fills the paper doll; the arrows and the rows under it edit the current tab. Confirm is in the bottom thumb row.
+1. **New game** seats three heroes. Eight classes are on the Class tab: Paladin, Wizard, Ranger, Bard, Cleric, Rogue, Barbarian, and Druid. Each persona and each class can be used only once. Random fills the paper doll; the arrows and the rows under it edit the current tab. Confirm is in the bottom thumb row.
 2. The table hub has Travel, Fight, Rest, Quest, and Party along the bottom.
 3. **Travel** opens the Greenmere map. Drag to scroll. Tap a place, then tap it again or press Travel. Stop ends a multi-hop trip after the hop you are already on.
 4. Roads with monsters roll a d20 around the middle of the hop. 1 is lost, 2 through p is an ambush, p+1 through 19 is safe, 20 is lucky. `p = clamp(destination level − party average + 7, 2, 10)`.
-5. Combat is stacked for one hand: initiative, monsters, the GM behind the table, the party from behind, HP/MP cards, then Attack, Skill, Item, Cover, and Run.
+5. Combat is stacked for one hand: initiative, monsters, the GM behind the table, the party from behind, HP/MP cards, then Attack, Skill, Item, Cover, and Run. Skill opens that class's four skills. Each button shows the cost or the cooldown, and a skill you cannot pay for is grey.
 
 The save is `user://paladins_save.json`. It is written when the app pauses or closes. A fight in progress reloads from the checkpoint taken when the battle started, so a kill during the fight does not keep half-applied rewards.
 
@@ -30,7 +30,7 @@ The save is `user://paladins_save.json`. It is written when the app pauses or cl
 godot --headless --path . -s res://tests/run_tests.gd
 ```
 
-That covers the stat, HP, energy, damage, crit, XP, gold, travel-table, dice, timing, path, and portrait-layout examples.
+That covers the stat, HP, energy, damage, crit, XP, gold, travel-table, dice, timing, path, portrait-layout, cooldown, HP-cost, and build-up examples.
 
 Placeholder art is generated with `python3 tools/gen_art.py`.
 
@@ -44,6 +44,8 @@ Native 270×480 captures:
 
 ![Combat](docs/screenshots/combat.png)
 
+![Skill list](docs/screenshots/skills.png)
+
 ## Android
 
 [`export_presets.cfg`](export_presets.cfg) has a debug Android preset locked to portrait (`screen/orientation=1`) and arm64-v8a, plus a Linux preset. The project setting `display/window/handheld/orientation` is portrait.
@@ -54,13 +56,14 @@ godot --headless --export-debug Android build/paladins-0.1.0-debug.apk
 
 The export needs the Godot 4.7.2 Android templates (installed into `android/build`, which is gitignored), a `.build_version` of `4.7.2.stable`, Android SDK 36, build-tools 36.1.0, NDK 29.0.14206865, and a JDK. The project enables ETC2/ASTC import, which the Android exporter requires.
 
-The debug APK for this slice is [v0.1.0](https://github.com/thegliffy/paladins-of-pen-and-paper/releases/tag/v0.1.0): [paladins-0.1.0-debug.apk](https://github.com/thegliffy/paladins-of-pen-and-paper/releases/download/v0.1.0/paladins-0.1.0-debug.apk). It is arm64-v8a, portrait, package `com.thegliffy.paladinspenpaper`.
+The published debug APK is [v0.1.0](https://github.com/thegliffy/paladins-of-pen-and-paper/releases/tag/v0.1.0): [paladins-0.1.0-debug.apk](https://github.com/thegliffy/paladins-of-pen-and-paper/releases/download/v0.1.0/paladins-0.1.0-debug.apk). It is arm64-v8a, portrait, package `com.thegliffy.paladinspenpaper`. That build is the portrait slice from before the eight-class skill list. Export again with the command above to include Cleric, Rogue, Barbarian, Druid, and the mixed skill costs.
 
 ## Where numbers live
 
 | Data | File |
 | --- | --- |
 | Personas, races, classes, skills, monsters, items, the quest | `data/*.json` |
+| Class roles and the 32 skills | [`docs/CLASSES.md`](docs/CLASSES.md) |
 | Places, roads, levels | `data/region.json` |
 | Encounter difficulties | `data/encounters.json` |
 | Paper-doll colors and layer counts | `data/appearance.json` |
@@ -82,7 +85,8 @@ A level 1 hero is `class + persona + race + 2` on Body, Senses, and Mind. HP is 
 - The **chicken** runs left and up across the portrait table for 1.8 s. The sound plays at 1.1 s.
 - You start with **500 gold**, three Hearth Tonics, and two Lamp Vials.
 - Level 1 monsters use the level-1 HP exception (the formula divided by 3), so the pond fight is short.
-- Skill ranks use the energy-cost formula. Damage and healing add a small per-rank term. There is no separate power-curve table yet.
+- Skill ranks use the energy-cost formula on **mana** skills only. Cooldowns, free actions, HP costs, and build-up tracks (Rogue combo, Bard tempo, Barbarian rage) do not go through that formula. Damage and healing add a small per-rank term. There is no separate power-curve table yet.
+- Cleric, Rogue, Barbarian, and Druid outfits are placeholder pixels until production sprites arrive.
 - No terrain effects, so the 1.5 s terrain intro does not play.
 - No counter-attack skills. The counter delays are still in the timing constants and the tests.
 - The bard's second skill applies **poison**, not weakness.

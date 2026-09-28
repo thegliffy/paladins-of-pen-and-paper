@@ -50,7 +50,7 @@ func _apply_preview() -> void:
 	_race = "glenfolk"
 	_class = "wizard"
 	_look = {"skin": 1, "head": 5, "hair": 3, "hair_color": 6, "outfit_color": 1}
-	_tab = "look"
+	_tab = "class"
 	_look_row = "hair"
 
 
@@ -296,7 +296,7 @@ func _fill_options() -> void:
 		for id in ContentDB.races.keys():
 			_options.add_child(_choice_button(ContentDB.race(str(id))["name"], str(id) == _race, true, _pick_race.bind(str(id))))
 	elif _tab == "class":
-		_options.columns = 1
+		_options.columns = 2
 		for id in ContentDB.classes.keys():
 			var cls: Dictionary = ContentDB.class_def(str(id))
 			var text := "%s  B%d/S%d/M%d" % [cls["name"], int(cls["body"]), int(cls["senses"]), int(cls["mind"])]
