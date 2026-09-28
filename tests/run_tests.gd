@@ -792,6 +792,7 @@ func _test_table_space() -> void:
 	eq(int(clamped["blob"]), 0, "regulars after a full large stack are dropped")
 	var layout: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/layout.json"))
 	var table_top := float(layout["portrait"]["combat"]["table"][1])
+	var card_top := float(layout["portrait"]["combat"]["skill_card"][1])
 	var packs := [
 		[{"size": "regular"}, {"size": "regular"}, {"size": "regular"}, {"size": "regular"}, {"size": "regular"}],
 		[{"size": "large"}, {"size": "large"}, {"size": "large"}],
@@ -801,13 +802,13 @@ func _test_table_space() -> void:
 	]
 	var labels := ["five regular", "three large", "one large three regular", "two large one regular", "seven regular ambush"]
 	for p in packs.size():
-		_assert_row_fit(packs[p], labels[p], table_top)
+		_assert_row_fit(packs[p], labels[p], table_top, card_top)
 	var mixed: Array = Formulas.enemy_layout([{"size": "large"}, {"size": "regular", "back": true}])
 	check(mixed[1].position.y < mixed[0].position.y, "a back-row foe stands higher")
 	check(mixed[0].size.x > mixed[1].size.x, "a large foe is wider than a regular foe")
 
 
-func _assert_row_fit(entries: Array, label: String, table_top: float) -> void:
+func _assert_row_fit(entries: Array, label: String, table_top: float, card_top: float) -> void:
 	var rects: Array = Formulas.enemy_layout(entries)
 	eq(rects.size(), entries.size(), label + " places every foe")
 	var large_w := 0
@@ -817,6 +818,7 @@ func _assert_row_fit(entries: Array, label: String, table_top: float) -> void:
 		check(rect.position.x >= -0.01 and rect.position.y >= 30.0, label + " stays on the meadow")
 		check(rect.end.x <= 270.01 and rect.end.y <= 480.01, label + " stays inside 270x480")
 		check(rect.end.y <= table_top + 0.01, label + " stays above the table")
+		check(rect.end.y <= card_top + 0.01, label + " stays above the skill card")
 		check(rect.size.x >= 24.0 and rect.size.y >= 24.0, label + " hitbox stays tappable")
 		if str(entries[i].get("size", "regular")) == "large":
 			large_w = int(rect.size.x)

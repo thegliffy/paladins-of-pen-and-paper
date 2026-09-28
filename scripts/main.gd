@@ -362,9 +362,9 @@ func _shots() -> void:
 	await _capture("builder")
 	builder.queue_free()
 	session.present_units([
-		{"id": "m0", "side": "monster", "kind": "gravel_brute", "hp": 40, "max_hp": 40, "back_row": false},
-		{"id": "m1", "side": "monster", "kind": "briar_hound", "hp": 30, "max_hp": 30, "back_row": false},
-		{"id": "m2", "side": "monster", "kind": "marshlurker", "hp": 28, "max_hp": 28, "back_row": false},
+		{"id": "m0", "side": "monster", "kind": "gravel_brute", "hp": 40, "max_hp": 40, "mp": 0, "max_mp": 1, "back_row": false},
+		{"id": "m1", "side": "monster", "kind": "briar_hound", "hp": 30, "max_hp": 30, "mp": 0, "max_mp": 1, "back_row": false},
+		{"id": "m2", "side": "monster", "kind": "marshlurker", "hp": 28, "max_hp": 28, "mp": 0, "max_mp": 1, "back_row": false},
 	])
 	await _capture("lineup")
 	session.stage_battle_preview()

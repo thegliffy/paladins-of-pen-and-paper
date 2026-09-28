@@ -526,7 +526,7 @@ static func _row_fit(host: Node, tree: SceneTree, failures: Array[String]) -> vo
 		var entries: Array = []
 		for i in sizes.size():
 			var large := str(sizes[i]) == "large"
-			var back := i == 0 and sizes.size() == 3 and large
+			var back: bool = i == 0 and sizes.size() == 3 and large
 			units.append({
 				"id": "m%d" % i,
 				"side": "monster",
@@ -535,6 +535,8 @@ static func _row_fit(host: Node, tree: SceneTree, failures: Array[String]) -> vo
 				"back_row": back,
 				"hp": 10,
 				"max_hp": 10,
+				"mp": 0,
+				"max_mp": 1,
 			})
 			entries.append({"size": "large" if large else "regular", "back": back})
 		session.present_units(units)
@@ -555,7 +557,8 @@ static func _row_fit(host: Node, tree: SceneTree, failures: Array[String]) -> vo
 			if rect.position.distance_to(want.position) > 0.5 or rect.size.distance_to(want.size) > 0.5:
 				failures.append("row_layout")
 				push_error("Touch check: foe %s sat at %s, wanted %s" % [ids[i], rect, want])
-			if rect.position.x < -0.01 or rect.position.y < 30.0 or rect.end.x > 270.01 or rect.end.y > 343.01:
+			var card_top := Layout.rect("combat", "skill_card").position.y
+			if rect.position.x < -0.01 or rect.position.y < 30.0 or rect.end.x > 270.01 or rect.end.y > card_top + 0.01:
 				failures.append("row_bounds")
 				push_error("Touch check: foe rect %s left the meadow" % rect)
 			if rect.size.x < 24.0 or rect.size.y < 24.0:
