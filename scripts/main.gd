@@ -215,8 +215,11 @@ func _shots() -> void:
 	session.set_threat_debug([])
 	var ranks: Dictionary = (GameState.party[0]["skill_ranks"] as Dictionary).duplicate(true)
 	ranks["rallying_brand"] = 0
-	session.show_member_bar(0, {"shieldwall": 2}, "attack", ranks, 130)
+	var preview_cd := {"shieldwall": 2}
+	session.show_member_bar(0, preview_cd, "skill:oathstrike", ranks, 130)
+	session.present_inspect(0, "skill:oathstrike", preview_cd, ranks, 130)
 	await _capture("skills")
+	session.hide_inspect()
 	session.show_member_bar(0, {}, "", {})
 	session.open_party()
 	await _capture("party")

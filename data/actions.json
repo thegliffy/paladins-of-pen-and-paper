@@ -1,0 +1,32 @@
+[
+  {
+    "id": "attack",
+    "name": "Attack",
+    "icon": "icon_attack",
+    "cost": "Free",
+    "target": "One front foe",
+    "cooldown": "None",
+    "tag": "Active",
+    "description": "A basic weapon swing at one foe in front."
+  },
+  {
+    "id": "cover",
+    "name": "Cover",
+    "icon": "icon_cover",
+    "cost": "Free",
+    "target": "Self",
+    "cooldown": "None",
+    "tag": "Active",
+    "description": "Duck behind the table. Foes are less likely to pick you, and they still can."
+  },
+  {
+    "id": "item",
+    "name": "Item",
+    "icon": "icon_item",
+    "cost": "One item",
+    "target": "One ally",
+    "cooldown": "None",
+    "tag": "Active",
+    "description": "Use a tonic or vial from the party pouch."
+  }
+]

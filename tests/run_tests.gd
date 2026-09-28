@@ -481,11 +481,11 @@ func _test_portrait_layout() -> void:
 	eq(int(actions[2]), 270, "action bar width")
 	eq(int(actions[3]), 50, "action bar height")
 	check(int(actions[1]) + int(actions[3]) >= 460, "action bar sits in the bottom thumb zone")
-	var cards: Array = layout["portrait"]["combat"]["cards"]
-	eq(int(cards[1]), 386, "cards sit at y386")
-	var card_size: Array = layout["portrait"]["combat"]["card_size"]
-	eq(int(card_size[0]), 52, "card width")
-	eq(int(card_size[1]), 44, "card height")
+	var chair: Dictionary = layout["portrait"]["combat"]["chair_bars"]
+	check(chair.has("hp") and chair.has("mp") and chair.has("hp_text"), "chair bars are data")
+	var skill_card: Array = layout["portrait"]["combat"]["skill_card"]
+	eq(skill_card.size(), 4, "skill card rect")
+	check(int(skill_card[2]) > 0 and int(skill_card[3]) > 0, "skill card has a size")
 	eq(int(layout["portrait"]["party_min"]), 1, "party minimum")
 	eq(int(layout["portrait"]["party_max"]), 5, "party maximum")
 	var strip: Array = layout["portrait"]["combat"]["initiative"]
@@ -533,6 +533,32 @@ func _test_party_bar() -> void:
 	eq(Formulas.skill_button_state(strike, 1, 80, 200, {}, {}, true), "selected", "selected attack skill")
 	eq(Formulas.skill_button_state(strike, 1, 80, 10, {}, {}, false), "disabled", "unaffordable skill is disabled")
 	eq(Formulas.skill_cost_badge(strike, 1, {}, {}), "120", "mana badge is the energy cost")
+	var armed: Dictionary = Formulas.arm_action("", "attack", true)
+	eq(str(armed["armed"]), "attack", "first tap arms attack")
+	check(not bool(armed["cast"]), "first tap does not cast")
+	var casted: Dictionary = Formulas.arm_action("attack", "attack", true)
+	check(bool(casted["cast"]), "second tap casts")
+	eq(str(casted["armed"]), "", "a cast clears the arm")
+	var switched: Dictionary = Formulas.arm_action("attack", "cover", true)
+	eq(str(switched["armed"]), "cover", "a different slot switches the card")
+	check(not bool(switched["cast"]), "switching does not cast")
+	var dismissed: Dictionary = Formulas.arm_action("cover", "", true)
+	eq(str(dismissed["armed"]), "", "an empty tap dismisses")
+	check(not bool(dismissed["cast"]), "dismiss does not cast")
+	var blocked_arm: Dictionary = Formulas.arm_action("skill:shieldwall", "skill:shieldwall", false)
+	eq(str(blocked_arm["armed"]), "skill:shieldwall", "a blocked second tap stays armed")
+	check(not bool(blocked_arm["cast"]), "a blocked second tap does not cast")
+	var cooling: Dictionary = Formulas.skill_inspect(shield, 1, 80, 200, {"shieldwall": 2}, {})
+	eq(str(cooling["hint"]), "On cooldown", "cooldown card explains itself")
+	check(not bool(cooling["can_cast"]), "cooldown card cannot cast")
+	var ready: Dictionary = Formulas.skill_inspect(strike, 1, 80, 200, {}, {})
+	eq(str(ready["hint"]), "Tap again to cast", "ready card invites a second tap")
+	eq(str(ready["tag"]), "Active", "active tag")
+	check(bool(ready["can_cast"]), "ready card can cast")
+	var passive_card: Dictionary = Formulas.skill_inspect(oath, 1, 80, 200, {}, {})
+	eq(str(passive_card["tag"]), "Passive", "passive tag")
+	eq(str(passive_card["hint"]), "Always on", "passive card cannot invite a cast")
+	check(not bool(passive_card["can_cast"]), "passive card cannot cast")
 
 
 func _test_art_present() -> void:

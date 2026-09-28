@@ -23,15 +23,21 @@
       "seat_y": 218,
       "seat_lift": 4,
       "seat_lifted": [2, 4],
-      "cards": [5, 386, 260, 44],
-      "card_size": [52, 44],
+      "chair_bars": {
+        "offset": [0, 44],
+        "hp": [0, 0, 24, 3],
+        "hp_text": [24, -4, 16, 10],
+        "mp": [0, 4, 40, 3],
+        "threat": [0, -14, 40, 10]
+      },
       "caption": [6, 352, 258, 28],
       "name_tab": [80, 414, 110, 16],
       "actions": [0, 430, 270, 50],
       "action_bar": [0, 430, 270, 50],
       "action_main": 32,
       "action_small": 20,
-      "action_gap": 0
+      "action_gap": 0,
+      "skill_card": [4, 318, 168, 108]
     },
     "map": {
       "top_bar": [0, 0, 270, 28],

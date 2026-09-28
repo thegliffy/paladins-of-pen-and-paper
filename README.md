@@ -20,7 +20,7 @@ On a phone the window is portrait. On desktop the window opens at 810×1440, whi
 2. The table hub has Travel, Fight, Rest, Quest, and Party along the bottom.
 3. **Travel** opens the Greenmere map. Drag to scroll. Tap a place, then tap it again or press Travel. Stop ends a multi-hop trip after the hop you are already on.
 4. Roads with monsters roll a d20 around the middle of the hop. 1 is lost, 2 through p is an ambush, p+1 through 19 is safe, 20 is lucky. `p = clamp(destination level − party average + 7, 2, 10)`.
-5. Combat is stacked for one hand: an initiative strip for up to eight combatants, monsters, the GM behind the table, up to five heroes from behind, a row of compact HP/MP cards, then the acting hero's bar. That bar is Attack, Cover, the class's five skills, Item, and Run. Each skill shows a cost badge. A skill you cannot pay for is grey, a cooling skill shows the turns left, a skill you have not learned is locked, and a passive is dimmed and does not click. The name tab above the bar is whose turn it is. Passives also show in the creator and on the party panel with a Passive tag.
+5. Combat is stacked for one hand: an initiative strip for up to eight combatants, monsters, the GM behind the table, up to five heroes from behind with HP and MP bars on the chair, then the acting hero's bar. That bar is Attack, Cover, the class's five skills, Item, and Run. The first tap inspects the slot. The second tap uses it. A passive, a locked skill, a cooling skill, and a skill you cannot pay for show the reason and do not cast. The name tab above the bar is whose turn it is. Passives also show in the creator and on the party panel with a Passive tag.
 
 The save is `user://paladins_save.json`. It is written when the app pauses or closes. A fight in progress reloads from the checkpoint taken when the battle started, so a kill during the fight does not keep half-applied rewards.
 
@@ -78,7 +78,7 @@ A level 1 hero is `class + persona + race + 2` on Body, Senses, and Mind. HP is 
 
 ## Deviations from the breakdown
 
-- **Portrait.** The playable slice is 270×480, not a landscape 480×270 table. The same staging is stacked: monsters on top, GM and table in the middle, up to five heroes below, compact cards, then the acting hero's bar in thumb reach.
+- **Portrait.** The playable slice is 270×480, not a landscape 480×270 table. The same staging is stacked: monsters on top, GM and table in the middle, up to five heroes below with bars on the chairs, then the acting hero's bar in thumb reach.
 - **Lost** on the road starts an ambush. There is no secret-list yet, so a lost result cannot award one.
 - A **natural 20** awards free travel or a Hearth Tonic. It does not pull from a secret list.
 - Sable's travel bonus is added to the d20 and the total is clamped to 1–20 before the table is read. A raw 1 with that bonus becomes 2.
@@ -89,7 +89,7 @@ A level 1 hero is `class + persona + race + 2` on Body, Senses, and Mind. HP is 
 - You start with **500 gold**, three Hearth Tonics, and two Lamp Vials.
 - Level 1 monsters use the level-1 HP exception (the formula divided by 3), so the pond fight is short.
 - Skill ranks use the energy-cost formula on **mana** skills only. Cooldowns, free actions, HP costs, and build-up tracks (Rogue combo, Bard tempo, Barbarian rage) do not go through that formula. Damage and healing add a small per-rank term. There is no separate power-curve table yet.
-- Each class has one passive besides its actives. Monsters raffle a living member by threat. Threat is class base plus Body and a little of damage reduction, then taunt and a passive multiplier, and it never drops below 1. Cover halves it. The Wizard regains a share of max energy at the start of each of their turns. Other passives cover crits, healing, initiative, a party damage-reduction aura, health regen, a flat on-hit cut, and damage that rises as health falls. Set `debug` in `data/threat.json` to show each member's threat percent on the party cards.
+- Each class has one passive besides its actives. Monsters raffle a living member by threat. Threat is class base plus Body and a little of damage reduction, then taunt and a passive multiplier, and it never drops below 1. Cover halves it. The Wizard regains a share of max energy at the start of each of their turns. Other passives cover crits, healing, initiative, a party damage-reduction aura, health regen, a flat on-hit cut, and damage that rises as health falls. Set `debug` in `data/threat.json` to show each member's threat percent on their chair.
 - Cleric, Rogue, Barbarian, and Druid outfits are placeholder pixels until production sprites arrive.
 - No terrain effects, so the 1.5 s terrain intro does not play.
 - No counter-attack skills. The counter delays are still in the timing constants and the tests.

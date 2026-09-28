@@ -239,9 +239,27 @@ func _take_turn(unit: Dictionary) -> String:
 
 
 func _player_turn(unit: Dictionary) -> String:
+	var armed := ""
 	while true:
-		_show_actor_bar(unit, "", false)
+		_show_actor_bar(unit, armed, false)
+		if armed == "":
+			view.hide_inspect()
+		else:
+			view.show_inspect(_inspect_card(unit, armed), armed)
 		var action := await _wait_action()
+		if action == "dismiss":
+			armed = ""
+			continue
+		if action == "run":
+			view.hide_inspect()
+			await _run()
+			return "flee"
+		var step: Dictionary = Formulas.arm_action(armed, action, _action_can_cast(unit, action))
+		if not bool(step["cast"]):
+			armed = str(step["armed"])
+			continue
+		armed = ""
+		view.hide_inspect()
 		view.set_actions_enabled(false)
 		if action == "attack":
 			var target := await _choose_enemy(unit, false, "attack")
@@ -261,10 +279,28 @@ func _player_turn(unit: Dictionary) -> String:
 		if action == "cover":
 			await _cover(unit)
 			return ""
-		if action == "run":
-			await _run()
-			return "flee"
 	return ""
+
+
+func _action_can_cast(unit: Dictionary, action_id: String) -> bool:
+	if action_id == "attack" or action_id == "cover" or action_id == "item":
+		return true
+	if not action_id.begins_with("skill:"):
+		return false
+	var card: Dictionary = _inspect_card(unit, action_id)
+	return bool(card.get("can_cast", false))
+
+
+func _inspect_card(unit: Dictionary, action_id: String) -> Dictionary:
+	_ensure_resources(unit)
+	if action_id.begins_with("skill:"):
+		var skill_id := action_id.trim_prefix("skill:")
+		var skill: Dictionary = ContentDB.skill(skill_id)
+		var ranks: Dictionary = unit.get("skill_ranks", {})
+		var cds: Dictionary = unit.get("cooldowns", {})
+		var stacks: Dictionary = unit.get("buildup", {})
+		return Formulas.skill_inspect(skill, int(ranks.get(skill_id, 0)), int(unit.get("hp", 0)), int(unit.get("mp", 0)), cds, stacks)
+	return Formulas.basic_inspect(ContentDB.action_def(action_id))
 
 
 func _player_basic(attacker: Dictionary, defender: Dictionary, can_crit: bool) -> void:

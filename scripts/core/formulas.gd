@@ -502,6 +502,94 @@ static func skill_button_state(skill: Dictionary, rank: int, hp: int, mp: int, c
 	return "ready"
 
 
+static func arm_action(armed_id: String, tapped_id: String, can_cast: bool) -> Dictionary:
+	## First tap arms. A second tap on the same slot casts when it is allowed.
+	## A different slot switches the card. An empty tap dismisses.
+	if tapped_id == "":
+		return {"armed": "", "cast": false}
+	if armed_id != tapped_id:
+		return {"armed": tapped_id, "cast": false}
+	if can_cast:
+		return {"armed": "", "cast": true}
+	return {"armed": armed_id, "cast": false}
+
+
+static func inspect_hint(state: String) -> String:
+	if state == "passive":
+		return "Always on"
+	if state == "locked":
+		return "Not learned yet"
+	if state == "cooldown":
+		return "On cooldown"
+	if state == "disabled":
+		return "Not enough resources"
+	return "Tap again to cast"
+
+
+static func target_label(skill: Dictionary) -> String:
+	var mode := str(skill.get("target", "enemy"))
+	if mode == "self":
+		return "Self"
+	if mode == "ally":
+		return "One ally"
+	if mode == "enemies":
+		return "Several foes"
+	if bool(skill.get("can_target_back_row", false)):
+		return "One foe"
+	return "One front foe"
+
+
+static func skill_inspect(skill: Dictionary, rank: int, hp: int, mp: int, cooldowns: Dictionary, buildup: Dictionary) -> Dictionary:
+	var state := skill_button_state(skill, rank, hp, mp, cooldowns, buildup, false)
+	var resource := skill_resource(skill)
+	var cost := "Free"
+	if is_passive(skill):
+		cost = "Always on"
+	elif resource == "mana":
+		cost = "%d energy" % skill_mana_cost(skill, maxi(1, rank))
+	elif resource == "hp":
+		cost = "%d health" % int(skill.get("hp_cost", 0))
+	elif resource == "cooldown":
+		cost = "Cooldown"
+	elif resource == "buildup":
+		if int(skill.get("buildup_cost", 0)) > 0:
+			cost = "%d %s" % [int(skill.get("buildup_cost", 0)), str(skill.get("buildup_label", "Stack"))]
+		elif int(skill.get("buildup_gain", 0)) > 0:
+			cost = "+%d %s" % [int(skill.get("buildup_gain", 0)), str(skill.get("buildup_label", "Stack"))]
+	var cool := "None"
+	if resource == "cooldown":
+		var left := cooldown_remaining(cooldowns, str(skill.get("id", "")))
+		if left > 0:
+			cool = "%d left" % left
+		else:
+			cool = "%d turns" % int(skill.get("cooldown", 0))
+	return {
+		"name": str(skill.get("name", "Skill")),
+		"icon": "icon_skill",
+		"cost": cost,
+		"target": target_label(skill),
+		"cooldown": cool,
+		"description": str(skill.get("description", "")),
+		"tag": "Passive" if is_passive(skill) else "Active",
+		"hint": inspect_hint(state),
+		"can_cast": state == "ready",
+	}
+
+
+static func basic_inspect(action: Dictionary) -> Dictionary:
+	return {
+		"name": str(action.get("name", "Action")),
+		"icon": str(action.get("icon", "")),
+		"cost": str(action.get("cost", "Free")),
+		"target": str(action.get("target", "")),
+		"cooldown": str(action.get("cooldown", "None")),
+		"description": str(action.get("description", "")),
+		"tag": str(action.get("tag", "Active")),
+		"hint": "Tap again to cast",
+		"can_cast": true,
+	}
+
+
 static func mp_regen_amount(max_mp: int, effects: Array) -> int:
 	return _regen_amount(max_mp, effects, "mp_regen_pct")
 

@@ -16,7 +16,9 @@ var _turn_tab: Panel
 var _turn_name: Label
 var _caption: Label
 var _initiative: HBoxContainer
-var _cards: HBoxContainer
+var _inspect: Panel
+var _inspect_catcher: Control
+var _slot_x: Dictionary = {}
 var _banner: Label
 var _modal: Control
 var _dice: Control
@@ -174,6 +176,7 @@ func set_initiative(order: Array, current_id: String) -> void:
 
 
 func set_actions(entries: Array) -> void:
+	hide_inspect()
 	if _turn_tab:
 		_turn_tab.visible = false
 	_clear_action_buttons()
@@ -250,13 +253,28 @@ func show_actor_bar(actor_name: String, skills: Array, ranks: Dictionary, hp: in
 	var total := gap * float(maxi(0, entries.size() - 1))
 	for entry in entries:
 		total += float(entry["width"])
+	_slot_x.clear()
 	var bar := Layout.rect("combat", "action_bar")
 	var x := (bar.size.x - total) * 0.5
 	for entry in entries:
 		var width := float(entry["width"])
 		var height := float(main_px if width >= float(main_px) else small_px)
+		var button_y := (bar.size.y - height) * 0.5
+		var action_id := str(entry["id"])
+		_slot_x[action_id] = bar.position.x + x + width * 0.5
+		if action_id == selected_id and selected_id != "":
+			var glow := Panel.new()
+			glow.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			var glow_box := StyleBoxFlat.new()
+			glow_box.bg_color = Color(1, 0.82, 0.29, 0.35)
+			glow_box.border_color = SpriteCatalog.HIGHLIGHT
+			glow_box.set_border_width_all(2)
+			glow.add_theme_stylebox_override("panel", glow_box)
+			glow.position = Vector2(x - 2, button_y - 2)
+			glow.size = Vector2(width + 4, height + 4)
+			_actions.add_child(glow)
 		var button := Widgets.make_button("", Vector2(width, height))
-		button.position = Vector2(x, (bar.size.y - height) * 0.5)
+		button.position = Vector2(x, button_y)
 		button.size = Vector2(width, height)
 		var icon_name := str(entry["icon"])
 		if FileAccess.file_exists("res://art/ui/%s.png" % icon_name):
@@ -265,7 +283,6 @@ func show_actor_bar(actor_name: String, skills: Array, ranks: Dictionary, hp: in
 			button.add_theme_constant_override("icon_max_width", int(mini(16, width - 4)))
 		var button_state := str(entry["state"])
 		var blocked := button_state == "passive" or button_state == "locked" or button_state == "cooldown" or button_state == "disabled"
-		button.disabled = blocked
 		if button_state == "selected":
 			button.modulate = SpriteCatalog.HIGHLIGHT
 		elif button_state == "locked":
@@ -283,19 +300,112 @@ func show_actor_bar(actor_name: String, skills: Array, ranks: Dictionary, hp: in
 			badge.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 			badge.clip_text = true
 			button.add_child(badge)
-		var emit_id := str(entry["id"])
+		var emit_id := action_id
 		if cancel_selected and emit_id == selected_id:
 			emit_id = "back"
-		if not blocked:
-			button.pressed.connect(_emit_action.bind(emit_id))
+		button.pressed.connect(_emit_action.bind(emit_id))
 		_actions.add_child(button)
 		x += width + gap
 
 
 func clear_actor_bar() -> void:
+	hide_inspect()
 	if _turn_tab:
 		_turn_tab.visible = false
 	_clear_action_buttons()
+
+
+func present_inspect(member_index: int, action_id: String, cooldowns: Dictionary, ranks_override: Dictionary, mp_override: int = -1) -> void:
+	if member_index < 0 or member_index >= GameState.party.size():
+		hide_inspect()
+		return
+	var member: Dictionary = GameState.party[member_index]
+	var ranks: Dictionary = member["skill_ranks"]
+	if not ranks_override.is_empty():
+		ranks = ranks_override
+	var mp := int(member["mp"])
+	if mp_override >= 0:
+		mp = mp_override
+	show_inspect(_inspect_card(action_id, ranks, int(member["hp"]), mp, cooldowns, {}), action_id)
+
+
+func show_inspect(card: Dictionary, action_id: String) -> void:
+	if _inspect == null:
+		return
+	var size_rect := Layout.rect("combat", "skill_card")
+	var center := float(_slot_x.get(action_id, 135.0))
+	var width := size_rect.size.x
+	var height := size_rect.size.y
+	var left := clampf(center - width * 0.5, 4.0, Layout.viewport_size().x - width - 4.0)
+	var top := Layout.rect("combat", "action_bar").position.y - height - 2.0
+	_inspect.position = Vector2(left, top)
+	_inspect.size = Vector2(width, height)
+	_fill_inspect(card)
+	_inspect.visible = true
+	_inspect.mouse_filter = Control.MOUSE_FILTER_STOP
+	if _inspect_catcher:
+		_inspect_catcher.mouse_filter = Control.MOUSE_FILTER_STOP
+
+
+func hide_inspect() -> void:
+	if _inspect:
+		_inspect.visible = false
+		_inspect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	if _inspect_catcher:
+		_inspect_catcher.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+
+func _inspect_card(action_id: String, ranks: Dictionary, hp: int, mp: int, cooldowns: Dictionary, buildup: Dictionary) -> Dictionary:
+	if action_id.begins_with("skill:"):
+		var skill_id := action_id.trim_prefix("skill:")
+		var skill: Dictionary = ContentDB.skill(skill_id)
+		var rank := int(ranks.get(skill_id, 0))
+		return Formulas.skill_inspect(skill, rank, hp, mp, cooldowns, buildup)
+	return Formulas.basic_inspect(ContentDB.action_def(action_id))
+
+
+func _fill_inspect(card: Dictionary) -> void:
+	for child in _inspect.get_children():
+		child.free()
+	var icon_name := str(card.get("icon", ""))
+	if icon_name != "" and FileAccess.file_exists("res://art/ui/%s.png" % icon_name):
+		var icon := TextureRect.new()
+		icon.texture = SpriteCatalog.ui(icon_name)
+		icon.position = Vector2(6, 6)
+		icon.size = Vector2(16, 16)
+		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_inspect.add_child(icon)
+	var title := Widgets.label(str(card.get("name", "")), Layout.font_small(), SpriteCatalog.INK)
+	title.position = Vector2(26, 4)
+	title.size = Vector2(_inspect.size.x - 78, 16)
+	title.clip_text = true
+	_inspect.add_child(title)
+	var tag := Widgets.label(str(card.get("tag", "")), Layout.font_tiny(), SpriteCatalog.INK)
+	tag.position = Vector2(_inspect.size.x - 52, 4)
+	tag.size = Vector2(46, 14)
+	tag.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	_inspect.add_child(tag)
+	var meta := Widgets.label("Cost %s\nTarget %s\nCooldown %s" % [str(card.get("cost", "")), str(card.get("target", "")), str(card.get("cooldown", ""))], Layout.font_tiny(), SpriteCatalog.INK)
+	meta.position = Vector2(6, 24)
+	meta.size = Vector2(_inspect.size.x - 12, 36)
+	_inspect.add_child(meta)
+	var body := Widgets.label(str(card.get("description", "")), Layout.font_tiny(), SpriteCatalog.INK)
+	body.position = Vector2(6, 60)
+	body.size = Vector2(_inspect.size.x - 12, 28)
+	body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	body.clip_text = true
+	_inspect.add_child(body)
+	var hint := Widgets.label(str(card.get("hint", "")), Layout.font_tiny(), SpriteCatalog.GOLD)
+	hint.position = Vector2(6, _inspect.size.y - 16)
+	hint.size = Vector2(_inspect.size.x - 12, 14)
+	_inspect.add_child(hint)
+
+
+func _on_dismiss_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		_emit_action("dismiss")
 
 
 func _clear_action_buttons() -> void:
@@ -325,8 +435,8 @@ func raise_member(index: int, up: bool) -> void:
 
 
 func set_threat_debug(rows: Array) -> void:
-	for card in _cards.get_children():
-		var label := card.get_node_or_null("Threat")
+	for seat in _seats:
+		var label: Label = seat.get_node_or_null("Threat") as Label
 		if label == null:
 			continue
 		label.visible = false
@@ -336,9 +446,9 @@ func set_threat_debug(rows: Array) -> void:
 		if not id.begins_with("p"):
 			continue
 		var index := int(id.trim_prefix("p"))
-		if index < 0 or index >= _cards.get_child_count():
+		if index < 0 or index >= _seats.size():
 			continue
-		var label := _cards.get_child(index).get_node_or_null("Threat")
+		var label: Label = _seats[index].get_node_or_null("Threat") as Label
 		if label == null:
 			continue
 		var text := str(row.get("text", ""))
@@ -439,13 +549,14 @@ func set_target_mode(valid_ids: Array, hint: String) -> void:
 			var tween := create_tween()
 			tween.tween_property(visual, "modulate", Color(0.45, 0.45, 0.45), Timing.UNTARGET_GREY)
 	for i in _seats.size():
-		var card := _cards.get_child(i) if i < _cards.get_child_count() else null
-		if card == null:
+		var seat: Control = _seats[i]
+		var doll: Control = seat.get_node_or_null("Doll") as Control
+		if doll == null:
 			continue
 		if valid_ids.has("p%d" % i):
-			_flicker(card)
+			_flicker(doll)
 		else:
-			card.modulate = Color.WHITE
+			doll.modulate = Color(0.55, 0.55, 0.55)
 
 
 func clear_target_mode() -> void:
@@ -455,8 +566,10 @@ func clear_target_mode() -> void:
 		var visual := _visual(_monsters[id])
 		if visual:
 			visual.modulate = Color.WHITE
-	for card in _cards.get_children():
-		card.modulate = Color.WHITE
+	for seat in _seats:
+		var doll: Control = seat.get_node_or_null("Doll") as Control
+		if doll:
+			doll.modulate = Color.WHITE
 
 
 func show_choices(entries: Array, back_id: String) -> void:
@@ -608,6 +721,9 @@ func sync_unit(unit: Dictionary) -> void:
 	Widgets.set_bar(_bars[id]["hp"], hp_ratio)
 	if _bars[id].has("mp"):
 		Widgets.set_bar(_bars[id]["mp"], mp_ratio)
+	if _bars[id].has("hp_text"):
+		var hp_label: Label = _bars[id]["hp_text"]
+		hp_label.text = str(maxi(0, int(unit["hp"])))
 	var node := _node_for(id)
 	if node and node.has_node("Conds"):
 		var names: Array = []
@@ -661,11 +777,11 @@ func _build_chrome() -> void:
 	_caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_caption.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	add_child(_caption)
-	_cards = HBoxContainer.new()
-	Layout.place(_cards, Layout.rect("combat", "cards"))
-	_cards.alignment = BoxContainer.ALIGNMENT_CENTER
-	_cards.add_theme_constant_override("separation", 0)
-	add_child(_cards)
+	_inspect_catcher = Control.new()
+	_inspect_catcher.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_inspect_catcher.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_inspect_catcher.gui_input.connect(_on_dismiss_input)
+	add_child(_inspect_catcher)
 	_turn_tab = Panel.new()
 	var tab_box := StyleBoxFlat.new()
 	tab_box.bg_color = Color(0.93, 0.86, 0.7, 0.96)
@@ -689,17 +805,23 @@ func _build_chrome() -> void:
 	_actions = Control.new()
 	Layout.place(_actions, Layout.rect("combat", "action_bar"))
 	add_child(_actions)
+	_inspect = Widgets.panel()
+	_inspect.visible = false
+	_inspect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_inspect)
 
 
 func _sync_party() -> void:
 	for child in _seat_layer.get_children():
 		child.free()
-	for child in _cards.get_children():
-		child.free()
 	_seats.clear()
+	var stale: Array = []
+	for key in _bars.keys():
+		if str(key).begins_with("p"):
+			stale.append(key)
+	for key in stale:
+		_bars.erase(key)
 	var points := Layout.party_seat_points(GameState.party.size())
-	var card_raw: Array = Layout.cfg()["combat"]["card_size"]
-	var card_size := Vector2(float(card_raw[0]), float(card_raw[1]))
 	for index in GameState.party.size():
 		var member: Dictionary = GameState.party[index]
 		var stats := GameState.combat_stats(member)
@@ -707,7 +829,7 @@ func _sync_party() -> void:
 		var point: Vector2 = points[index]
 		seat.position = Vector2(point.x - SpriteCatalog.BACK_SIZE.x * 0.5, point.y)
 		seat.size = SpriteCatalog.BACK_SIZE
-		seat.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		seat.mouse_filter = Control.MOUSE_FILTER_STOP
 		var bracket := Panel.new()
 		bracket.name = "Bracket"
 		bracket.visible = false
@@ -735,47 +857,48 @@ func _sync_party() -> void:
 		_seat_layer.add_child(seat)
 		_seats.append(seat)
 		var pid := "p%d" % index
-		var card := Panel.new()
-		card.custom_minimum_size = card_size
-		card.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-		card.mouse_filter = Control.MOUSE_FILTER_STOP
-		card.gui_input.connect(_card_input.bind(pid))
-		var card_box := StyleBoxFlat.new()
-		card_box.bg_color = Color(0.16, 0.1, 0.07, 0.92)
-		card_box.border_color = Color(0.45, 0.32, 0.18)
-		card_box.set_border_width_all(1)
-		card_box.content_margin_left = 3
-		card_box.content_margin_right = 3
-		card_box.content_margin_top = 2
-		card_box.content_margin_bottom = 2
-		card.add_theme_stylebox_override("panel", card_box)
-		var name := Widgets.label(ContentDB.persona(str(member["persona"]))["name"], Layout.font_tiny(), SpriteCatalog.LIGHT)
-		name.position = Vector2(2, 1)
-		name.size = Vector2(card_size.x - 24, 12)
-		name.clip_text = true
-		card.add_child(name)
-		var bar_w := card_size.x - 6.0
-		var hp := Widgets.bar(bar_w, 6, SpriteCatalog.HP, SpriteCatalog.HP_BACK)
-		hp["root"].position = Vector2(3, 14)
-		card.add_child(hp["root"])
-		var mp := Widgets.bar(bar_w, 6, SpriteCatalog.MP, SpriteCatalog.MP_BACK)
-		mp["root"].position = Vector2(3, 24)
-		card.add_child(mp["root"])
-		Widgets.set_bar(hp, float(member["hp"]) / float(stats["max_hp"]))
-		Widgets.set_bar(mp, float(member["mp"]) / float(stats["max_mp"]))
-		var threat_label := Widgets.label("", Layout.font_tiny(), SpriteCatalog.GOLD)
-		threat_label.name = "Threat"
-		threat_label.position = Vector2(card_size.x - 24, 1)
-		threat_label.size = Vector2(22, 12)
-		threat_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-		threat_label.visible = false
-		card.add_child(threat_label)
-		_bars[pid] = {"hp": hp, "mp": mp}
-		_cards.add_child(card)
+		seat.gui_input.connect(_card_input.bind(pid))
+		_attach_chair_bars(seat, member, stats, pid)
 	var kind := str(ContentDB.place(GameState.place_id).get("kind", "meadow"))
 	var bg := get_child(0) as TextureRect
 	if bg:
 		bg.texture = SpriteCatalog.background(kind)
+
+
+func _attach_chair_bars(seat: Control, member: Dictionary, stats: Dictionary, pid: String) -> void:
+	var spec: Dictionary = Layout.cfg()["combat"]["chair_bars"]
+	var offset: Array = spec["offset"]
+	var host := Control.new()
+	host.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	host.position = Vector2(float(offset[0]), float(offset[1]))
+	seat.add_child(host)
+	var hp_rect: Array = spec["hp"]
+	var hp := Widgets.bar(float(hp_rect[2]), float(hp_rect[3]), SpriteCatalog.HP, SpriteCatalog.HP_BACK)
+	hp["root"].position = Vector2(float(hp_rect[0]), float(hp_rect[1]))
+	host.add_child(hp["root"])
+	Widgets.set_bar(hp, float(member["hp"]) / float(maxi(1, int(stats["max_hp"]))))
+	var text_rect: Array = spec["hp_text"]
+	var hp_label := Widgets.label(str(int(member["hp"])), Layout.font_tiny(), SpriteCatalog.LIGHT)
+	hp_label.position = Vector2(float(text_rect[0]), float(text_rect[1]))
+	hp_label.size = Vector2(float(text_rect[2]), float(text_rect[3]))
+	hp_label.clip_text = true
+	hp_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	host.add_child(hp_label)
+	var mp_rect: Array = spec["mp"]
+	var mp := Widgets.bar(float(mp_rect[2]), float(mp_rect[3]), SpriteCatalog.MP, SpriteCatalog.MP_BACK)
+	mp["root"].position = Vector2(float(mp_rect[0]), float(mp_rect[1]))
+	host.add_child(mp["root"])
+	Widgets.set_bar(mp, float(member["mp"]) / float(maxi(1, int(stats["max_mp"]))))
+	var threat_rect: Array = spec["threat"]
+	var threat_label := Widgets.label("", Layout.font_tiny(), SpriteCatalog.GOLD)
+	threat_label.name = "Threat"
+	threat_label.position = Vector2(float(threat_rect[0]), float(threat_rect[1]))
+	threat_label.size = Vector2(float(threat_rect[2]), float(threat_rect[3]))
+	threat_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	threat_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	threat_label.visible = false
+	seat.add_child(threat_label)
+	_bars[pid] = {"hp": hp, "mp": mp, "hp_text": hp_label}
 
 
 func _sync_from_units(units: Array) -> void:
