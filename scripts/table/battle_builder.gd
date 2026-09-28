@@ -1,6 +1,6 @@
 extends Control
 class_name BattleBuilder
-## Pick who stands across the table. One to five foes, mixed types, remembered per place.
+## Pick who stands across the table. Regular foes cost 3, large foes cost 5, and the table holds 15.
 
 signal closed(rows: Array)
 
@@ -10,6 +10,7 @@ var _counts := {}
 var _gold: Label
 var _xp: Label
 var _difficulty: Label
+var _space: TextureRect
 var _start: Button
 
 
@@ -55,9 +56,10 @@ func _build() -> void:
 	for monster_id in _order:
 		_add_row(list, str(monster_id), y)
 		y += 36.0
-	var cap := PixelFont.label("UP TO FIVE ACROSS THE TABLE", Color("744526"))
-	cap.position = Vector2(16, 348)
-	add_child(cap)
+	_space = PixelFont.label("SPACE 15 LEFT", Color("744526"))
+	_space.name = "Space"
+	_space.position = Vector2(16, 348)
+	add_child(_space)
 	_difficulty = Widgets.label("", Layout.font_tiny(), SpriteCatalog.INK)
 	_difficulty.name = "Difficulty"
 	_difficulty.position = Vector2(16, 364)
@@ -107,6 +109,11 @@ func _add_row(list: Control, monster_id: String, y: float) -> void:
 	var level_label := PixelFont.label("LV %d" % int(monster.get("level", 1)), Color("744526"))
 	level_label.position = Vector2(28, 14)
 	row.add_child(level_label)
+	if Formulas.monster_size_tag(monster) == "large":
+		var size_label := PixelFont.label("LARGE", Color("8a2a16"))
+		size_label.name = "Size_%s" % monster_id
+		size_label.position = Vector2(118, 8)
+		row.add_child(size_label)
 	var minus := Widgets.make_button("-", Vector2(28, 28))
 	minus.name = "Minus_%s" % monster_id
 	minus.position = Vector2(150, 2)
@@ -128,31 +135,45 @@ func _add_row(list: Control, monster_id: String, y: float) -> void:
 
 
 func _bump(monster_id: String, delta: int) -> void:
-	_counts = Formulas.adjust_count(_order, _counts, monster_id, delta)
+	_counts = Formulas.adjust_count(_order, _counts, monster_id, delta, _sizes())
 	GameState.remember_lineup(_place_id, _counts)
 	_refresh()
 
 
-func _refresh() -> void:
-	var total := 0
+func _sizes() -> Dictionary:
+	var sizes := {}
 	for monster_id in _order:
-		var copies := int(_counts.get(str(monster_id), 0))
-		total += copies
-		var count := find_child("Count_%s" % monster_id, true, false) as Label
+		var key := str(monster_id)
+		var monster: Dictionary = ContentDB.monster(key) if ContentDB.monsters.has(key) else {}
+		sizes[key] = Formulas.monster_size_tag(monster)
+	return sizes
+
+
+func _refresh() -> void:
+	var sizes := _sizes()
+	var used := Formulas.space_used(_order, _counts, sizes)
+	var left := Formulas.TABLE_CAPACITY - used
+	var heads := 0
+	if _space:
+		var caption := "SPACE %d LEFT" % left
+		_space.texture = PixelFont.texture(caption, Color("744526"))
+		_space.size = Vector2(PixelFont.width(caption), 5)
+		_space.set_meta("left", left)
+		_space.set_meta("caption", caption)
+	for monster_id in _order:
+		var key := str(monster_id)
+		var copies := int(_counts.get(key, 0))
+		heads += copies
+		var count := find_child("Count_%s" % key, true, false) as Label
 		if count:
 			count.text = str(copies)
-		var minus := find_child("Minus_%s" % monster_id, true, false) as Button
+		var minus := find_child("Minus_%s" % key, true, false) as Button
 		if minus:
 			minus.disabled = copies <= 0
-		var plus := find_child("Plus_%s" % monster_id, true, false) as Button
+		var plus := find_child("Plus_%s" % key, true, false) as Button
 		if plus:
-			plus.disabled = total >= Formulas.LINEUP_CAP and copies >= 0
-	# Plus stays available on a type only while the table has room.
-	# The loop above saw a running total, so recompute once the sum is known.
-	for monster_id in _order:
-		var plus := find_child("Plus_%s" % monster_id, true, false) as Button
-		if plus:
-			plus.disabled = total >= Formulas.LINEUP_CAP
+			var cost := Formulas.table_cost(str(sizes.get(key, "regular")))
+			plus.disabled = used + cost > Formulas.TABLE_CAPACITY
 	var preview := _preview()
 	if _difficulty:
 		_difficulty.text = "Difficulty  %s" % str(preview["difficulty"])
@@ -161,12 +182,12 @@ func _refresh() -> void:
 	if _xp:
 		_xp.text = "XP %d" % int(preview["xp"])
 	if _start:
-		_start.disabled = total < 1 or total > Formulas.LINEUP_CAP
+		_start.disabled = heads < 1 or used > Formulas.TABLE_CAPACITY
 
 
 func _preview() -> Dictionary:
 	var monsters: Array = []
-	for monster_id in Formulas.lineup_from_counts(_order, _counts):
+	for monster_id in Formulas.lineup_from_counts(_order, _counts, _sizes()):
 		var monster: Dictionary = ContentDB.monster(str(monster_id))
 		monsters.append({
 			"id": str(monster_id),
@@ -179,7 +200,7 @@ func _preview() -> Dictionary:
 
 func _rows() -> Array:
 	var rows: Array = []
-	for monster_id in Formulas.lineup_from_counts(_order, _counts):
+	for monster_id in Formulas.lineup_from_counts(_order, _counts, _sizes()):
 		rows.append({"id": str(monster_id)})
 	return rows
 
@@ -191,7 +212,7 @@ func _on_back() -> void:
 
 func _on_start() -> void:
 	var rows := _rows()
-	if rows.is_empty() or rows.size() > Formulas.LINEUP_CAP:
+	if rows.is_empty() or Formulas.space_used(_order, _counts, _sizes()) > Formulas.TABLE_CAPACITY:
 		return
 	GameState.remember_lineup(_place_id, _counts)
 	closed.emit(rows)

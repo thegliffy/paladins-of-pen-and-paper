@@ -24,6 +24,7 @@ func _init() -> void:
 	_test_art_present()
 	_test_wrapped_labels()
 	_test_targeting_and_lineup()
+	_test_table_space()
 	print("Tests: %d passed, %d failed" % [passed, failed])
 	quit(1 if failed else 0)
 
@@ -725,3 +726,105 @@ func _test_targeting_and_lineup() -> void:
 			region_ids.append(key)
 	check(region_ids.size() >= 2, "the region offers more than one monster")
 	eq(str(region_ids[0]), "puddleblob", "region monsters follow the places")
+
+
+func _test_table_space() -> void:
+	eq(Formulas.monster_size_tag({"size": "large"}), "large", "explicit large tag")
+	eq(Formulas.monster_size_tag({"size": "regular", "boss": true}), "regular", "an explicit regular tag wins")
+	eq(Formulas.monster_size_tag({"boss": true}), "large", "a boss without a tag is large")
+	eq(Formulas.monster_size_tag({"elite": true}), "regular", "an elite without a tag stays regular")
+	eq(Formulas.monster_size_tag({}), "regular", "a plain foe is regular")
+	eq(Formulas.table_cost("regular"), 3, "regular cost")
+	eq(Formulas.table_cost("large"), 5, "large cost")
+	eq(Formulas.TABLE_CAPACITY, 15, "table capacity")
+	var monsters: Array = JSON.parse_string(FileAccess.get_file_as_string("res://data/monsters.json"))
+	var large_ids := {"briar_hound": true, "marshlurker": true, "gravel_brute": true}
+	for monster in monsters:
+		var mid := str(monster["id"])
+		var tag := str(monster.get("size", ""))
+		if large_ids.has(mid):
+			eq(tag, "large", mid + " is large")
+		else:
+			eq(tag, "regular", mid + " is regular")
+	var order := ["blob", "brute"]
+	var sizes := {"blob": "regular", "brute": "large"}
+	var counts := {}
+	for _i in 8:
+		counts = Formulas.adjust_count(order, counts, "blob", 1, sizes)
+	eq(Formulas.lineup_from_counts(order, counts, sizes).size(), 5, "five regulars fill the table")
+	eq(Formulas.space_used(order, counts, sizes), 15, "five regulars spend 15")
+	eq(Formulas.space_left(order, counts, sizes), 0, "five regulars leave no space")
+	counts = Formulas.adjust_count(order, counts, "brute", 1, sizes)
+	eq(int(counts["brute"]), 0, "a full regular table refuses a large foe")
+	counts = {}
+	for _i in 5:
+		counts = Formulas.adjust_count(order, counts, "brute", 1, sizes)
+	eq(int(counts["brute"]), 3, "three larges fill the table")
+	eq(Formulas.space_used(order, counts, sizes), 15, "three larges spend 15")
+	counts = Formulas.adjust_count(order, counts, "blob", 1, sizes)
+	eq(int(counts["blob"]), 0, "a full large table refuses a regular foe")
+	counts = {}
+	counts = Formulas.adjust_count(order, counts, "brute", 1, sizes)
+	for _i in 4:
+		counts = Formulas.adjust_count(order, counts, "blob", 1, sizes)
+	eq(int(counts["brute"]), 1, "one large stays")
+	eq(int(counts["blob"]), 3, "three regulars join one large")
+	eq(Formulas.space_used(order, counts, sizes), 14, "one large and three regulars spend 14")
+	eq(Formulas.lineup_from_counts(order, counts, sizes).size(), 4, "that mix is four foes")
+	counts = {}
+	counts = Formulas.adjust_count(order, counts, "brute", 2, sizes)
+	counts = Formulas.adjust_count(order, counts, "blob", 1, sizes)
+	eq(int(counts["brute"]), 2, "two larges stay")
+	eq(int(counts["blob"]), 1, "one regular joins two larges")
+	eq(Formulas.space_used(order, counts, sizes), 13, "two larges and one regular spend 13")
+	var blocked: Dictionary = Formulas.adjust_count(order, counts, "brute", 1, sizes)
+	eq(int(blocked["brute"]), 2, "a third large does not fit with a regular")
+	blocked = Formulas.adjust_count(order, counts, "blob", 1, sizes)
+	eq(int(blocked["blob"]), 1, "a second regular does not fit with two larges")
+	counts = {}
+	for _i in 4:
+		counts = Formulas.adjust_count(order, counts, "blob", 1, sizes)
+	blocked = Formulas.adjust_count(order, counts, "brute", 1, sizes)
+	eq(int(blocked["brute"]), 0, "a large foe does not fit after four regulars")
+	var large_first := ["brute", "blob"]
+	var clamped: Dictionary = Formulas.clamp_counts(large_first, {"brute": 5, "blob": 2}, sizes)
+	eq(int(clamped["brute"]), 3, "a saved stack of larges clamps to three")
+	eq(int(clamped["blob"]), 0, "regulars after a full large stack are dropped")
+	var layout: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/layout.json"))
+	var table_top := float(layout["portrait"]["combat"]["table"][1])
+	var packs := [
+		[{"size": "regular"}, {"size": "regular"}, {"size": "regular"}, {"size": "regular"}, {"size": "regular"}],
+		[{"size": "large"}, {"size": "large"}, {"size": "large"}],
+		[{"size": "large"}, {"size": "regular"}, {"size": "regular"}, {"size": "regular"}],
+		[{"size": "large", "back": true}, {"size": "large"}, {"size": "regular"}],
+		[{"size": "regular"}, {"size": "regular"}, {"size": "regular"}, {"size": "regular"}, {"size": "regular"}, {"size": "regular"}, {"size": "regular"}],
+	]
+	var labels := ["five regular", "three large", "one large three regular", "two large one regular", "seven regular ambush"]
+	for p in packs.size():
+		_assert_row_fit(packs[p], labels[p], table_top)
+	var mixed: Array = Formulas.enemy_layout([{"size": "large"}, {"size": "regular", "back": true}])
+	check(mixed[1].position.y < mixed[0].position.y, "a back-row foe stands higher")
+	check(mixed[0].size.x > mixed[1].size.x, "a large foe is wider than a regular foe")
+
+
+func _assert_row_fit(entries: Array, label: String, table_top: float) -> void:
+	var rects: Array = Formulas.enemy_layout(entries)
+	eq(rects.size(), entries.size(), label + " places every foe")
+	var large_w := 0
+	var regular_w := 0
+	for i in rects.size():
+		var rect: Rect2 = rects[i]
+		check(rect.position.x >= -0.01 and rect.position.y >= 30.0, label + " stays on the meadow")
+		check(rect.end.x <= 270.01 and rect.end.y <= 480.01, label + " stays inside 270x480")
+		check(rect.end.y <= table_top + 0.01, label + " stays above the table")
+		check(rect.size.x >= 24.0 and rect.size.y >= 24.0, label + " hitbox stays tappable")
+		if str(entries[i].get("size", "regular")) == "large":
+			large_w = int(rect.size.x)
+		else:
+			regular_w = int(rect.size.x)
+		for j in i:
+			var other: Rect2 = rects[j]
+			var hit := rect.intersection(other)
+			check(hit.size.x <= 0.05 or hit.size.y <= 0.05, label + " foes do not overlap")
+	if large_w > 0 and regular_w > 0:
+		check(large_w > regular_w, label + " large footprint is wider")

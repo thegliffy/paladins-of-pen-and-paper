@@ -1,6 +1,7 @@
 [
   {
     "id": "puddleblob",
+    "size": "regular",
     "name": "Puddleblob",
     "level": 1,
     "body": 2,
@@ -19,6 +20,7 @@
   },
   {
     "id": "thicket_imp",
+    "size": "regular",
     "name": "Thicket Imp",
     "level": 1,
     "body": 3,
@@ -37,6 +39,7 @@
   },
   {
     "id": "cinder_mite",
+    "size": "regular",
     "name": "Cinder Mite",
     "level": 2,
     "body": 3,
@@ -57,6 +60,7 @@
   },
   {
     "id": "briar_hound",
+    "size": "large",
     "name": "Briar Hound",
     "level": 2,
     "body": 4,
@@ -75,6 +79,7 @@
   },
   {
     "id": "lantern_wisp",
+    "size": "regular",
     "name": "Lantern Wisp",
     "level": 3,
     "body": 2,
@@ -95,6 +100,7 @@
   },
   {
     "id": "marshlurker",
+    "size": "large",
     "name": "Marshlurker",
     "level": 3,
     "body": 5,
@@ -115,6 +121,7 @@
   },
   {
     "id": "cave_howler",
+    "size": "regular",
     "name": "Cave Howler",
     "level": 4,
     "body": 4,
@@ -135,6 +142,7 @@
   },
   {
     "id": "gravel_brute",
+    "size": "large",
     "name": "Gravel Brute",
     "level": 4,
     "body": 6,

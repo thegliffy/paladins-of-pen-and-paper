@@ -145,6 +145,7 @@ func _build_units(monster_rows: Array) -> void:
 			"damage_frame": int(monster.get("damage_frame", 2)),
 			"back_row": bool(monster.get("back_row", false)),
 			"boss": bool(monster.get("boss", false)),
+			"size": Formulas.monster_size_tag(monster),
 			"elite": bool(monster.get("elite", false)),
 			"power": int(monster.get("power", 1)),
 		})

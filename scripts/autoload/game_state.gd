@@ -181,17 +181,17 @@ func take_item(item_id: String) -> bool:
 
 func lineup_counts(place_id_key: String, order: Array) -> Dictionary:
 	var saved: Dictionary = lineups.get(place_id_key, {})
-	var counts := {}
-	var total := 0
+	var sizes := {}
+	for monster_id in order:
+		var key := str(monster_id)
+		var monster: Dictionary = ContentDB.monster(key) if ContentDB.monsters.has(key) else {}
+		sizes[key] = Formulas.monster_size_tag(monster)
+	var counts: Dictionary = Formulas.clamp_counts(order, saved, sizes)
 	var any := false
 	for monster_id in order:
-		var copies := maxi(0, int(saved.get(str(monster_id), 0)))
-		if total + copies > Formulas.LINEUP_CAP:
-			copies = Formulas.LINEUP_CAP - total
-		counts[str(monster_id)] = copies
-		total += copies
-		if copies > 0:
+		if int(counts.get(str(monster_id), 0)) > 0:
 			any = true
+			break
 	if not any and not order.is_empty():
 		counts[str(order[0])] = 1
 	return counts

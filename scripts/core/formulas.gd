@@ -7,7 +7,16 @@ const DR_CAP := 0.5
 const DMG_RANGE := 0.25
 const SPELL_VARIANCE := 0.1
 const MONSTER_GOLD_MULTIPLIER := 15.0
-const LINEUP_CAP := 5
+const TABLE_CAPACITY := 15
+const SPACE_REGULAR := 3
+const SPACE_LARGE := 5
+const ROW_LEFT := 6.0
+const ROW_WIDTH := 258.0
+const FRONT_FEET_Y := 328.0
+const BACK_LIFT := 46.0
+const FRAME_W := 80.0
+const FRAME_H := 70.0
+const FEET_Y_IN_FRAME := 64.0
 
 
 static func compose_stats(
@@ -537,37 +546,134 @@ static func turn_tap(state: Dictionary, tapped: String, can_cast: bool, needs_pi
 	return {"armed": "", "picking": false, "cast": true}
 
 
-static func lineup_from_counts(order: Array, counts: Dictionary) -> Array:
-	## Monster ids, in catalog order, repeating each type. Never more than 5.
+static func monster_size_tag(monster: Dictionary) -> String:
+	## "regular" or "large". A missing tag stays regular unless the foe is a boss.
+	var tagged := str(monster.get("size", "")).to_lower()
+	if tagged == "large" or tagged == "regular":
+		return tagged
+	if bool(monster.get("boss", false)):
+		return "large"
+	return "regular"
+
+
+static func table_cost(size: String) -> int:
+	return SPACE_LARGE if str(size) == "large" else SPACE_REGULAR
+
+
+static func space_used(order: Array, counts: Dictionary, sizes: Dictionary = {}) -> int:
+	var used := 0
+	var seen := {}
+	for raw_id in order:
+		var key := str(raw_id)
+		seen[key] = true
+		used += maxi(0, int(counts.get(key, 0))) * table_cost(str(sizes.get(key, "regular")))
+	for raw_id in counts.keys():
+		var key := str(raw_id)
+		if seen.has(key):
+			continue
+		used += maxi(0, int(counts.get(key, 0))) * table_cost(str(sizes.get(key, "regular")))
+	return used
+
+
+static func space_left(order: Array, counts: Dictionary, sizes: Dictionary = {}) -> int:
+	return maxi(0, TABLE_CAPACITY - space_used(order, counts, sizes))
+
+
+static func clamp_counts(order: Array, counts: Dictionary, sizes: Dictionary = {}) -> Dictionary:
+	## Drop copies, in catalog order, until the table has room.
+	var next := {}
+	var used := 0
+	for raw_id in order:
+		var key := str(raw_id)
+		var cost := table_cost(str(sizes.get(key, "regular")))
+		var copies := maxi(0, int(counts.get(key, 0)))
+		var room := int((TABLE_CAPACITY - used) / cost) if cost > 0 else 0
+		copies = mini(copies, room)
+		next[key] = copies
+		used += copies * cost
+	return next
+
+
+static func lineup_from_counts(order: Array, counts: Dictionary, sizes: Dictionary = {}) -> Array:
+	## Monster ids, in catalog order, repeating each type. Stops when the next
+	## copy would cost more table space than the table has.
 	var rows: Array = []
+	var used := 0
 	for monster_id in order:
-		var copies := maxi(0, int(counts.get(str(monster_id), 0)))
+		var key := str(monster_id)
+		var copies := maxi(0, int(counts.get(key, 0)))
+		var cost := table_cost(str(sizes.get(key, "regular")))
 		for _i in copies:
-			if rows.size() >= LINEUP_CAP:
+			if used + cost > TABLE_CAPACITY:
 				return rows
-			rows.append(str(monster_id))
+			rows.append(key)
+			used += cost
 	return rows
 
 
-static func adjust_count(order: Array, counts: Dictionary, monster_id: String, delta: int) -> Dictionary:
+static func adjust_count(order: Array, counts: Dictionary, monster_id: String, delta: int, sizes: Dictionary = {}) -> Dictionary:
 	var next := {}
-	var total := 0
 	for raw_id in order:
-		var copies := maxi(0, int(counts.get(str(raw_id), 0)))
-		next[str(raw_id)] = copies
-		total += copies
+		next[str(raw_id)] = maxi(0, int(counts.get(str(raw_id), 0)))
 	var key := str(monster_id)
 	if not next.has(key):
-		next[key] = 0
+		next[key] = maxi(0, int(counts.get(key, 0)))
 	var current := int(next.get(key, 0))
 	if delta > 0:
-		var room := LINEUP_CAP - total
+		var cost := table_cost(str(sizes.get(key, "regular")))
+		var used := space_used(order, next, sizes)
+		var room := int((TABLE_CAPACITY - used) / cost) if cost > 0 else 0
 		if room <= 0:
 			return next
 		next[key] = current + mini(delta, room)
 	else:
 		next[key] = maxi(0, current + delta)
 	return next
+
+
+static func enemy_layout(entries: Array) -> Array:
+	## One Rect2 per foe, in order. Width follows table cost, so a large foe
+	## stands wider than a regular one. A pack past capacity shrinks together.
+	## Rects share no area and stay inside the 270×480 portrait, above the table.
+	var rects: Array = []
+	if entries.is_empty():
+		return rects
+	var costs: Array[int] = []
+	var total_cost := 0
+	for entry in entries:
+		var cost := table_cost(_entry_size(entry))
+		costs.append(cost)
+		total_cost += cost
+	var fit := 1.0
+	if total_cost > TABLE_CAPACITY:
+		fit = float(TABLE_CAPACITY) / float(total_cost)
+	var raw: Array[float] = []
+	var sum := 0.0
+	for cost in costs:
+		var width := ROW_WIDTH * float(cost) / float(TABLE_CAPACITY) * fit
+		raw.append(width)
+		sum += width
+	var cursor := ROW_LEFT + (ROW_WIDTH - sum) * 0.5
+	var edges: Array[int] = [int(round(cursor))]
+	for width in raw:
+		cursor += width
+		var edge := int(round(cursor))
+		if edge <= edges[edges.size() - 1]:
+			edge = edges[edges.size() - 1] + 1
+		edges.append(edge)
+	for i in entries.size():
+		var row: Dictionary = entries[i]
+		var span := edges[i + 1] - edges[i]
+		var height := maxi(1, int(round(float(span) * FRAME_H / FRAME_W)))
+		var back := bool(row.get("back", row.get("back_row", false)))
+		var feet := int(round(FRONT_FEET_Y - (BACK_LIFT if back else 0.0)))
+		var drop := int(round(float(height) * FEET_Y_IN_FRAME / FRAME_H))
+		rects.append(Rect2(edges[i], feet - drop, span, height))
+	return rects
+
+
+static func _entry_size(entry: Dictionary) -> String:
+	return "large" if str(entry.get("size", "regular")) == "large" else "regular"
 
 
 static func expected_battle_rewards(monsters: Array, party_avg: float) -> Dictionary:

@@ -18,6 +18,8 @@ static func run(host: Node) -> int:
 	await _tap_cancel(host, tree, failures)
 	await _tap_ally(host, tree, failures)
 	await _builder(host, tree, failures)
+	await _builder_space(host, tree, failures)
+	await _row_fit(host, tree, failures)
 	if failures.is_empty():
 		print("TOUCH_CHECK_OK")
 		return 0
@@ -451,6 +453,131 @@ static func _builder(host: Node, tree: SceneTree, failures: Array[String]) -> vo
 	if not gone:
 		failures.append("builder_back")
 		push_error("Touch check: Back did not leave the builder")
+	session.queue_free()
+	await tree.process_frame
+
+
+static func _builder_space(host: Node, tree: SceneTree, failures: Array[String]) -> void:
+	GameState.new_campaign([_hero("mason", "delver", "paladin")])
+	GameState.place_id = "gravel_keep"
+	GameState.lineups = {}
+	var builder := BattleBuilder.new()
+	builder.setup("gravel_keep")
+	await _mount(host, tree, builder)
+	var space := builder.find_child("Space", true, false)
+	var blob := builder.find_child("Count_puddleblob", true, false) as Label
+	var brute := builder.find_child("Count_gravel_brute", true, false) as Label
+	if space == null or blob == null or brute == null or str(space.get_meta("caption")) != "SPACE 12 LEFT":
+		failures.append("space_label")
+		push_error("Touch check: the builder did not show table space")
+		builder.queue_free()
+		return
+	if builder.find_child("Size_gravel_brute", true, false) == null or builder.find_child("Size_puddleblob", true, false) != null:
+		failures.append("size_tag")
+		push_error("Touch check: large foes were not marked")
+	var minus_blob := builder.find_child("Minus_puddleblob", true, false) as Button
+	await _tap(tree, minus_blob.get_global_rect().get_center())
+	var plus_brute := builder.find_child("Plus_gravel_brute", true, false) as Button
+	for _i in 5:
+		await _tap(tree, plus_brute.get_global_rect().get_center())
+	if brute.text != "3" or int(space.get_meta("left")) != 0 or not plus_brute.disabled:
+		failures.append("space_large")
+		push_error("Touch check: three larges did not fill the table (count %s space %s)" % [brute.text, space.get_meta("left")])
+	var plus_blob := builder.find_child("Plus_puddleblob", true, false) as Button
+	await _tap(tree, plus_blob.get_global_rect().get_center())
+	if blob.text != "0" or not plus_blob.disabled:
+		failures.append("space_full")
+		push_error("Touch check: a full large table accepted a regular foe")
+	var minus_brute := builder.find_child("Minus_gravel_brute", true, false) as Button
+	for _i in 3:
+		await _tap(tree, minus_brute.get_global_rect().get_center())
+	await _tap(tree, plus_brute.get_global_rect().get_center())
+	await _tap(tree, plus_brute.get_global_rect().get_center())
+	await _tap(tree, plus_blob.get_global_rect().get_center())
+	await _tap(tree, plus_blob.get_global_rect().get_center())
+	await _tap(tree, plus_brute.get_global_rect().get_center())
+	if brute.text != "2" or blob.text != "1" or int(space.get_meta("left")) != 2:
+		failures.append("space_mix")
+		push_error("Touch check: two large plus one regular landed on %s / %s space %s" % [brute.text, blob.text, space.get_meta("left")])
+	for _i in 2:
+		await _tap(tree, minus_brute.get_global_rect().get_center())
+	await _tap(tree, minus_blob.get_global_rect().get_center())
+	await _tap(tree, plus_brute.get_global_rect().get_center())
+	for _i in 4:
+		await _tap(tree, plus_blob.get_global_rect().get_center())
+	if brute.text != "1" or blob.text != "3" or int(space.get_meta("left")) != 1 or not plus_blob.disabled or not plus_brute.disabled:
+		failures.append("space_one_large")
+		push_error("Touch check: one large plus three regular landed on %s / %s space %s" % [brute.text, blob.text, space.get_meta("left")])
+	builder.queue_free()
+	await tree.process_frame
+
+
+static func _row_fit(host: Node, tree: SceneTree, failures: Array[String]) -> void:
+	var session := SessionScreen.new()
+	await _mount(host, tree, session)
+	var packs := [
+		["regular", "regular", "regular", "regular", "regular"],
+		["large", "large", "large"],
+		["large", "regular", "regular", "regular"],
+		["large", "large", "regular"],
+	]
+	for sizes in packs:
+		var units: Array = []
+		var entries: Array = []
+		for i in sizes.size():
+			var large := str(sizes[i]) == "large"
+			var back := i == 0 and sizes.size() == 3 and large
+			units.append({
+				"id": "m%d" % i,
+				"side": "monster",
+				"kind": "gravel_brute" if large else "puddleblob",
+				"size": "large" if large else "regular",
+				"back_row": back,
+				"hp": 10,
+				"max_hp": 10,
+			})
+			entries.append({"size": "large" if large else "regular", "back": back})
+		session.present_units(units)
+		await tree.process_frame
+		var expected: Array = Formulas.enemy_layout(entries)
+		var ids: Array = session._monsters.keys()
+		if ids.size() != expected.size():
+			failures.append("row_count")
+			push_error("Touch check: the row did not spawn the lineup")
+			continue
+		var seen: Array = []
+		var large_w := 0.0
+		var regular_w := 0.0
+		for i in ids.size():
+			var node: Control = session._monsters[ids[i]]
+			var rect := Rect2(node.position, node.size)
+			var want: Rect2 = expected[i]
+			if rect.position.distance_to(want.position) > 0.5 or rect.size.distance_to(want.size) > 0.5:
+				failures.append("row_layout")
+				push_error("Touch check: foe %s sat at %s, wanted %s" % [ids[i], rect, want])
+			if rect.position.x < -0.01 or rect.position.y < 30.0 or rect.end.x > 270.01 or rect.end.y > 343.01:
+				failures.append("row_bounds")
+				push_error("Touch check: foe rect %s left the meadow" % rect)
+			if rect.size.x < 24.0 or rect.size.y < 24.0:
+				failures.append("row_hit")
+				push_error("Touch check: foe hitbox %s is under 24px" % rect.size)
+			var sprite := node.get_node_or_null("Sprite") as Control
+			if sprite == null or absf(sprite.size.x - rect.size.x) > 0.5 or absf(sprite.size.y - rect.size.y) > 0.5:
+				failures.append("row_sprite")
+				push_error("Touch check: the sprite did not fill its footprint")
+			if str(node.get_meta("size")) == "large":
+				large_w = rect.size.x
+			else:
+				regular_w = rect.size.x
+			for other in seen:
+				var hit: Rect2 = rect.intersection(other)
+				if hit.size.x > 0.05 and hit.size.y > 0.05:
+					failures.append("row_overlap")
+					push_error("Touch check: foe rects overlap %s and %s" % [rect, other])
+			seen.append(rect)
+		if large_w > 0.0 and regular_w > 0.0 and large_w <= regular_w:
+			failures.append("row_scale")
+			push_error("Touch check: large footprint %s was not wider than regular %s" % [large_w, regular_w])
 	session.queue_free()
 	await tree.process_frame
 

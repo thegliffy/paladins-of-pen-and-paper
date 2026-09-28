@@ -1196,29 +1196,27 @@ func _sync_from_units(units: Array) -> void:
 func _add_monster(unit: Dictionary) -> void:
 	var sprite_name := ArtPack.monster_sprite(str(unit["kind"]))
 	var frame_size := ArtPack.monster_size(sprite_name)
-	var hit := Vector2(maxf(frame_size.x, 24.0), maxf(frame_size.y, 24.0))
-	var origin := (hit - frame_size) * 0.5
 	var node := Control.new()
-	node.size = hit
+	node.clip_contents = true
 	node.mouse_filter = Control.MOUSE_FILTER_STOP
 	node.set_meta("back", bool(unit.get("back_row", false)))
 	node.set_meta("kind", str(unit["kind"]))
+	node.set_meta("size", _monster_size_tag(unit))
 	node.set_meta("sprite", sprite_name)
-	node.set_meta("feet", ArtPack.monster_feet(sprite_name) + origin)
-	var anchor := ArtPack.monster_hp_anchor(sprite_name) + origin
+	node.set_meta("frame", frame_size)
+	node.set_meta("hp_anchor", ArtPack.monster_hp_anchor(sprite_name))
 	var trough := _icon_rect("ui/enemy_bar_bg.png")
-	trough.position = anchor - Vector2(16, 4)
+	trough.name = "Trough"
 	trough.size = Vector2(32, 5)
 	node.add_child(trough)
-	var hp_fill := _clipped_fill("ui/enemy_bar_hp.png", trough.position + Vector2(1, 1), Vector2(30, 3))
+	var hp_fill := _clipped_fill("ui/enemy_bar_hp.png", Vector2.ZERO, Vector2(30, 3))
+	hp_fill["clip"].name = "HpClip"
 	node.add_child(hp_fill["clip"])
 	var ratio := float(unit["hp"]) / float(maxi(1, int(unit["max_hp"])))
 	hp_fill["clip"].size.x = float(int(30.0 * clampf(ratio, 0.0, 1.0)))
 	_bars[str(unit["id"])] = {"hp_art": hp_fill}
 	var sprite := TextureRect.new()
 	sprite.name = "Sprite"
-	sprite.position = origin
-	sprite.size = frame_size
 	sprite.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	sprite.stretch_mode = TextureRect.STRETCH_SCALE
 	sprite.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -1227,8 +1225,7 @@ func _add_monster(unit: Dictionary) -> void:
 	node.move_child(sprite, 0)
 	var conds := Widgets.label("", Layout.font_tiny(), SpriteCatalog.LIGHT)
 	conds.name = "Conds"
-	conds.position = origin + Vector2(0, 56)
-	conds.size = Vector2(64, 12)
+	conds.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	node.add_child(conds)
 	var uid := str(unit["id"])
 	node.gui_input.connect(func(event: InputEvent):
@@ -1240,22 +1237,53 @@ func _add_monster(unit: Dictionary) -> void:
 	_monsters[uid] = node
 
 
+func _monster_size_tag(unit: Dictionary) -> String:
+	var tagged := str(unit.get("size", ""))
+	if tagged == "large" or tagged == "regular":
+		return tagged
+	var kind := str(unit.get("kind", ""))
+	if ContentDB.monsters.has(kind):
+		return Formulas.monster_size_tag(ContentDB.monster(kind))
+	return "regular"
+
+
 func _layout_monsters() -> void:
 	var ids: Array = _monsters.keys()
-	var marks: Array = Layout.cfg()["combat"].get("monster_marks", [])
-	var count := maxi(1, ids.size())
-	var span := 168.0
-	var origin_x := 135.0 - span * 0.5
+	var entries: Array = []
+	for id in ids:
+		var node: Control = _monsters[id]
+		entries.append({
+			"size": str(node.get_meta("size", "regular")),
+			"back": bool(node.get_meta("back", false)),
+		})
+	var rects: Array = Formulas.enemy_layout(entries)
 	for i in ids.size():
-		var node: Control = _monsters[ids[i]]
-		var feet: Vector2 = node.get_meta("feet")
-		var feet_x := origin_x + span * (float(i) + 0.5) / float(count)
-		var feet_y := 222.0 if bool(node.get_meta("back", false)) else 262.0
-		if marks.size() == ids.size():
-			var mark: Array = marks[i]
-			feet_x = float(mark[0])
-			feet_y = float(mark[1])
-		node.position = Vector2(feet_x, feet_y) - feet
+		_place_monster(_monsters[ids[i]], rects[i])
+
+
+func _place_monster(node: Control, rect: Rect2) -> void:
+	node.position = rect.position
+	node.size = rect.size
+	var sprite := node.get_node_or_null("Sprite") as TextureRect
+	if sprite:
+		sprite.position = Vector2.ZERO
+		sprite.size = rect.size
+	var frame: Vector2 = node.get_meta("frame", Vector2(Formulas.FRAME_W, Formulas.FRAME_H))
+	var scale := Vector2(rect.size.x / maxf(frame.x, 1.0), rect.size.y / maxf(frame.y, 1.0))
+	var anchor: Vector2 = node.get_meta("hp_anchor", Vector2(frame.x * 0.5, 12.0))
+	var bar_pos := anchor * scale - Vector2(16, 4)
+	bar_pos.x = clampf(bar_pos.x, 0.0, maxf(0.0, rect.size.x - 32.0))
+	bar_pos.y = clampf(bar_pos.y, 0.0, maxf(0.0, rect.size.y - 5.0))
+	var trough := node.get_node_or_null("Trough") as Control
+	if trough:
+		trough.position = bar_pos
+	var clip := node.get_node_or_null("HpClip") as Control
+	if clip:
+		clip.position = bar_pos + Vector2(1, 1)
+	var conds := node.get_node_or_null("Conds") as Control
+	if conds:
+		conds.position = Vector2(0, maxf(0.0, rect.size.y - 10.0))
+		conds.size = Vector2(rect.size.x, 10)
 
 
 func _raise(index: int, up: bool) -> void:
