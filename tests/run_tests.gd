@@ -485,7 +485,7 @@ func _test_portrait_layout() -> void:
 	check(chair.has("hp") and chair.has("mp") and chair.has("hp_text"), "chair bars are data")
 	var hp_text: Array = chair["hp_text"]
 	var mp_bar: Array = chair["mp"]
-	check(int(hp_text[2]) >= 15 and int(hp_text[3]) >= 12, "hp number box fits three digits")
+	check(int(hp_text[2]) >= 13 and int(hp_text[3]) >= 7, "hp number box fits three outlined digits")
 	check(int(hp_text[1]) + int(hp_text[3]) <= int(mp_bar[1]), "hp number sits above the mp bar")
 	var skill_card: Array = layout["portrait"]["combat"]["skill_card"]
 	eq(skill_card.size(), 4, "skill card rect")
@@ -582,3 +582,15 @@ func _test_art_present() -> void:
 	check(FileAccess.file_exists("res://art/map/greenmere.png"), "region map")
 	check(FileAccess.file_exists("res://art/ui/table.png"), "table")
 	check(FileAccess.file_exists("res://art/ui/gm.png"), "gm")
+	check(FileAccess.file_exists("res://art_source/phase0/manifest.json"), "production manifest")
+	check(FileAccess.file_exists("res://art_source/phase0/ui/portrait/action_bar_v2.png"), "action bar art")
+	check(FileAccess.file_exists("res://art_source/phase0/ui/portrait/digits_3x5_outlined.png"), "hp digit font")
+	check(FileAccess.file_exists("res://art_source/phase0/ui/skills/skill_slot_passive.png"), "passive skill frame")
+	check(FileAccess.file_exists("res://art/fonts/m5x7.ttf"), "m5x7 font")
+	eq(ArtPack.slot_file("passive"), "ui/skills/skill_slot_passive.png", "passives use the passive frame")
+	var skill_rows: Array = JSON.parse_string(FileAccess.get_file_as_string("res://data/skills.json"))
+	for skill in skill_rows:
+		if str(skill.get("owner", "")) == "monster":
+			continue
+		var icon := str(skill.get("icon", ""))
+		check(icon != "" and FileAccess.file_exists("res://art_source/phase0/ui/skills/%s.png" % icon), str(skill["id"]) + " icon")

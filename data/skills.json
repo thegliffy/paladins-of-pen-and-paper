@@ -21,7 +21,8 @@
     "threat": 3,
     "later_init_bonus": 0,
     "time_before_damage": 0.0,
-    "description": "A heavy blow that draws enemy attention until your next turn."
+    "description": "A heavy blow that draws enemy attention until your next turn.",
+    "icon": "paladin_1"
   },
   {
     "id": "hearthmend",
@@ -47,7 +48,8 @@
     "threat": 0,
     "later_init_bonus": 0,
     "time_before_damage": 0.0,
-    "description": "Restore health to an ally, and a smaller share to yourself."
+    "description": "Restore health to an ally, and a smaller share to yourself.",
+    "icon": "paladin_3"
   },
   {
     "id": "shieldwall",
@@ -62,7 +64,8 @@
     "ward_turns": 2,
     "threat": 2,
     "heal": 0,
-    "description": "Brace. Extra damage reduction for two of your turns, and foes notice."
+    "description": "Brace. Extra damage reduction for two of your turns, and foes notice.",
+    "icon": "paladin_2"
   },
   {
     "id": "rallying_brand",
@@ -77,7 +80,8 @@
     "heal_per_rank": 4,
     "self_heal": 0,
     "threat": 0,
-    "description": "A free brand of light. A small heal, no energy."
+    "description": "A free brand of light. A small heal, no energy.",
+    "icon": "paladin_4"
   },
   {
     "id": "emberburst",
@@ -104,7 +108,8 @@
     "threat": 0,
     "later_init_bonus": 0,
     "time_before_damage": 0.0,
-    "description": "Fire splashes onto neighbors and may set them burning."
+    "description": "Fire splashes onto neighbors and may set them burning.",
+    "icon": "wizard_1"
   },
   {
     "id": "frostpin",
@@ -131,7 +136,8 @@
     "threat": 0,
     "later_init_bonus": 0,
     "time_before_damage": 0.15,
-    "description": "A spike of frost. Body resists the stun. Can reach the back row."
+    "description": "A spike of frost. Body resists the stun. Can reach the back row.",
+    "icon": "wizard_2"
   },
   {
     "id": "cinder_needle",
@@ -150,7 +156,8 @@
     "splash": 0.0,
     "condition": "",
     "threat": 0,
-    "description": "A free spark. Reaches the back row and costs nothing."
+    "description": "A free spark. Reaches the back row and costs nothing.",
+    "icon": "wizard_3"
   },
   {
     "id": "stillglass",
@@ -174,7 +181,8 @@
     "condition_save": "body",
     "time_before_damage": 0.15,
     "threat": 0,
-    "description": "Pin a foe in glass. Body resists. Ready again after three of your turns."
+    "description": "Pin a foe in glass. Body resists. Ready again after three of your turns.",
+    "icon": "wizard_4"
   },
   {
     "id": "marked_shot",
@@ -201,7 +209,8 @@
     "threat": 0,
     "later_init_bonus": 10,
     "time_before_damage": 0.0,
-    "description": "An aimed shot. Deals extra damage to foes acting after you."
+    "description": "An aimed shot. Deals extra damage to foes acting after you.",
+    "icon": "ranger_1"
   },
   {
     "id": "thorn_volley",
@@ -227,7 +236,8 @@
     "threat": 0,
     "later_init_bonus": 0,
     "time_before_damage": 0.0,
-    "description": "Thorns hit up to three random foes, front or back."
+    "description": "Thorns hit up to three random foes, front or back.",
+    "icon": "ranger_2"
   },
   {
     "id": "snare_trap",
@@ -250,7 +260,8 @@
     "condition_timer": 2,
     "condition_save": "senses",
     "threat": 0,
-    "description": "A waiting snare. Senses resists the stun. Three turns to reset."
+    "description": "A waiting snare. Senses resists the stun. Three turns to reset.",
+    "icon": "ranger_3"
   },
   {
     "id": "quick_draw",
@@ -266,7 +277,8 @@
     "can_target_back_row": true,
     "splash": 0.0,
     "threat": 0,
-    "description": "A free shot that can pick the back row."
+    "description": "A free shot that can pick the back row.",
+    "icon": "ranger_4"
   },
   {
     "id": "mending_verse",
@@ -292,7 +304,8 @@
     "threat": 0,
     "later_init_bonus": 0,
     "time_before_damage": 0.0,
-    "description": "A short song that knits someone's wounds."
+    "description": "A short song that knits someone's wounds.",
+    "icon": "bard_2"
   },
   {
     "id": "dissonant_chord",
@@ -319,7 +332,8 @@
     "threat": 0,
     "later_init_bonus": 0,
     "time_before_damage": 0.0,
-    "description": "A sour chord. Body resists the poison. Neighbors take half."
+    "description": "A sour chord. Body resists the poison. Neighbors take half.",
+    "icon": "bard_1"
   },
   {
     "id": "downbeat",
@@ -335,7 +349,8 @@
     "buildup_max": 4,
     "heal": 0,
     "threat": 0,
-    "description": "Find the pulse. Gain 1 Tempo, up to 4."
+    "description": "Find the pulse. Gain 1 Tempo, up to 4.",
+    "icon": "bard_4"
   },
   {
     "id": "crescendo",
@@ -353,7 +368,8 @@
     "heal_per_rank": 6,
     "self_heal": 0,
     "threat": 0,
-    "description": "Spend 3 Tempo. A much larger mend than the verse."
+    "description": "Spend 3 Tempo. A much larger mend than the verse.",
+    "icon": "bard_5"
   },
   {
     "id": "lantern_prayer",
@@ -368,7 +384,8 @@
     "heal_per_rank": 8,
     "self_heal": 0,
     "threat": 0,
-    "description": "The big prayer. Heals one ally for a lantern's worth."
+    "description": "The big prayer. Heals one ally for a lantern's worth.",
+    "icon": "cleric_1"
   },
   {
     "id": "warding_light",
@@ -382,7 +399,8 @@
     "ward_turns": 2,
     "heal": 0,
     "threat": 0,
-    "description": "Hang a ward on an ally. Extra damage reduction for two of their turns."
+    "description": "Hang a ward on an ally. Extra damage reduction for two of their turns.",
+    "icon": "cleric_2"
   },
   {
     "id": "purge_hymn",
@@ -398,7 +416,8 @@
     "heal_per_rank": 4,
     "self_heal": 0,
     "threat": 0,
-    "description": "Clear burn, poison, and stun, then a small heal. Three turns to sing again."
+    "description": "Clear burn, poison, and stun, then a small heal. Three turns to sing again.",
+    "icon": "cleric_3"
   },
   {
     "id": "spark_of_mercy",
@@ -413,7 +432,8 @@
     "heal_per_rank": 3,
     "self_heal": 0,
     "threat": 0,
-    "description": "A free spark of healing when the prayer would cost too much."
+    "description": "A free spark of healing when the prayer would cost too much.",
+    "icon": "cleric_4"
   },
   {
     "id": "pocket_cut",
@@ -433,7 +453,8 @@
     "buildup_gain": 1,
     "buildup_max": 5,
     "threat": 0,
-    "description": "A free nick. Gain 1 Combo, up to 5."
+    "description": "A free nick. Gain 1 Combo, up to 5.",
+    "icon": "rogue_1"
   },
   {
     "id": "kidney_nick",
@@ -454,7 +475,8 @@
     "condition_timer": 2,
     "condition_save": "body",
     "threat": 0,
-    "description": "A cheap stun on a two-turn clock. Body resists."
+    "description": "A cheap stun on a two-turn clock. Body resists.",
+    "icon": "rogue_3"
   },
   {
     "id": "venom_needle",
@@ -476,7 +498,8 @@
     "condition_timer": 2,
     "condition_save": "body",
     "threat": 0,
-    "description": "A poisoned needle that can reach the back row. Body resists."
+    "description": "A poisoned needle that can reach the back row. Body resists.",
+    "icon": "rogue_2"
   },
   {
     "id": "ledger_strike",
@@ -495,7 +518,8 @@
     "buildup_label": "Combo",
     "buildup_cost": 4,
     "threat": 0,
-    "description": "Spend 4 Combo. One heavy entry in the ledger."
+    "description": "Spend 4 Combo. One heavy entry in the ledger.",
+    "icon": "rogue_4"
   },
   {
     "id": "bloodswing",
@@ -512,7 +536,8 @@
     "can_target_back_row": false,
     "splash": 0.0,
     "threat": 1,
-    "description": "Pay 12 health. The swing only lands if it would leave you standing."
+    "description": "Pay 12 health. The swing only lands if it would leave you standing.",
+    "icon": "barbarian_1"
   },
   {
     "id": "roar",
@@ -528,7 +553,8 @@
     "buildup_max": 6,
     "threat": 2,
     "heal": 0,
-    "description": "A free roar. Gain 2 Rage, up to 6, and pull enemy attention."
+    "description": "A free roar. Gain 2 Rage, up to 6, and pull enemy attention.",
+    "icon": "barbarian_3"
   },
   {
     "id": "rage_crash",
@@ -547,7 +573,8 @@
     "buildup_label": "Rage",
     "buildup_cost": 4,
     "threat": 1,
-    "description": "Spend 4 Rage. A crash that splashes half onto neighbors."
+    "description": "Spend 4 Rage. A crash that splashes half onto neighbors.",
+    "icon": "barbarian_2"
   },
   {
     "id": "thick_hide",
@@ -562,7 +589,8 @@
     "ward_turns": 2,
     "threat": 0,
     "heal": 0,
-    "description": "Harden for two of your turns. Ready again after three turns."
+    "description": "Harden for two of your turns. Ready again after three turns.",
+    "icon": "barbarian_4"
   },
   {
     "id": "briar_seed",
@@ -584,7 +612,8 @@
     "condition_timer": 2,
     "condition_save": "body",
     "threat": 0,
-    "description": "Plant a briar. Body resists the poison. Can reach the back row."
+    "description": "Plant a briar. Body resists the poison. Can reach the back row.",
+    "icon": "druid_2"
   },
   {
     "id": "mossknit",
@@ -599,7 +628,8 @@
     "heal_per_rank": 6,
     "self_heal": 0,
     "threat": 0,
-    "description": "Knit a wound with moss. A modest heal."
+    "description": "Knit a wound with moss. A modest heal.",
+    "icon": "druid_1"
   },
   {
     "id": "wildshape_guard",
@@ -614,7 +644,8 @@
     "ward_turns": 2,
     "threat": 0,
     "heal": 0,
-    "description": "A bark hide for two of your turns. Three turns to shape again."
+    "description": "A bark hide for two of your turns. Three turns to shape again.",
+    "icon": "druid_3"
   },
   {
     "id": "spore_puff",
@@ -636,7 +667,8 @@
     "condition_timer": 2,
     "condition_save": "body",
     "threat": 0,
-    "description": "A free puff. Up to two foes, front or back, may be poisoned."
+    "description": "A free puff. Up to two foes, front or back, may be poisoned.",
+    "icon": "druid_4"
   },
   {
     "id": "oathmagnet",
@@ -645,9 +677,16 @@
     "type": "passive",
     "description": "Foes weigh you twice as heavily. A blow against you shoves 4 damage back.",
     "effects": [
-      {"hook": "threat", "threat_mult": 2},
-      {"hook": "on_damaged", "reflect": 4}
-    ]
+      {
+        "hook": "threat",
+        "threat_mult": 2
+      },
+      {
+        "hook": "on_damaged",
+        "reflect": 4
+      }
+    ],
+    "icon": "paladin_5"
   },
   {
     "id": "ley_siphon",
@@ -656,8 +695,12 @@
     "type": "passive",
     "description": "At the start of each of your turns, regain 8% of your max energy.",
     "effects": [
-      {"hook": "turn_start", "mp_regen_pct": 0.08}
-    ]
+      {
+        "hook": "turn_start",
+        "mp_regen_pct": 0.08
+      }
+    ],
+    "icon": "wizard_5"
   },
   {
     "id": "first_mark",
@@ -666,8 +709,12 @@
     "type": "passive",
     "description": "You read the field early: +5 initiative.",
     "effects": [
-      {"hook": "stat", "initiative": 5}
-    ]
+      {
+        "hook": "stat",
+        "initiative": 5
+      }
+    ],
+    "icon": "ranger_5"
   },
   {
     "id": "hearth_chorus",
@@ -676,8 +723,12 @@
     "type": "passive",
     "description": "While you stand, the whole party has +3 damage reduction.",
     "effects": [
-      {"hook": "stat", "party_dr": 3}
-    ]
+      {
+        "hook": "stat",
+        "party_dr": 3
+      }
+    ],
+    "icon": "bard_3"
   },
   {
     "id": "open_hands",
@@ -686,8 +737,12 @@
     "type": "passive",
     "description": "Your healing restores 25% more.",
     "effects": [
-      {"hook": "stat", "heal_bonus": 0.25}
-    ]
+      {
+        "hook": "stat",
+        "heal_bonus": 0.25
+      }
+    ],
+    "icon": "cleric_5"
   },
   {
     "id": "keen_nick",
@@ -696,9 +751,16 @@
     "type": "passive",
     "description": "Hits are 10 points more likely to crit, and each hit cuts for 6 extra.",
     "effects": [
-      {"hook": "stat", "crit_bonus": 10},
-      {"hook": "on_hit", "bonus_damage": 6}
-    ]
+      {
+        "hook": "stat",
+        "crit_bonus": 10
+      },
+      {
+        "hook": "on_hit",
+        "bonus_damage": 6
+      }
+    ],
+    "icon": "rogue_5"
   },
   {
     "id": "blood_price",
@@ -707,9 +769,16 @@
     "type": "passive",
     "description": "Foes weigh you half again as heavily. Hits grow as your health falls, up to +50% at empty.",
     "effects": [
-      {"hook": "threat", "threat_mult": 1.5},
-      {"hook": "stat", "missing_hp_damage": 0.5}
-    ]
+      {
+        "hook": "threat",
+        "threat_mult": 1.5
+      },
+      {
+        "hook": "stat",
+        "missing_hp_damage": 0.5
+      }
+    ],
+    "icon": "barbarian_5"
   },
   {
     "id": "sap_pulse",
@@ -718,8 +787,12 @@
     "type": "passive",
     "description": "At the start of each of your turns, regain 5% of your max health.",
     "effects": [
-      {"hook": "turn_start", "hp_regen_pct": 0.05}
-    ]
+      {
+        "hook": "turn_start",
+        "hp_regen_pct": 0.05
+      }
+    ],
+    "icon": "druid_5"
   },
   {
     "id": "cinder_spit",

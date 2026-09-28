@@ -2,7 +2,7 @@
   {
     "id": "attack",
     "name": "Attack",
-    "icon": "icon_attack",
+    "icon": "ui/portrait/ability_attack.png",
     "cost": "Free",
     "target": "One front foe",
     "cooldown": "None",
@@ -12,7 +12,7 @@
   {
     "id": "cover",
     "name": "Cover",
-    "icon": "icon_cover",
+    "icon": "ui/portrait/ability_cover.png",
     "cost": "Free",
     "target": "Self",
     "cooldown": "None",
@@ -22,7 +22,7 @@
   {
     "id": "item",
     "name": "Item",
-    "icon": "icon_item",
+    "icon": "ui/portrait/mini_item.png",
     "cost": "One item",
     "target": "One ally",
     "cooldown": "None",

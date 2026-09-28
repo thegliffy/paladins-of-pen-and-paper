@@ -988,6 +988,8 @@ func _apply_regen(unit: Dictionary) -> void:
 		if gained > 0:
 			unit["mp"] = int(unit["mp"]) + gained
 			view.react_hit(str(unit["id"]), [{"text": "+%d" % gained, "color": SpriteCatalog.MP}], _ratio(unit, "hp"), _ratio(unit, "mp"))
+			if view.has_method("play_regen_fx"):
+				view.play_regen_fx(str(unit["id"]))
 	var hp_gain := Formulas.hp_regen_amount(int(unit.get("max_hp", 0)), effects)
 	if hp_gain > 0:
 		var room_hp := int(unit["max_hp"]) - int(unit["hp"])

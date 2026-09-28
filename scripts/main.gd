@@ -16,7 +16,7 @@ func _ready() -> void:
 
 func _apply_theme() -> void:
 	var theme := Theme.new()
-	var font := load("res://art/fonts/Tiny5-Regular.ttf") as FontFile
+	var font := load("res://art/fonts/m5x7.ttf") as FontFile
 	if font:
 		font = font.duplicate() as FontFile
 		font.antialiasing = TextServer.FONT_ANTIALIASING_NONE

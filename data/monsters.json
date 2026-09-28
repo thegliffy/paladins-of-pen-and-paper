@@ -14,7 +14,8 @@
     "attacks": 1,
     "damage_frame": 2,
     "skills": [],
-    "blurb": "A smiling puddle with a bite."
+    "blurb": "A smiling puddle with a bite.",
+    "sprite": "slime"
   },
   {
     "id": "thicket_imp",
@@ -31,7 +32,8 @@
     "attacks": 1,
     "damage_frame": 2,
     "skills": [],
-    "blurb": "A reed-green rascal with a knotted stick."
+    "blurb": "A reed-green rascal with a knotted stick.",
+    "sprite": "imp"
   },
   {
     "id": "cinder_mite",
@@ -47,8 +49,11 @@
     "back_row": false,
     "attacks": 1,
     "damage_frame": 2,
-    "skills": ["cinder_spit"],
-    "blurb": "A spark-bellied beetle."
+    "skills": [
+      "cinder_spit"
+    ],
+    "blurb": "A spark-bellied beetle.",
+    "sprite": "goblin"
   },
   {
     "id": "briar_hound",
@@ -65,7 +70,8 @@
     "attacks": 2,
     "damage_frame": 2,
     "skills": [],
-    "blurb": "Two snaps, then it circles."
+    "blurb": "Two snaps, then it circles.",
+    "sprite": "wolf"
   },
   {
     "id": "lantern_wisp",
@@ -81,8 +87,11 @@
     "back_row": true,
     "attacks": 1,
     "damage_frame": 2,
-    "skills": ["spark"],
-    "blurb": "A floating wick with opinions."
+    "skills": [
+      "spark"
+    ],
+    "blurb": "A floating wick with opinions.",
+    "sprite": "mushroom"
   },
   {
     "id": "marshlurker",
@@ -98,8 +107,11 @@
     "back_row": false,
     "attacks": 1,
     "damage_frame": 3,
-    "skills": ["bog_breath"],
-    "blurb": "Shoulders like a wet log."
+    "skills": [
+      "bog_breath"
+    ],
+    "blurb": "Shoulders like a wet log.",
+    "sprite": "skeleton"
   },
   {
     "id": "cave_howler",
@@ -115,8 +127,11 @@
     "back_row": true,
     "attacks": 1,
     "damage_frame": 2,
-    "skills": ["shriek"],
-    "blurb": "Hangs in the back and screams."
+    "skills": [
+      "shriek"
+    ],
+    "blurb": "Hangs in the back and screams.",
+    "sprite": "bat"
   },
   {
     "id": "gravel_brute",
@@ -132,7 +147,10 @@
     "back_row": false,
     "attacks": 1,
     "damage_frame": 4,
-    "skills": ["gravel_slam"],
-    "blurb": "A walking cairn with fists."
+    "skills": [
+      "gravel_slam"
+    ],
+    "blurb": "A walking cairn with fists.",
+    "sprite": "golem"
   }
 ]

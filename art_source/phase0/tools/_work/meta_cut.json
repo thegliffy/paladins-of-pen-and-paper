@@ -1,0 +1,1067 @@
+{
+ "meta": {
+  "combat/bg_forest.png": {
+   "anchor": [
+    0,
+    0
+   ],
+   "notes": "LEGACY (landscape). 480x270 full-screen backdrop; sky/treeline top, meadow starts ~y108; place monster feet on y~115-135 (upper half). Rows 214-269 are a mirrored meadow band (normally hidden by table/UI).",
+   "legacy": true
+  },
+  "combat/bg_forest_portrait.png": {
+   "anchor": [
+    0,
+    0
+   ],
+   "meadow_start_y": 141,
+   "monster_feet_band": [
+    150,
+    200
+   ],
+   "notes": "PORTRAIT 270x480 backdrop recomposed from the same forest source: sky 0-~40, tree line to y~141, meadow below. v3: rows ~196-479 are a seamless procedural meadow (value-noise grass clumps, tufts, scattered dirt patches), dither-blended into the source meadow over y196-231. No repeats or mirror lines."
+  },
+  "combat/gm_idle.png": {
+   "anchor": [
+    22,
+    45
+   ],
+   "notes": "bottom-centre anchor; place so the table overlaps his hands (bottom ~8px)."
+  },
+  "combat/gm_talk.png": {
+   "anchor": [
+    22,
+    45
+   ],
+   "notes": "bottom-centre anchor; place so the table overlaps his hands (bottom ~8px)."
+  },
+  "combat/gm_strip.png": {
+   "frames": 2,
+   "frame_size": [
+    44,
+    46
+   ],
+   "fps": 6,
+   "anchor": [
+    22,
+    45
+   ],
+   "notes": "frame0 idle, frame1 talk (mouth open + 1px head bob); alternate while GM speaks."
+  },
+  "combat/gm_screen.png": {
+   "anchor": [
+    17,
+    29
+   ],
+   "notes": "bottom-centre anchor; stands on the table top in front of the GM."
+  },
+  "map/loc_tavern.png": {
+   "anchor": [
+    16,
+    28
+   ],
+   "notes": "32x32; anchor = node centre on the round ground base."
+  },
+  "map/loc_village.png": {
+   "anchor": [
+    16,
+    28
+   ],
+   "notes": "32x32; anchor = node centre on the round ground base."
+  },
+  "map/loc_cave.png": {
+   "anchor": [
+    16,
+    28
+   ],
+   "notes": "32x32; anchor = node centre on the round ground base."
+  },
+  "map/loc_castle.png": {
+   "anchor": [
+    16,
+    28
+   ],
+   "notes": "32x32; anchor = node centre on the round ground base."
+  },
+  "map/loc_windmill.png": {
+   "anchor": [
+    16,
+    28
+   ],
+   "notes": "32x32; anchor = node centre on the round ground base."
+  },
+  "map/loc_shrine.png": {
+   "anchor": [
+    16,
+    28
+   ],
+   "notes": "32x32; anchor = node centre on the round ground base."
+  },
+  "map/pawn_walk.png": {
+   "frames": 4,
+   "frame_size": [
+    24,
+    20
+   ],
+   "fps": 8,
+   "anchor": [
+    12,
+    19
+   ],
+   "notes": "faces right; flip_h for left. Bottom-centre (hooves)."
+  },
+  "monsters/goblin/goblin_idle.png": {
+   "frames": 2,
+   "frame_size": [
+    80,
+    70
+   ],
+   "fps": 2,
+   "anchor": [
+    40,
+    64
+   ],
+   "hp_bar_anchor": [
+    40,
+    12
+   ],
+   "portrait_rect": [
+    26,
+    16,
+    20,
+    20
+   ],
+   "loop": true
+  },
+  "monsters/goblin/goblin_attack.png": {
+   "frames": 3,
+   "frame_size": [
+    80,
+    70
+   ],
+   "fps": 5,
+   "anchor": [
+    40,
+    64
+   ],
+   "hp_bar_anchor": [
+    40,
+    12
+   ],
+   "portrait_rect": [
+    26,
+    16,
+    20,
+    20
+   ],
+   "loop": false
+  },
+  "monsters/goblin/goblin_hit.png": {
+   "frames": 2,
+   "frame_size": [
+    80,
+    70
+   ],
+   "fps": 8,
+   "anchor": [
+    40,
+    64
+   ],
+   "hp_bar_anchor": [
+    40,
+    12
+   ],
+   "portrait_rect": [
+    26,
+    16,
+    20,
+    20
+   ],
+   "loop": false
+  },
+  "monsters/goblin/goblin_death.png": {
+   "frames": 4,
+   "frame_size": [
+    80,
+    70
+   ],
+   "fps": 8,
+   "anchor": [
+    40,
+    64
+   ],
+   "hp_bar_anchor": [
+    40,
+    12
+   ],
+   "portrait_rect": [
+    26,
+    16,
+    20,
+    20
+   ],
+   "loop": false
+  },
+  "monsters/goblin/goblin_portrait.png": {
+   "notes": "20x20 head crop (rect [26, 16, 20, 20] of the rest frame) for the initiative strip."
+  },
+  "monsters/goblin/goblin_still.png": {
+   "anchor": [
+    40,
+    64
+   ],
+   "hp_bar_anchor": [
+    40,
+    12
+   ],
+   "notes": "single rest frame (portraits / initiative)."
+  },
+  "monsters/bat/bat_idle.png": {
+   "frames": 2,
+   "frame_size": [
+    80,
+    70
+   ],
+   "fps": 2,
+   "anchor": [
+    40,
+    64
+   ],
+   "hp_bar_anchor": [
+    40,
+    22
+   ],
+   "portrait_rect": [
+    30,
+    28,
+    20,
+    20
+   ],
+   "loop": true
+  },
+  "monsters/bat/bat_attack.png": {
+   "frames": 3,
+   "frame_size": [
+    80,
+    70
+   ],
+   "fps": 5,
+   "anchor": [
+    40,
+    64
+   ],
+   "hp_bar_anchor": [
+    40,
+    22
+   ],
+   "portrait_rect": [
+    30,
+    28,
+    20,
+    20
+   ],
+   "loop": false
+  },
+  "monsters/bat/bat_hit.png": {
+   "frames": 2,
+   "frame_size": [
+    80,
+    70
+   ],
+   "fps": 8,
+   "anchor": [
+    40,
+    64
+   ],
+   "hp_bar_anchor": [
+    40,
+    22
+   ],
+   "portrait_rect": [
+    30,
+    28,
+    20,
+    20
+   ],
+   "loop": false
+  },
+  "monsters/bat/bat_death.png": {
+   "frames": 4,
+   "frame_size": [
+    80,
+    70
+   ],
+   "fps": 8,
+   "anchor": [
+    40,
+    64
+   ],
+   "hp_bar_anchor": [
+    40,
+    22
+   ],
+   "portrait_rect": [
+    30,
+    28,
+    20,
+    20
+   ],
+   "loop": false
+  },
+  "monsters/bat/bat_portrait.png": {
+   "notes": "20x20 head crop (rect [30, 28, 20, 20] of the rest frame) for the initiative strip."
+  },
+  "monsters/bat/bat_still.png": {
+   "anchor": [
+    40,
+    64
+   ],
+   "hp_bar_anchor": [
+    40,
+    22
+   ],
+   "notes": "single rest frame (portraits / initiative)."
+  },
+  "monsters/slime/slime_idle.png": {
+   "frames": 2,
+   "frame_size": [
+    80,
+    70
+   ],
+   "fps": 2,
+   "anchor": [
+    40,
+    64
+   ],
+   "hp_bar_anchor": [
+    40,
+    30
+   ],
+   "portrait_rect": [
+    30,
+    38,
+    20,
+    20
+   ],
+   "loop": true
+  },
+  "monsters/slime/slime_attack.png": {
+   "frames": 3,
+   "frame_size": [
+    80,
+    70
+   ],
+   "fps": 5,
+   "anchor": [
+    40,
+    64
+   ],
+   "hp_bar_anchor": [
+    40,
+    30
+   ],
+   "portrait_rect": [
+    30,
+    38,
+    20,
+    20
+   ],
+   "loop": false
+  },
+  "monsters/slime/slime_hit.png": {
+   "frames": 2,
+   "frame_size": [
+    80,
+    70
+   ],
+   "fps": 8,
+   "anchor": [
+    40,
+    64
+   ],
+   "hp_bar_anchor": [
+    40,
+    30
+   ],
+   "portrait_rect": [
+    30,
+    38,
+    20,
+    20
+   ],
+   "loop": false
+  },
+  "monsters/slime/slime_death.png": {
+   "frames": 4,
+   "frame_size": [
+    80,
+    70
+   ],
+   "fps": 8,
+   "anchor": [
+    40,
+    64
+   ],
+   "hp_bar_anchor": [
+    40,
+    30
+   ],
+   "portrait_rect": [
+    30,
+    38,
+    20,
+    20
+   ],
+   "loop": false
+  },
+  "monsters/slime/slime_portrait.png": {
+   "notes": "20x20 head crop (rect [30, 38, 20, 20] of the rest frame) for the initiative strip."
+  },
+  "monsters/slime/slime_still.png": {
+   "anchor": [
+    40,
+    64
+   ],
+   "hp_bar_anchor": [
+    40,
+    30
+   ],
+   "notes": "single rest frame (portraits / initiative)."
+  },
+  "monsters/skeleton/skeleton_idle.png": {
+   "frames": 2,
+   "frame_size": [
+    80,
+    70
+   ],
+   "fps": 2,
+   "anchor": [
+    40,
+    64
+   ],
+   "hp_bar_anchor": [
+    40,
+    9
+   ],
+   "portrait_rect": [
+    33,
+    13,
+    20,
+    20
+   ],
+   "loop": true
+  },
+  "monsters/skeleton/skeleton_attack.png": {
+   "frames": 3,
+   "frame_size": [
+    80,
+    70
+   ],
+   "fps": 5,
+   "anchor": [
+    40,
+    64
+   ],
+   "hp_bar_anchor": [
+    40,
+    9
+   ],
+   "portrait_rect": [
+    33,
+    13,
+    20,
+    20
+   ],
+   "loop": false
+  },
+  "monsters/skeleton/skeleton_hit.png": {
+   "frames": 2,
+   "frame_size": [
+    80,
+    70
+   ],
+   "fps": 8,
+   "anchor": [
+    40,
+    64
+   ],
+   "hp_bar_anchor": [
+    40,
+    9
+   ],
+   "portrait_rect": [
+    33,
+    13,
+    20,
+    20
+   ],
+   "loop": false
+  },
+  "monsters/skeleton/skeleton_death.png": {
+   "frames": 4,
+   "frame_size": [
+    80,
+    70
+   ],
+   "fps": 8,
+   "anchor": [
+    40,
+    64
+   ],
+   "hp_bar_anchor": [
+    40,
+    9
+   ],
+   "portrait_rect": [
+    33,
+    13,
+    20,
+    20
+   ],
+   "loop": false
+  },
+  "monsters/skeleton/skeleton_portrait.png": {
+   "notes": "20x20 head crop (rect [33, 13, 20, 20] of the rest frame) for the initiative strip."
+  },
+  "monsters/skeleton/skeleton_still.png": {
+   "anchor": [
+    40,
+    64
+   ],
+   "hp_bar_anchor": [
+    40,
+    9
+   ],
+   "notes": "single rest frame (portraits / initiative)."
+  },
+  "monsters/wolf/wolf_idle.png": {
+   "frames": 2,
+   "frame_size": [
+    80,
+    70
+   ],
+   "fps": 2,
+   "anchor": [
+    40,
+    64
+   ],
+   "hp_bar_anchor": [
+    40,
+    12
+   ],
+   "portrait_rect": [
+    12,
+    17,
+    20,
+    20
+   ],
+   "loop": true
+  },
+  "monsters/wolf/wolf_attack.png": {
+   "frames": 3,
+   "frame_size": [
+    80,
+    70
+   ],
+   "fps": 5,
+   "anchor": [
+    40,
+    64
+   ],
+   "hp_bar_anchor": [
+    40,
+    12
+   ],
+   "portrait_rect": [
+    12,
+    17,
+    20,
+    20
+   ],
+   "loop": false
+  },
+  "monsters/wolf/wolf_hit.png": {
+   "frames": 2,
+   "frame_size": [
+    80,
+    70
+   ],
+   "fps": 8,
+   "anchor": [
+    40,
+    64
+   ],
+   "hp_bar_anchor": [
+    40,
+    12
+   ],
+   "portrait_rect": [
+    12,
+    17,
+    20,
+    20
+   ],
+   "loop": false
+  },
+  "monsters/wolf/wolf_death.png": {
+   "frames": 4,
+   "frame_size": [
+    80,
+    70
+   ],
+   "fps": 8,
+   "anchor": [
+    40,
+    64
+   ],
+   "hp_bar_anchor": [
+    40,
+    12
+   ],
+   "portrait_rect": [
+    12,
+    17,
+    20,
+    20
+   ],
+   "loop": false
+  },
+  "monsters/wolf/wolf_portrait.png": {
+   "notes": "20x20 head crop (rect [12, 17, 20, 20] of the rest frame) for the initiative strip."
+  },
+  "monsters/wolf/wolf_still.png": {
+   "anchor": [
+    40,
+    64
+   ],
+   "hp_bar_anchor": [
+    40,
+    12
+   ],
+   "notes": "single rest frame (portraits / initiative)."
+  },
+  "monsters/mushroom/mushroom_idle.png": {
+   "frames": 2,
+   "frame_size": [
+    80,
+    70
+   ],
+   "fps": 2,
+   "anchor": [
+    40,
+    64
+   ],
+   "hp_bar_anchor": [
+    40,
+    15
+   ],
+   "portrait_rect": [
+    30,
+    33,
+    20,
+    20
+   ],
+   "loop": true
+  },
+  "monsters/mushroom/mushroom_attack.png": {
+   "frames": 3,
+   "frame_size": [
+    80,
+    70
+   ],
+   "fps": 5,
+   "anchor": [
+    40,
+    64
+   ],
+   "hp_bar_anchor": [
+    40,
+    15
+   ],
+   "portrait_rect": [
+    30,
+    33,
+    20,
+    20
+   ],
+   "loop": false
+  },
+  "monsters/mushroom/mushroom_hit.png": {
+   "frames": 2,
+   "frame_size": [
+    80,
+    70
+   ],
+   "fps": 8,
+   "anchor": [
+    40,
+    64
+   ],
+   "hp_bar_anchor": [
+    40,
+    15
+   ],
+   "portrait_rect": [
+    30,
+    33,
+    20,
+    20
+   ],
+   "loop": false
+  },
+  "monsters/mushroom/mushroom_death.png": {
+   "frames": 4,
+   "frame_size": [
+    80,
+    70
+   ],
+   "fps": 8,
+   "anchor": [
+    40,
+    64
+   ],
+   "hp_bar_anchor": [
+    40,
+    15
+   ],
+   "portrait_rect": [
+    30,
+    33,
+    20,
+    20
+   ],
+   "loop": false
+  },
+  "monsters/mushroom/mushroom_portrait.png": {
+   "notes": "20x20 head crop (rect [30, 33, 20, 20] of the rest frame) for the initiative strip."
+  },
+  "monsters/mushroom/mushroom_still.png": {
+   "anchor": [
+    40,
+    64
+   ],
+   "hp_bar_anchor": [
+    40,
+    15
+   ],
+   "notes": "single rest frame (portraits / initiative)."
+  },
+  "monsters/golem/golem_idle.png": {
+   "frames": 2,
+   "frame_size": [
+    80,
+    70
+   ],
+   "fps": 2,
+   "anchor": [
+    40,
+    64
+   ],
+   "hp_bar_anchor": [
+    40,
+    1
+   ],
+   "portrait_rect": [
+    22,
+    4,
+    20,
+    20
+   ],
+   "loop": true
+  },
+  "monsters/golem/golem_attack.png": {
+   "frames": 3,
+   "frame_size": [
+    80,
+    70
+   ],
+   "fps": 5,
+   "anchor": [
+    40,
+    64
+   ],
+   "hp_bar_anchor": [
+    40,
+    1
+   ],
+   "portrait_rect": [
+    22,
+    4,
+    20,
+    20
+   ],
+   "loop": false
+  },
+  "monsters/golem/golem_hit.png": {
+   "frames": 2,
+   "frame_size": [
+    80,
+    70
+   ],
+   "fps": 8,
+   "anchor": [
+    40,
+    64
+   ],
+   "hp_bar_anchor": [
+    40,
+    1
+   ],
+   "portrait_rect": [
+    22,
+    4,
+    20,
+    20
+   ],
+   "loop": false
+  },
+  "monsters/golem/golem_death.png": {
+   "frames": 4,
+   "frame_size": [
+    80,
+    70
+   ],
+   "fps": 8,
+   "anchor": [
+    40,
+    64
+   ],
+   "hp_bar_anchor": [
+    40,
+    1
+   ],
+   "portrait_rect": [
+    22,
+    4,
+    20,
+    20
+   ],
+   "loop": false
+  },
+  "monsters/golem/golem_portrait.png": {
+   "notes": "20x20 head crop (rect [22, 4, 20, 20] of the rest frame) for the initiative strip."
+  },
+  "monsters/golem/golem_still.png": {
+   "anchor": [
+    40,
+    64
+   ],
+   "hp_bar_anchor": [
+    40,
+    1
+   ],
+   "notes": "single rest frame (portraits / initiative)."
+  },
+  "monsters/imp/imp_idle.png": {
+   "frames": 2,
+   "frame_size": [
+    80,
+    70
+   ],
+   "fps": 2,
+   "anchor": [
+    40,
+    64
+   ],
+   "hp_bar_anchor": [
+    40,
+    11
+   ],
+   "portrait_rect": [
+    19,
+    17,
+    20,
+    20
+   ],
+   "loop": true
+  },
+  "monsters/imp/imp_attack.png": {
+   "frames": 3,
+   "frame_size": [
+    80,
+    70
+   ],
+   "fps": 5,
+   "anchor": [
+    40,
+    64
+   ],
+   "hp_bar_anchor": [
+    40,
+    11
+   ],
+   "portrait_rect": [
+    19,
+    17,
+    20,
+    20
+   ],
+   "loop": false
+  },
+  "monsters/imp/imp_hit.png": {
+   "frames": 2,
+   "frame_size": [
+    80,
+    70
+   ],
+   "fps": 8,
+   "anchor": [
+    40,
+    64
+   ],
+   "hp_bar_anchor": [
+    40,
+    11
+   ],
+   "portrait_rect": [
+    19,
+    17,
+    20,
+    20
+   ],
+   "loop": false
+  },
+  "monsters/imp/imp_death.png": {
+   "frames": 4,
+   "frame_size": [
+    80,
+    70
+   ],
+   "fps": 8,
+   "anchor": [
+    40,
+    64
+   ],
+   "hp_bar_anchor": [
+    40,
+    11
+   ],
+   "portrait_rect": [
+    19,
+    17,
+    20,
+    20
+   ],
+   "loop": false
+  },
+  "monsters/imp/imp_portrait.png": {
+   "notes": "20x20 head crop (rect [19, 17, 20, 20] of the rest frame) for the initiative strip."
+  },
+  "monsters/imp/imp_still.png": {
+   "anchor": [
+    40,
+    64
+   ],
+   "hp_bar_anchor": [
+    40,
+    11
+   ],
+   "notes": "single rest frame (portraits / initiative)."
+  }
+ },
+ "monsters": {
+  "goblin": {
+   "sprite_size": [
+    49,
+    49
+   ],
+   "top": 16,
+   "portrait_rect": [
+    26,
+    16,
+    20,
+    20
+   ]
+  },
+  "bat": {
+   "sprite_size": [
+    65,
+    39
+   ],
+   "top": 26,
+   "portrait_rect": [
+    30,
+    28,
+    20,
+    20
+   ]
+  },
+  "slime": {
+   "sprite_size": [
+    39,
+    31
+   ],
+   "top": 34,
+   "portrait_rect": [
+    30,
+    38,
+    20,
+    20
+   ]
+  },
+  "skeleton": {
+   "sprite_size": [
+    56,
+    52
+   ],
+   "top": 13,
+   "portrait_rect": [
+    33,
+    13,
+    20,
+    20
+   ]
+  },
+  "wolf": {
+   "sprite_size": [
+    60,
+    49
+   ],
+   "top": 16,
+   "portrait_rect": [
+    12,
+    17,
+    20,
+    20
+   ]
+  },
+  "mushroom": {
+   "sprite_size": [
+    44,
+    46
+   ],
+   "top": 19,
+   "portrait_rect": [
+    30,
+    33,
+    20,
+    20
+   ]
+  },
+  "golem": {
+   "sprite_size": [
+    58,
+    60
+   ],
+   "top": 5,
+   "portrait_rect": [
+    22,
+    4,
+    20,
+    20
+   ]
+  },
+  "imp": {
+   "sprite_size": [
+    60,
+    50
+   ],
+   "top": 15,
+   "portrait_rect": [
+    19,
+    17,
+    20,
+    20
+   ]
+  }
+ }
+}

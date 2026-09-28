@@ -2,7 +2,10 @@
   "id": "greenmere",
   "name": "Greenmere",
   "start": "candlewick",
-  "map_size": [250, 760],
+  "map_size": [
+    250,
+    760
+  ],
   "places": [
     {
       "id": "candlewick",
@@ -14,7 +17,8 @@
       "kind": "town",
       "has_inn": true,
       "description": "A hamlet of smoke and bread. The inn keeps a kettle on.",
-      "monsters": []
+      "monsters": [],
+      "sprite": "village"
     },
     {
       "id": "millpond",
@@ -26,7 +30,11 @@
       "kind": "meadow",
       "has_inn": false,
       "description": "Reeds, a still pond, and things that grin from the mud.",
-      "monsters": ["puddleblob", "thicket_imp"]
+      "monsters": [
+        "puddleblob",
+        "thicket_imp"
+      ],
+      "sprite": "windmill"
     },
     {
       "id": "briar_cross",
@@ -38,7 +46,12 @@
       "kind": "meadow",
       "has_inn": false,
       "description": "Four roads and a thorn hedge that never stays cut.",
-      "monsters": ["cinder_mite", "briar_hound", "thicket_imp"]
+      "monsters": [
+        "cinder_mite",
+        "briar_hound",
+        "thicket_imp"
+      ],
+      "sprite": "tavern"
     },
     {
       "id": "lantern_reach",
@@ -50,7 +63,12 @@
       "kind": "coast",
       "has_inn": false,
       "description": "A white tower above a blue shallows. The lamp is never cold.",
-      "monsters": ["lantern_wisp", "cinder_mite", "briar_hound"]
+      "monsters": [
+        "lantern_wisp",
+        "cinder_mite",
+        "briar_hound"
+      ],
+      "sprite": "shrine"
     },
     {
       "id": "howling_cleft",
@@ -62,7 +80,13 @@
       "kind": "cave",
       "has_inn": false,
       "description": "A black mouth in the grey cliffs. Something answers if you shout.",
-      "monsters": ["cave_howler", "marshlurker", "briar_hound", "lantern_wisp"]
+      "monsters": [
+        "cave_howler",
+        "marshlurker",
+        "briar_hound",
+        "lantern_wisp"
+      ],
+      "sprite": "cave"
     },
     {
       "id": "gravel_keep",
@@ -74,18 +98,177 @@
       "kind": "keep",
       "has_inn": false,
       "description": "A squat keep with no banner. The stones walk at dusk.",
-      "monsters": ["gravel_brute", "cave_howler", "marshlurker", "briar_hound"]
+      "monsters": [
+        "gravel_brute",
+        "cave_howler",
+        "marshlurker",
+        "briar_hound"
+      ],
+      "sprite": "castle"
     }
   ],
   "edges": [
-    {"a": "candlewick", "b": "millpond", "points": [[120, 310], [90, 430], [60, 540]]},
-    {"a": "candlewick", "b": "briar_cross", "points": [[120, 310], [150, 370], [180, 430]]},
-    {"a": "candlewick", "b": "gravel_keep", "points": [[120, 310], [140, 190], [150, 70]]},
-    {"a": "millpond", "b": "briar_cross", "points": [[60, 540], [120, 490], [180, 430]]},
-    {"a": "briar_cross", "b": "lantern_reach", "points": [[180, 430], [190, 560], [168, 680]]},
-    {"a": "briar_cross", "b": "howling_cleft", "points": [[180, 430], [120, 300], [70, 180]]},
-    {"a": "briar_cross", "b": "gravel_keep", "points": [[180, 430], [200, 250], [150, 70]]},
-    {"a": "howling_cleft", "b": "gravel_keep", "points": [[70, 180], [110, 110], [150, 70]]},
-    {"a": "howling_cleft", "b": "lantern_reach", "points": [[70, 180], [40, 420], [168, 680]]}
+    {
+      "a": "candlewick",
+      "b": "millpond",
+      "points": [
+        [
+          120,
+          310
+        ],
+        [
+          90,
+          430
+        ],
+        [
+          60,
+          540
+        ]
+      ]
+    },
+    {
+      "a": "candlewick",
+      "b": "briar_cross",
+      "points": [
+        [
+          120,
+          310
+        ],
+        [
+          150,
+          370
+        ],
+        [
+          180,
+          430
+        ]
+      ]
+    },
+    {
+      "a": "candlewick",
+      "b": "gravel_keep",
+      "points": [
+        [
+          120,
+          310
+        ],
+        [
+          140,
+          190
+        ],
+        [
+          150,
+          70
+        ]
+      ]
+    },
+    {
+      "a": "millpond",
+      "b": "briar_cross",
+      "points": [
+        [
+          60,
+          540
+        ],
+        [
+          120,
+          490
+        ],
+        [
+          180,
+          430
+        ]
+      ]
+    },
+    {
+      "a": "briar_cross",
+      "b": "lantern_reach",
+      "points": [
+        [
+          180,
+          430
+        ],
+        [
+          190,
+          560
+        ],
+        [
+          168,
+          680
+        ]
+      ]
+    },
+    {
+      "a": "briar_cross",
+      "b": "howling_cleft",
+      "points": [
+        [
+          180,
+          430
+        ],
+        [
+          120,
+          300
+        ],
+        [
+          70,
+          180
+        ]
+      ]
+    },
+    {
+      "a": "briar_cross",
+      "b": "gravel_keep",
+      "points": [
+        [
+          180,
+          430
+        ],
+        [
+          200,
+          250
+        ],
+        [
+          150,
+          70
+        ]
+      ]
+    },
+    {
+      "a": "howling_cleft",
+      "b": "gravel_keep",
+      "points": [
+        [
+          70,
+          180
+        ],
+        [
+          110,
+          110
+        ],
+        [
+          150,
+          70
+        ]
+      ]
+    },
+    {
+      "a": "howling_cleft",
+      "b": "lantern_reach",
+      "points": [
+        [
+          70,
+          180
+        ],
+        [
+          40,
+          420
+        ],
+        [
+          168,
+          680
+        ]
+      ]
+    }
   ]
 }

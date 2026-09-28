@@ -565,7 +565,7 @@ static func skill_inspect(skill: Dictionary, rank: int, hp: int, mp: int, cooldo
 			cool = "%d turns" % int(skill.get("cooldown", 0))
 	return {
 		"name": str(skill.get("name", "Skill")),
-		"icon": "icon_skill",
+		"icon": str(skill.get("icon", "")),
 		"cost": cost,
 		"target": target_label(skill),
 		"cooldown": cool,

@@ -1,0 +1,1635 @@
+{
+ "meta": {
+  "ui/skills/paladin_1.png": {
+   "size": [
+    20,
+    20
+   ],
+   "anchor": [
+    10,
+    10
+   ],
+   "motif": "sword of light (holy strike)",
+   "kind": "active",
+   "slot_frame": "ui/skills/skill_slot.png",
+   "cls": "paladin",
+   "slot": 1,
+   "notes": "placeholder name; map to docs/CLASSES.md later. Draw centred in a 32x32 slot/button at offset (6,6)."
+  },
+  "ui/skills/paladin_2.png": {
+   "size": [
+    20,
+    20
+   ],
+   "anchor": [
+    10,
+    10
+   ],
+   "motif": "shield bash",
+   "kind": "active",
+   "slot_frame": "ui/skills/skill_slot.png",
+   "cls": "paladin",
+   "slot": 2,
+   "notes": "placeholder name; map to docs/CLASSES.md later. Draw centred in a 32x32 slot/button at offset (6,6)."
+  },
+  "ui/skills/paladin_3.png": {
+   "size": [
+    20,
+    20
+   ],
+   "anchor": [
+    10,
+    10
+   ],
+   "motif": "holy aura (radiant halo)",
+   "kind": "active",
+   "slot_frame": "ui/skills/skill_slot.png",
+   "cls": "paladin",
+   "slot": 3,
+   "notes": "placeholder name; map to docs/CLASSES.md later. Draw centred in a 32x32 slot/button at offset (6,6)."
+  },
+  "ui/skills/paladin_4.png": {
+   "size": [
+    20,
+    20
+   ],
+   "anchor": [
+    10,
+    10
+   ],
+   "motif": "taunt (shout burst \"!\")",
+   "kind": "active",
+   "slot_frame": "ui/skills/skill_slot.png",
+   "cls": "paladin",
+   "slot": 4,
+   "notes": "placeholder name; map to docs/CLASSES.md later. Draw centred in a 32x32 slot/button at offset (6,6)."
+  },
+  "ui/skills/wizard_1.png": {
+   "size": [
+    20,
+    20
+   ],
+   "anchor": [
+    10,
+    10
+   ],
+   "motif": "fireball",
+   "kind": "active",
+   "slot_frame": "ui/skills/skill_slot.png",
+   "cls": "wizard",
+   "slot": 1,
+   "notes": "placeholder name; map to docs/CLASSES.md later. Draw centred in a 32x32 slot/button at offset (6,6)."
+  },
+  "ui/skills/wizard_2.png": {
+   "size": [
+    20,
+    20
+   ],
+   "anchor": [
+    10,
+    10
+   ],
+   "motif": "ice shard",
+   "kind": "active",
+   "slot_frame": "ui/skills/skill_slot.png",
+   "cls": "wizard",
+   "slot": 2,
+   "notes": "placeholder name; map to docs/CLASSES.md later. Draw centred in a 32x32 slot/button at offset (6,6)."
+  },
+  "ui/skills/wizard_3.png": {
+   "size": [
+    20,
+    20
+   ],
+   "anchor": [
+    10,
+    10
+   ],
+   "motif": "lightning bolt",
+   "kind": "active",
+   "slot_frame": "ui/skills/skill_slot.png",
+   "cls": "wizard",
+   "slot": 3,
+   "notes": "placeholder name; map to docs/CLASSES.md later. Draw centred in a 32x32 slot/button at offset (6,6)."
+  },
+  "ui/skills/wizard_4.png": {
+   "size": [
+    20,
+    20
+   ],
+   "anchor": [
+    10,
+    10
+   ],
+   "motif": "arcane shield (hex ward)",
+   "kind": "active",
+   "slot_frame": "ui/skills/skill_slot.png",
+   "cls": "wizard",
+   "slot": 4,
+   "notes": "placeholder name; map to docs/CLASSES.md later. Draw centred in a 32x32 slot/button at offset (6,6)."
+  },
+  "ui/skills/ranger_1.png": {
+   "size": [
+    20,
+    20
+   ],
+   "anchor": [
+    10,
+    10
+   ],
+   "motif": "arrow shot",
+   "kind": "active",
+   "slot_frame": "ui/skills/skill_slot.png",
+   "cls": "ranger",
+   "slot": 1,
+   "notes": "placeholder name; map to docs/CLASSES.md later. Draw centred in a 32x32 slot/button at offset (6,6)."
+  },
+  "ui/skills/ranger_2.png": {
+   "size": [
+    20,
+    20
+   ],
+   "anchor": [
+    10,
+    10
+   ],
+   "motif": "multi-shot (3 arrows)",
+   "kind": "active",
+   "slot_frame": "ui/skills/skill_slot.png",
+   "cls": "ranger",
+   "slot": 2,
+   "notes": "placeholder name; map to docs/CLASSES.md later. Draw centred in a 32x32 slot/button at offset (6,6)."
+  },
+  "ui/skills/ranger_3.png": {
+   "size": [
+    20,
+    20
+   ],
+   "anchor": [
+    10,
+    10
+   ],
+   "motif": "snare trap (bear trap)",
+   "kind": "active",
+   "slot_frame": "ui/skills/skill_slot.png",
+   "cls": "ranger",
+   "slot": 3,
+   "notes": "placeholder name; map to docs/CLASSES.md later. Draw centred in a 32x32 slot/button at offset (6,6)."
+  },
+  "ui/skills/ranger_4.png": {
+   "size": [
+    20,
+    20
+   ],
+   "anchor": [
+    10,
+    10
+   ],
+   "motif": "animal companion (paw print)",
+   "kind": "active",
+   "slot_frame": "ui/skills/skill_slot.png",
+   "cls": "ranger",
+   "slot": 4,
+   "notes": "placeholder name; map to docs/CLASSES.md later. Draw centred in a 32x32 slot/button at offset (6,6)."
+  },
+  "ui/skills/bard_1.png": {
+   "size": [
+    20,
+    20
+   ],
+   "anchor": [
+    10,
+    10
+   ],
+   "motif": "music note (damage note)",
+   "kind": "active",
+   "slot_frame": "ui/skills/skill_slot.png",
+   "cls": "bard",
+   "slot": 1,
+   "notes": "placeholder name; map to docs/CLASSES.md later. Draw centred in a 32x32 slot/button at offset (6,6)."
+  },
+  "ui/skills/bard_2.png": {
+   "size": [
+    20,
+    20
+   ],
+   "anchor": [
+    10,
+    10
+   ],
+   "motif": "song buff (note + up arrow)",
+   "kind": "active",
+   "slot_frame": "ui/skills/skill_slot.png",
+   "cls": "bard",
+   "slot": 2,
+   "notes": "placeholder name; map to docs/CLASSES.md later. Draw centred in a 32x32 slot/button at offset (6,6)."
+  },
+  "ui/skills/bard_3.png": {
+   "size": [
+    20,
+    20
+   ],
+   "anchor": [
+    10,
+    10
+   ],
+   "motif": "lullaby (moon + zz)",
+   "kind": "active",
+   "slot_frame": "ui/skills/skill_slot.png",
+   "cls": "bard",
+   "slot": 3,
+   "notes": "placeholder name; map to docs/CLASSES.md later. Draw centred in a 32x32 slot/button at offset (6,6)."
+  },
+  "ui/skills/bard_4.png": {
+   "size": [
+    20,
+    20
+   ],
+   "anchor": [
+    10,
+    10
+   ],
+   "motif": "lute",
+   "kind": "active",
+   "slot_frame": "ui/skills/skill_slot.png",
+   "cls": "bard",
+   "slot": 4,
+   "notes": "placeholder name; map to docs/CLASSES.md later. Draw centred in a 32x32 slot/button at offset (6,6)."
+  },
+  "ui/skills/cleric_1.png": {
+   "size": [
+    20,
+    20
+   ],
+   "anchor": [
+    10,
+    10
+   ],
+   "motif": "heal (green cross)",
+   "kind": "active",
+   "slot_frame": "ui/skills/skill_slot.png",
+   "cls": "cleric",
+   "slot": 1,
+   "notes": "placeholder name; map to docs/CLASSES.md later. Draw centred in a 32x32 slot/button at offset (6,6)."
+  },
+  "ui/skills/cleric_2.png": {
+   "size": [
+    20,
+    20
+   ],
+   "anchor": [
+    10,
+    10
+   ],
+   "motif": "holy cross (bless)",
+   "kind": "active",
+   "slot_frame": "ui/skills/skill_slot.png",
+   "cls": "cleric",
+   "slot": 2,
+   "notes": "placeholder name; map to docs/CLASSES.md later. Draw centred in a 32x32 slot/button at offset (6,6)."
+  },
+  "ui/skills/cleric_3.png": {
+   "size": [
+    20,
+    20
+   ],
+   "anchor": [
+    10,
+    10
+   ],
+   "motif": "resurrect (spirit ankh)",
+   "kind": "active",
+   "slot_frame": "ui/skills/skill_slot.png",
+   "cls": "cleric",
+   "slot": 3,
+   "notes": "placeholder name; map to docs/CLASSES.md later. Draw centred in a 32x32 slot/button at offset (6,6)."
+  },
+  "ui/skills/cleric_4.png": {
+   "size": [
+    20,
+    20
+   ],
+   "anchor": [
+    10,
+    10
+   ],
+   "motif": "smite (holy hammer)",
+   "kind": "active",
+   "slot_frame": "ui/skills/skill_slot.png",
+   "cls": "cleric",
+   "slot": 4,
+   "notes": "placeholder name; map to docs/CLASSES.md later. Draw centred in a 32x32 slot/button at offset (6,6)."
+  },
+  "ui/skills/rogue_1.png": {
+   "size": [
+    20,
+    20
+   ],
+   "anchor": [
+    10,
+    10
+   ],
+   "motif": "dagger strike",
+   "kind": "active",
+   "slot_frame": "ui/skills/skill_slot.png",
+   "cls": "rogue",
+   "slot": 1,
+   "notes": "placeholder name; map to docs/CLASSES.md later. Draw centred in a 32x32 slot/button at offset (6,6)."
+  },
+  "ui/skills/rogue_2.png": {
+   "size": [
+    20,
+    20
+   ],
+   "anchor": [
+    10,
+    10
+   ],
+   "motif": "poison vial",
+   "kind": "active",
+   "slot_frame": "ui/skills/skill_slot.png",
+   "cls": "rogue",
+   "slot": 2,
+   "notes": "placeholder name; map to docs/CLASSES.md later. Draw centred in a 32x32 slot/button at offset (6,6)."
+  },
+  "ui/skills/rogue_3.png": {
+   "size": [
+    20,
+    20
+   ],
+   "anchor": [
+    10,
+    10
+   ],
+   "motif": "smoke bomb",
+   "kind": "active",
+   "slot_frame": "ui/skills/skill_slot.png",
+   "cls": "rogue",
+   "slot": 3,
+   "notes": "placeholder name; map to docs/CLASSES.md later. Draw centred in a 32x32 slot/button at offset (6,6)."
+  },
+  "ui/skills/rogue_4.png": {
+   "size": [
+    20,
+    20
+   ],
+   "anchor": [
+    10,
+    10
+   ],
+   "motif": "backstab (bloody dagger)",
+   "kind": "active",
+   "slot_frame": "ui/skills/skill_slot.png",
+   "cls": "rogue",
+   "slot": 4,
+   "notes": "placeholder name; map to docs/CLASSES.md later. Draw centred in a 32x32 slot/button at offset (6,6)."
+  },
+  "ui/skills/barbarian_1.png": {
+   "size": [
+    20,
+    20
+   ],
+   "anchor": [
+    10,
+    10
+   ],
+   "motif": "axe chop",
+   "kind": "active",
+   "slot_frame": "ui/skills/skill_slot.png",
+   "cls": "barbarian",
+   "slot": 1,
+   "notes": "placeholder name; map to docs/CLASSES.md later. Draw centred in a 32x32 slot/button at offset (6,6)."
+  },
+  "ui/skills/barbarian_2.png": {
+   "size": [
+    20,
+    20
+   ],
+   "anchor": [
+    10,
+    10
+   ],
+   "motif": "rage (angry flame)",
+   "kind": "active",
+   "slot_frame": "ui/skills/skill_slot.png",
+   "cls": "barbarian",
+   "slot": 2,
+   "notes": "placeholder name; map to docs/CLASSES.md later. Draw centred in a 32x32 slot/button at offset (6,6)."
+  },
+  "ui/skills/barbarian_3.png": {
+   "size": [
+    20,
+    20
+   ],
+   "anchor": [
+    10,
+    10
+   ],
+   "motif": "war cry (horn + sound waves)",
+   "kind": "active",
+   "slot_frame": "ui/skills/skill_slot.png",
+   "cls": "barbarian",
+   "slot": 3,
+   "notes": "placeholder name; map to docs/CLASSES.md later. Draw centred in a 32x32 slot/button at offset (6,6)."
+  },
+  "ui/skills/barbarian_4.png": {
+   "size": [
+    20,
+    20
+   ],
+   "anchor": [
+    10,
+    10
+   ],
+   "motif": "stomp (boot + shockwave)",
+   "kind": "active",
+   "slot_frame": "ui/skills/skill_slot.png",
+   "cls": "barbarian",
+   "slot": 4,
+   "notes": "placeholder name; map to docs/CLASSES.md later. Draw centred in a 32x32 slot/button at offset (6,6)."
+  },
+  "ui/skills/druid_1.png": {
+   "size": [
+    20,
+    20
+   ],
+   "anchor": [
+    10,
+    10
+   ],
+   "motif": "leaf heal",
+   "kind": "active",
+   "slot_frame": "ui/skills/skill_slot.png",
+   "cls": "druid",
+   "slot": 1,
+   "notes": "placeholder name; map to docs/CLASSES.md later. Draw centred in a 32x32 slot/button at offset (6,6)."
+  },
+  "ui/skills/druid_2.png": {
+   "size": [
+    20,
+    20
+   ],
+   "anchor": [
+    10,
+    10
+   ],
+   "motif": "thorns (thorny vine)",
+   "kind": "active",
+   "slot_frame": "ui/skills/skill_slot.png",
+   "cls": "druid",
+   "slot": 2,
+   "notes": "placeholder name; map to docs/CLASSES.md later. Draw centred in a 32x32 slot/button at offset (6,6)."
+  },
+  "ui/skills/druid_3.png": {
+   "size": [
+    20,
+    20
+   ],
+   "anchor": [
+    10,
+    10
+   ],
+   "motif": "bear form",
+   "kind": "active",
+   "slot_frame": "ui/skills/skill_slot.png",
+   "cls": "druid",
+   "slot": 3,
+   "notes": "placeholder name; map to docs/CLASSES.md later. Draw centred in a 32x32 slot/button at offset (6,6)."
+  },
+  "ui/skills/druid_4.png": {
+   "size": [
+    20,
+    20
+   ],
+   "anchor": [
+    10,
+    10
+   ],
+   "motif": "entangling roots",
+   "kind": "active",
+   "slot_frame": "ui/skills/skill_slot.png",
+   "cls": "druid",
+   "slot": 4,
+   "notes": "placeholder name; map to docs/CLASSES.md later. Draw centred in a 32x32 slot/button at offset (6,6)."
+  },
+  "ui/skills/paladin_5.png": {
+   "size": [
+    20,
+    20
+   ],
+   "anchor": [
+    10,
+    10
+   ],
+   "motif": "guardian (aggro passive: target reticle on shield)",
+   "kind": "passive",
+   "slot_frame": "ui/skills/skill_slot_passive.png",
+   "cls": "paladin",
+   "slot": 5,
+   "notes": "placeholder name; map to docs/CLASSES.md later. Draw centred in a 32x32 slot/button at offset (6,6)."
+  },
+  "ui/skills/wizard_5.png": {
+   "size": [
+    20,
+    20
+   ],
+   "anchor": [
+    10,
+    10
+   ],
+   "motif": "mana flow (mana-regen passive: drop + up arrow)",
+   "kind": "passive",
+   "slot_frame": "ui/skills/skill_slot_passive.png",
+   "cls": "wizard",
+   "slot": 5,
+   "notes": "placeholder name; map to docs/CLASSES.md later. Draw centred in a 32x32 slot/button at offset (6,6)."
+  },
+  "ui/skills/ranger_5.png": {
+   "size": [
+    20,
+    20
+   ],
+   "anchor": [
+    10,
+    10
+   ],
+   "motif": "keen eye (accuracy/crit passive)",
+   "kind": "passive",
+   "slot_frame": "ui/skills/skill_slot_passive.png",
+   "cls": "ranger",
+   "slot": 5,
+   "notes": "placeholder name; map to docs/CLASSES.md later. Draw centred in a 32x32 slot/button at offset (6,6)."
+  },
+  "ui/skills/bard_5.png": {
+   "size": [
+    20,
+    20
+   ],
+   "anchor": [
+    10,
+    10
+   ],
+   "motif": "war drum (active: party haste)",
+   "kind": "active",
+   "slot_frame": "ui/skills/skill_slot.png",
+   "cls": "bard",
+   "slot": 5,
+   "notes": "placeholder name; map to docs/CLASSES.md later. Draw centred in a 32x32 slot/button at offset (6,6)."
+  },
+  "ui/skills/cleric_5.png": {
+   "size": [
+    20,
+    20
+   ],
+   "anchor": [
+    10,
+    10
+   ],
+   "motif": "blessed (regen passive: haloed heart)",
+   "kind": "passive",
+   "slot_frame": "ui/skills/skill_slot_passive.png",
+   "cls": "cleric",
+   "slot": 5,
+   "notes": "placeholder name; map to docs/CLASSES.md later. Draw centred in a 32x32 slot/button at offset (6,6)."
+  },
+  "ui/skills/rogue_5.png": {
+   "size": [
+    20,
+    20
+   ],
+   "anchor": [
+    10,
+    10
+   ],
+   "motif": "pickpocket (active: steal gold)",
+   "kind": "active",
+   "slot_frame": "ui/skills/skill_slot.png",
+   "cls": "rogue",
+   "slot": 5,
+   "notes": "placeholder name; map to docs/CLASSES.md later. Draw centred in a 32x32 slot/button at offset (6,6)."
+  },
+  "ui/skills/barbarian_5.png": {
+   "size": [
+    20,
+    20
+   ],
+   "anchor": [
+    10,
+    10
+   ],
+   "motif": "provoke (taunt/aggro passive: shouting face)",
+   "kind": "passive",
+   "slot_frame": "ui/skills/skill_slot_passive.png",
+   "cls": "barbarian",
+   "slot": 5,
+   "notes": "placeholder name; map to docs/CLASSES.md later. Draw centred in a 32x32 slot/button at offset (6,6)."
+  },
+  "ui/skills/druid_5.png": {
+   "size": [
+    20,
+    20
+   ],
+   "anchor": [
+    10,
+    10
+   ],
+   "motif": "regrowth (passive: sprout, heal over time)",
+   "kind": "passive",
+   "slot_frame": "ui/skills/skill_slot_passive.png",
+   "cls": "druid",
+   "slot": 5,
+   "notes": "placeholder name; map to docs/CLASSES.md later. Draw centred in a 32x32 slot/button at offset (6,6)."
+  },
+  "ui/skills/skill_slot.png": {
+   "size": [
+    32,
+    32
+   ],
+   "icon_offset": [
+    6,
+    6
+   ],
+   "notes": "32x32 skill slot, same footprint as ui/portrait/btn32_*. Icon area 24x24 inside (4..27)."
+  },
+  "ui/skills/skill_slot_active.png": {
+   "size": [
+    32,
+    32
+   ],
+   "icon_offset": [
+    6,
+    6
+   ],
+   "notes": "32x32 skill slot, same footprint as ui/portrait/btn32_*. Icon area 24x24 inside (4..27)."
+  },
+  "ui/skills/skill_slot_locked.png": {
+   "size": [
+    32,
+    32
+   ],
+   "icon_offset": [
+    6,
+    6
+   ],
+   "notes": "32x32 skill slot, same footprint as ui/portrait/btn32_*. Icon area 24x24 inside (4..27)."
+  },
+  "ui/skills/skill_slot_passive.png": {
+   "size": [
+    32,
+    32
+   ],
+   "icon_offset": [
+    6,
+    6
+   ],
+   "notes": "PASSIVE slot: octagon with gold rim (reads differently from the square active slot). Not pressable, so there is no active/pressed state; dim with _locked while unlearned."
+  },
+  "ui/skills/skill_slot_passive_locked.png": {
+   "size": [
+    32,
+    32
+   ],
+   "icon_offset": [
+    6,
+    6
+   ],
+   "notes": "PASSIVE slot: octagon with gold rim (reads differently from the square active slot). Not pressable, so there is no active/pressed state; dim with _locked while unlearned."
+  },
+  "ui/skills/skill_cooldown_mask.png": {
+   "size": [
+    24,
+    24
+   ],
+   "offset_in_slot": [
+    4,
+    4
+   ],
+   "notes": "50% checker dither; crop from the top by remaining-cooldown fraction and draw over the icon (binary alpha keeps the pixel look)."
+  },
+  "ui/skills/skill_sheet.png": {
+   "notes": "8 columns (class) x 5 rows (skill 1..5). Active skills in skill_slot.png, passives in skill_slot_passive.png with a P tag. QA/reference sheet, not a runtime asset."
+  },
+  "ui/skills/skill_sheet_3x.png": {
+   "notes": "3x nearest of skill_sheet.png."
+  },
+  "ui/portrait/action_bar_v2.png": {
+   "size": [
+    270,
+    50
+   ],
+   "anchor": [
+    0,
+    0
+   ],
+   "slots": {
+    "attack": [
+     4,
+     4
+    ],
+    "cover": [
+     37,
+     4
+    ],
+    "divider_x": 71,
+    "skills": [
+     [
+      75,
+      4
+     ],
+     [
+      108,
+      4
+     ],
+     [
+      141,
+      4
+     ],
+     [
+      174,
+      4
+     ],
+     [
+      207,
+      4
+     ]
+    ],
+    "item": [
+     245,
+     4
+    ],
+    "run": [
+     245,
+     26
+    ],
+    "cost_badges": [
+     [
+      83,
+      38
+     ],
+     [
+      116,
+      38
+     ],
+     [
+      149,
+      38
+     ],
+     [
+      182,
+      38
+     ],
+     [
+      215,
+      38
+     ]
+    ]
+   },
+   "slot_size": 32,
+   "mini_size": 20,
+   "notes": "v6 per-character action bar (replaces ui/portrait/action_bar.png). Slot top-lefts in bar-local px: attack/cover default abilities (32x32), gold divider at x71, 5 class skills (32x32, step 33), Item/Run mini buttons (20x20) stacked at the right, 16x7 MP cost badges centred under each active skill (y38)."
+  },
+  "ui/portrait/ability_attack.png": {
+   "size": [
+    32,
+    32
+   ],
+   "notes": "default ability \"attack\" in the skill-slot style (always available for every class)."
+  },
+  "ui/portrait/ability_attack_active.png": {
+   "size": [
+    32,
+    32
+   ],
+   "notes": "selected state. default ability \"attack\" in the skill-slot style (always available for every class)."
+  },
+  "ui/portrait/ability_cover.png": {
+   "size": [
+    32,
+    32
+   ],
+   "notes": "default ability \"cover\" in the skill-slot style (always available for every class)."
+  },
+  "ui/portrait/ability_cover_active.png": {
+   "size": [
+    32,
+    32
+   ],
+   "notes": "selected state. default ability \"cover\" in the skill-slot style (always available for every class)."
+  },
+  "ui/portrait/mini_item.png": {
+   "size": [
+    20,
+    20
+   ],
+   "icon_rect": [
+    3,
+    3,
+    14,
+    14
+   ],
+   "notes": "utility: open inventory (potion)."
+  },
+  "ui/portrait/mini_item_active.png": {
+   "size": [
+    20,
+    20
+   ],
+   "icon_rect": [
+    3,
+    3,
+    14,
+    14
+   ],
+   "notes": "pressed/selected. utility: open inventory (potion)."
+  },
+  "ui/portrait/mini_run.png": {
+   "size": [
+    20,
+    20
+   ],
+   "icon_rect": [
+    3,
+    3,
+    14,
+    14
+   ],
+   "notes": "utility: flee (door + arrow)."
+  },
+  "ui/portrait/mini_run_active.png": {
+   "size": [
+    20,
+    20
+   ],
+   "icon_rect": [
+    3,
+    3,
+    14,
+    14
+   ],
+   "notes": "pressed/selected. utility: flee (door + arrow)."
+  },
+  "ui/portrait/digits_3x5.png": {
+   "frames": 10,
+   "frame_size": [
+    4,
+    5
+   ],
+   "notes": "tiny white digits 0-9 (3x5 glyph + 1px advance) for cost badges / cooldown counters. Tint by modulate if needed."
+  },
+  "ui/portrait/cost_badge.png": {
+   "size": [
+    16,
+    7
+   ],
+   "digit_origin": [
+    7,
+    1
+   ],
+   "notes": "MP cost badge (blue pill + drop). Draw digits_3x5 at digit_origin (x 6 for 2 digits). Centre under each ACTIVE skill slot (slot x + 8, bar y 38). Passives get no badge."
+  },
+  "ui/portrait/cost_badge_0_9.png": {
+   "frames": 10,
+   "frame_size": [
+    16,
+    7
+   ],
+   "notes": "pre-rendered cost badges for MP 0..9 (frame i = cost i)."
+  },
+  "ui/portrait/name_tab.png": {
+   "size": [
+    64,
+    10
+   ],
+   "text_origin": [
+    5,
+    2
+   ],
+   "text_color": "#120c18",
+   "notes": "active-character nameplate tab: draw at bar top-left (x 4, bar_y - 10); class/hero name in the pixel font at text_origin (max ~13 chars). Gold = same highlight as hp_mp_card_compact_active."
+  },
+  "ui/portrait/passive_dim_mask.png": {
+   "size": [
+    24,
+    24
+   ],
+   "offset_in_slot": [
+    4,
+    4
+   ],
+   "notes": "25% ink dither drawn over a PASSIVE icon so it reads as non-pressable (binary alpha)."
+  },
+  "ui/portrait/lock_icon.png": {
+   "size": [
+    10,
+    10
+   ],
+   "notes": "locked-skill padlock, draw at slot [11,11] over a dimmed icon in skill_slot_locked."
+  },
+  "ui/portrait/seat_bars_frame.png": {
+   "size": [
+    44,
+    10
+   ],
+   "anchor": [
+    22,
+    0
+   ],
+   "hp_fill_rect": [
+    1,
+    1,
+    42,
+    4
+   ],
+   "mp_fill_rect": [
+    1,
+    6,
+    42,
+    3
+   ],
+   "notes": "v7 seat-mounted HP/MP bars: #120c18 outline frame with dark empty tracks (HP #3e1016, MP #161c40). Anchor = top-centre; place at (seat_x, seat_feet_y - 11) so it overlaps the chair seat front + lower rails. Fill with seat_bar_hp/mp (crop by %) or stretch the 1px tiles."
+  },
+  "ui/portrait/seat_bars_frame_active.png": {
+   "size": [
+    46,
+    12
+   ],
+   "anchor": [
+    23,
+    1
+   ],
+   "hp_fill_rect": [
+    2,
+    2,
+    42,
+    4
+   ],
+   "mp_fill_rect": [
+    2,
+    7,
+    42,
+    3
+   ],
+   "notes": "ACTIVE seat variant: gold inner ring + dark outer outline (1px larger each side). Same anchor point as the normal frame (top-centre of the inner frame at [23,1])."
+  },
+  "ui/portrait/seat_bar_hp.png": {
+   "size": [
+    42,
+    4
+   ],
+   "notes": "HP fill (#ec5a44, #c02c2c bottom shade). Crop width = round(42 * hp%)."
+  },
+  "ui/portrait/seat_bar_mp.png": {
+   "size": [
+    42,
+    3
+   ],
+   "notes": "MP fill (#4c9ce8 over #3466cc). Crop width = round(42 * mp%)."
+  },
+  "ui/portrait/seat_bar_hp_tile.png": {
+   "size": [
+    1,
+    4
+   ],
+   "notes": "1px HP fill column; stretch horizontally (nearest) instead of cropping the full strip."
+  },
+  "ui/portrait/seat_bar_mp_tile.png": {
+   "size": [
+    1,
+    3
+   ],
+   "notes": "1px MP fill column; stretch horizontally."
+  },
+  "ui/portrait/seat_bar_hp_lowflash.png": {
+   "frames": 2,
+   "frame_size": [
+    42,
+    4
+   ],
+   "fps": 4,
+   "loop": true,
+   "notes": "low-HP (<25%) flash: frame 0 normal red, frame 1 cream/amber. Crop both frames to the same fill width."
+  },
+  "ui/portrait/digits_3x5_outlined.png": {
+   "frames": 10,
+   "frame_size": [
+    5,
+    7
+   ],
+   "advance": 4,
+   "notes": "HP-number digits: cream 3x5 glyph (sand bottom row) with a 1px #120c18 outline (diagonals included) so it reads on any robe incl. white. Draw successive digits 4px apart (outline columns overlap)."
+  },
+  "ui/portrait/skill_card_panel.png": {
+   "size": [
+    48,
+    48
+   ],
+   "nine_slice_margins": {
+    "left": 14,
+    "top": 10,
+    "right": 6,
+    "bottom": 6
+   },
+   "tile_period": 8,
+   "notes": "notebook-page 9-slice for the skill card: dark outline, parchment, spiral holes along the top edge, red margin line on the left, faint ruled lines. TILE (not stretch) the edges/centre so holes and ruling keep an 8px rhythm; pick widths/heights = 48 + 8k for a seamless look."
+  },
+  "ui/portrait/skill_card_tail.png": {
+   "size": [
+    13,
+    8
+   ],
+   "anchor": [
+    6,
+    7
+   ],
+   "overlap_rows": 2,
+   "notes": "pointer: tip (anchor) aims at the tapped slot centre; place so rows 0-1 cover the card bottom edge (tail y = card_bottom - 2)."
+  },
+  "ui/portrait/skill_card_strip_ready.png": {
+   "frames": 2,
+   "frame_size": [
+    24,
+    14
+   ],
+   "three_slice": {
+    "left": 5,
+    "right": 5
+   },
+   "text_y": 5,
+   "text": "TAP AGAIN TO CAST",
+   "text_colors": [
+    "#f8d040",
+    "#fcf0a0"
+   ],
+   "fps": 3,
+   "notes": "prompt strip: 3-slice (caps 5px, tile the middle). Text centred at y 5 in the pack 3x5 font. 2-frame pulse: swap frame + text colour gold/cream at 3 fps."
+  },
+  "ui/portrait/skill_card_strip_passive.png": {
+   "frames": 1,
+   "frame_size": [
+    24,
+    14
+   ],
+   "three_slice": {
+    "left": 5,
+    "right": 5
+   },
+   "text_y": 5,
+   "text": "PASSIVE: ALWAYS ACTIVE",
+   "text_colors": [
+    "#fcb8d4"
+   ],
+   "fps": null,
+   "notes": "prompt strip: 3-slice (caps 5px, tile the middle). Text centred at y 5 in the pack 3x5 font."
+  },
+  "ui/portrait/skill_card_strip_nomp.png": {
+   "frames": 1,
+   "frame_size": [
+    24,
+    14
+   ],
+   "three_slice": {
+    "left": 5,
+    "right": 5
+   },
+   "text_y": 5,
+   "text": "NOT ENOUGH MP",
+   "text_colors": [
+    "#ec5a44"
+   ],
+   "fps": null,
+   "notes": "prompt strip: 3-slice (caps 5px, tile the middle). Text centred at y 5 in the pack 3x5 font."
+  },
+  "ui/portrait/skill_card_strip_cooldown.png": {
+   "frames": 1,
+   "frame_size": [
+    24,
+    14
+   ],
+   "three_slice": {
+    "left": 5,
+    "right": 5
+   },
+   "text_y": 5,
+   "text": "ON COOLDOWN: {n}",
+   "text_colors": [
+    "#cfd0d4"
+   ],
+   "fps": null,
+   "notes": "prompt strip: 3-slice (caps 5px, tile the middle). Text centred at y 5 in the pack 3x5 font."
+  },
+  "ui/portrait/skill_slot_armed.png": {
+   "frames": 2,
+   "frame_size": [
+    36,
+    36
+   ],
+   "fps": 4,
+   "offset_from_slot": [
+    -2,
+    -2
+   ],
+   "loop": true,
+   "notes": "ARMED state (skill card open, next tap casts): 2px pulsing gold/cream glow ring drawn around the 32px slot (outside the frame). Distinct from skill_slot_active (selected)."
+  },
+  "ui/portrait/bar_dim_mask.png": {
+   "size": [
+    32,
+    32
+   ],
+   "notes": "50% dither drawn over every OTHER bar slot while a skill card is open (optional focus dim)."
+  },
+  "ui/portrait/skill_card_icon_frame.png": {
+   "size": [
+    44,
+    44
+   ],
+   "icon_rect": [
+    2,
+    2,
+    40,
+    40
+   ],
+   "notes": "holds the 20x20 skill icon at 2x (nearest) at [2,2]."
+  },
+  "ui/portrait/skill_card_icon_frame_passive.png": {
+   "size": [
+    44,
+    44
+   ],
+   "icon_rect": [
+    2,
+    2,
+    40,
+    40
+   ],
+   "notes": "holds the 20x20 skill icon at 2x (nearest) at [2,2]. Octagon = passive."
+  },
+  "ui/portrait/skill_tag_active.png": {
+   "notes": "ACTIVE tag pill (word baked in the pack 3x5 font), top-right of the card."
+  },
+  "ui/portrait/skill_tag_passive.png": {
+   "notes": "PASSIVE tag pill (word baked in the pack 3x5 font), top-right of the card."
+  },
+  "ui/portrait/target_enemy.png": {
+   "size": [
+    9,
+    7
+   ],
+   "notes": "tiny skill-card info icon (target type); text starts 2px to its right."
+  },
+  "ui/portrait/target_all_enemies.png": {
+   "size": [
+    9,
+    7
+   ],
+   "notes": "tiny skill-card info icon (target type); text starts 2px to its right."
+  },
+  "ui/portrait/target_ally.png": {
+   "size": [
+    9,
+    7
+   ],
+   "notes": "tiny skill-card info icon (target type); text starts 2px to its right."
+  },
+  "ui/portrait/target_all_allies.png": {
+   "size": [
+    9,
+    7
+   ],
+   "notes": "tiny skill-card info icon (target type); text starts 2px to its right."
+  },
+  "ui/portrait/target_self.png": {
+   "size": [
+    9,
+    7
+   ],
+   "notes": "tiny skill-card info icon (target type); text starts 2px to its right."
+  },
+  "ui/portrait/icon_cooldown.png": {
+   "size": [
+    9,
+    7
+   ],
+   "notes": "tiny skill-card info icon (cooldown turns); text starts 2px to its right."
+  },
+  "ui/dmg_font_mp_letters.png": {
+   "frames": 2,
+   "frame_size": [
+    7,
+    9
+   ],
+   "notes": "glyph order 'MP', same style/advance (6px) as ui/dmg_font_mp.png so code can draw '+5 MP' (digits from dmg_font_mp)."
+  },
+  "fx/fx_slash.png": {
+   "frame_size": [
+    48,
+    48
+   ],
+   "frames": 5,
+   "fps": 20,
+   "anchor": [
+    24,
+    24
+   ],
+   "loop": false,
+   "notes": "diagonal arc sweep; centre anchor on the target body (e.g. monster centre). Flip h for the other direction. Frame 2 = impact (spawn damage number / hit anim).",
+   "style": "no black outline (glow FX): bright core -> darker coloured rim, binary alpha, fades via ordered dither"
+  },
+  "fx/fx_fireball.png": {
+   "frame_size": [
+    48,
+    48
+   ],
+   "frames": 8,
+   "fps": 14,
+   "anchor": [
+    24,
+    24
+   ],
+   "loop": false,
+   "segments": {
+    "travel": {
+     "frames": [
+      0,
+      1,
+      2
+     ],
+     "fps": 12,
+     "loop": true,
+     "notes": "projectile faces +x; tween the sprite from caster to target, rotate/flip toward the target"
+    },
+    "burst": {
+     "frames": [
+      3,
+      4,
+      5,
+      6,
+      7
+     ],
+     "fps": 14,
+     "loop": false,
+     "notes": "play at the target centre; frame 4 = impact"
+    }
+   },
+   "notes": "one strip: travel loop (0-2) + burst (3-7). Same 48x48 cell for both, anchor = ball/burst centre.",
+   "style": "no black outline (glow FX): bright core -> darker coloured rim, binary alpha, fades via ordered dither"
+  },
+  "fx/fx_heal_sparkle.png": {
+   "frame_size": [
+    48,
+    64
+   ],
+   "frames": 6,
+   "fps": 10,
+   "anchor": [
+    24,
+    63
+   ],
+   "loop": true,
+   "notes": "anchor on the seat/monster feet (bottom-centre). Loop 1-2x. Heal colour lime #b4dc62; pair with ui/dmg_font_heal.",
+   "style": "no black outline (glow FX): bright core -> darker coloured rim, binary alpha, fades via ordered dither"
+  },
+  "fx/fx_buff_aura.png": {
+   "frame_size": [
+    56,
+    72
+   ],
+   "frames": 6,
+   "fps": 10,
+   "anchor": [
+    28,
+    71
+   ],
+   "loop": true,
+   "notes": "gold rising aura + chevrons; anchor on feet. Draw the whole strip BEHIND the seat for a softer look, or in front (ring front arc overlaps feet).",
+   "style": "no black outline (glow FX): bright core -> darker coloured rim, binary alpha, fades via ordered dither"
+  },
+  "fx/fx_poison_cloud.png": {
+   "frame_size": [
+    56,
+    48
+   ],
+   "frames": 6,
+   "fps": 8,
+   "anchor": [
+    28,
+    36
+   ],
+   "loop": false,
+   "notes": "toxic purple puffs with acid-green bubbles (purple keeps it readable over the green meadow); anchor ~ target waist/centre. Frames 2-3 can loop while a DoT ticks.",
+   "style": "no black outline (glow FX): bright core -> darker coloured rim, binary alpha, fades via ordered dither"
+  },
+  "fx/fx_shield.png": {
+   "frame_size": [
+    56,
+    72
+   ],
+   "frames": 5,
+   "fps": 10,
+   "anchor": [
+    28,
+    71
+   ],
+   "loop": false,
+   "segments": {
+    "form": {
+     "frames": [
+      0,
+      1
+     ],
+     "loop": false
+    },
+    "hold": {
+     "frames": [
+      2,
+      3,
+      4
+     ],
+     "loop": true
+    }
+   },
+   "notes": "force bubble around a 48x70 seat/monster; anchor on feet. Play 0-1 once then loop 2-4 while the shield lasts; pixel-hex fill keeps the target visible (binary alpha).",
+   "style": "no black outline (glow FX): bright core -> darker coloured rim, binary alpha, fades via ordered dither"
+  },
+  "fx/fx_lightning.png": {
+   "frame_size": [
+    32,
+    96
+   ],
+   "frames": 5,
+   "fps": 16,
+   "anchor": [
+    16,
+    95
+   ],
+   "loop": false,
+   "notes": "strike from above; anchor = impact point at the target feet (bottom-centre). Frame 2 = impact flash. Hold frame 1-2 alternation for longer zaps.",
+   "style": "no black outline (glow FX): bright core -> darker coloured rim, binary alpha, fades via ordered dither"
+  },
+  "fx/taunt_badge.png": {
+   "frame_size": [
+    12,
+    13
+   ],
+   "frames": 2,
+   "fps": 3,
+   "anchor": [
+    6,
+    12
+   ],
+   "loop": true,
+   "notes": "overhead taunt/aggro badge (red \"!\" shout). Place the anchor ~2px above the top of the seat/monster sprite (e.g. seat top y = feet-78+hat). 1px bob. Has a dark outline like UI icons.",
+   "style": "no black outline (glow FX): bright core -> darker coloured rim, binary alpha, fades via ordered dither"
+  },
+  "fx/taunt_aura.png": {
+   "frame_size": [
+    56,
+    16
+   ],
+   "frames": 3,
+   "fps": 6,
+   "anchor": [
+    28,
+    8
+   ],
+   "loop": true,
+   "notes": "optional subtle red ground ring for a taunting seat/monster; centre it on the feet row (seat anchor) and draw BEHIND the sprite.",
+   "style": "no black outline (glow FX): bright core -> darker coloured rim, binary alpha, fades via ordered dither"
+  },
+  "fx/mana_tick.png": {
+   "frame_size": [
+    16,
+    28
+   ],
+   "frames": 6,
+   "fps": 10,
+   "anchor": [
+    8,
+    27
+   ],
+   "loop": false,
+   "notes": "subtle MP-regen tick in the MP colour #4c9ce8: blue sparkles rising. Anchor at the seat feet/centre or on the MP bar of the card; play once per regen tick. Pair with fx/mp_plus.png.",
+   "style": "no black outline (glow FX): bright core -> darker coloured rim, binary alpha, fades via ordered dither"
+  },
+  "fx/mp_plus.png": {
+   "frame_size": [
+    19,
+    14
+   ],
+   "frames": 4,
+   "fps": 8,
+   "anchor": [
+    9,
+    13
+   ],
+   "loop": false,
+   "notes": "'+MP' float in MP colours: rises 1px/frame, last frame dithered out. For numbers use dmg_font_mp + dmg_font_mp_letters instead.",
+   "style": "no black outline (glow FX): bright core -> darker coloured rim, binary alpha, fades via ordered dither"
+  }
+ },
+ "motifs": {
+  "paladin_1": "sword of light (holy strike)",
+  "paladin_2": "shield bash",
+  "paladin_3": "holy aura (radiant halo)",
+  "paladin_4": "taunt (shout burst \"!\")",
+  "wizard_1": "fireball",
+  "wizard_2": "ice shard",
+  "wizard_3": "lightning bolt",
+  "wizard_4": "arcane shield (hex ward)",
+  "ranger_1": "arrow shot",
+  "ranger_2": "multi-shot (3 arrows)",
+  "ranger_3": "snare trap (bear trap)",
+  "ranger_4": "animal companion (paw print)",
+  "bard_1": "music note (damage note)",
+  "bard_2": "song buff (note + up arrow)",
+  "bard_3": "lullaby (moon + zz)",
+  "bard_4": "lute",
+  "cleric_1": "heal (green cross)",
+  "cleric_2": "holy cross (bless)",
+  "cleric_3": "resurrect (spirit ankh)",
+  "cleric_4": "smite (holy hammer)",
+  "rogue_1": "dagger strike",
+  "rogue_2": "poison vial",
+  "rogue_3": "smoke bomb",
+  "rogue_4": "backstab (bloody dagger)",
+  "barbarian_1": "axe chop",
+  "barbarian_2": "rage (angry flame)",
+  "barbarian_3": "war cry (horn + sound waves)",
+  "barbarian_4": "stomp (boot + shockwave)",
+  "druid_1": "leaf heal",
+  "druid_2": "thorns (thorny vine)",
+  "druid_3": "bear form",
+  "druid_4": "entangling roots",
+  "paladin_5": "guardian (aggro passive: target reticle on shield)",
+  "wizard_5": "mana flow (mana-regen passive: drop + up arrow)",
+  "ranger_5": "keen eye (accuracy/crit passive)",
+  "bard_5": "war drum (active: party haste)",
+  "cleric_5": "blessed (regen passive: haloed heart)",
+  "rogue_5": "pickpocket (active: steal gold)",
+  "barbarian_5": "provoke (taunt/aggro passive: shouting face)",
+  "druid_5": "regrowth (passive: sprout, heal over time)"
+ },
+ "kinds": {
+  "paladin_5": "passive",
+  "wizard_5": "passive",
+  "ranger_5": "passive",
+  "bard_5": "active",
+  "cleric_5": "passive",
+  "rogue_5": "active",
+  "barbarian_5": "passive",
+  "druid_5": "passive",
+  "paladin_1": "active",
+  "paladin_2": "active",
+  "paladin_3": "active",
+  "paladin_4": "active",
+  "wizard_1": "active",
+  "wizard_2": "active",
+  "wizard_3": "active",
+  "wizard_4": "active",
+  "ranger_1": "active",
+  "ranger_2": "active",
+  "ranger_3": "active",
+  "ranger_4": "active",
+  "bard_1": "active",
+  "bard_2": "active",
+  "bard_3": "active",
+  "bard_4": "active",
+  "cleric_1": "active",
+  "cleric_2": "active",
+  "cleric_3": "active",
+  "cleric_4": "active",
+  "rogue_1": "active",
+  "rogue_2": "active",
+  "rogue_3": "active",
+  "rogue_4": "active",
+  "barbarian_1": "active",
+  "barbarian_2": "active",
+  "barbarian_3": "active",
+  "barbarian_4": "active",
+  "druid_1": "active",
+  "druid_2": "active",
+  "druid_3": "active",
+  "druid_4": "active"
+ },
+ "bar_slots": {
+  "attack": [
+   4,
+   4
+  ],
+  "cover": [
+   37,
+   4
+  ],
+  "divider_x": 71,
+  "skills": [
+   [
+    75,
+    4
+   ],
+   [
+    108,
+    4
+   ],
+   [
+    141,
+    4
+   ],
+   [
+    174,
+    4
+   ],
+   [
+    207,
+    4
+   ]
+  ],
+  "item": [
+   245,
+   4
+  ],
+  "run": [
+   245,
+   26
+  ],
+  "cost_badges": [
+   [
+    83,
+    38
+   ],
+   [
+    116,
+    38
+   ],
+   [
+    149,
+    38
+   ],
+   [
+    182,
+    38
+   ],
+   [
+    215,
+    38
+   ]
+  ]
+ },
+ "costs": {
+  "paladin": [
+   2,
+   3,
+   4,
+   1,
+   null
+  ],
+  "wizard": [
+   3,
+   4,
+   5,
+   3,
+   null
+  ],
+  "rogue": [
+   2,
+   3,
+   2,
+   4,
+   1
+  ],
+  "cleric": [
+   3,
+   2,
+   6,
+   4,
+   null
+  ],
+  "ranger": [
+   1,
+   3,
+   2,
+   2,
+   null
+  ],
+  "bard": [
+   1,
+   2,
+   3,
+   2,
+   3
+  ],
+  "barbarian": [
+   0,
+   2,
+   3,
+   2,
+   null
+  ],
+  "druid": [
+   2,
+   3,
+   4,
+   3,
+   null
+  ]
+ }
+}

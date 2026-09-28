@@ -264,7 +264,8 @@ func _refresh() -> void:
 	_doll.set_look(_look, _class, _race, "front")
 	var scale := Layout.num("doll_scale")
 	var host: Control = _doll.get_parent()
-	_doll.position = (host.size - _doll.size * scale) * 0.5
+	var anchor := ArtPack.front_anchor()
+	_doll.position = Vector2(host.size.x * 0.5 - anchor.x * scale, host.size.y - 8.0 - anchor.y * scale)
 	var persona := ContentDB.persona(_persona)
 	var race := ContentDB.race(_race)
 	var cls := ContentDB.class_def(_class)

@@ -65,21 +65,14 @@ func _build() -> void:
 	_content.size = content_size
 	_content.custom_minimum_size = content_size
 	clip.add_child(_content)
-	var map_tex := TextureRect.new()
-	map_tex.texture = SpriteCatalog.map_texture()
-	map_tex.position = Vector2.ZERO
-	map_tex.size = content_size
-	map_tex.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	map_tex.stretch_mode = TextureRect.STRETCH_SCALE
-	map_tex.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_content.add_child(map_tex)
-
 	_pawn = TextureRect.new()
-	_pawn.texture = SpriteCatalog.ui("pawn")
+	_pawn.texture = ArtPack.frame_texture("map/pawn_walk.png", 0, Vector2(24, 20))
 	_pawn.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_pawn.size = Vector2(28, 24)
+	_pawn.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_pawn.stretch_mode = TextureRect.STRETCH_SCALE
+	_pawn.size = Vector2(24, 20)
 	_content.add_child(_pawn)
-	_pawn.position = _place_pos(GameState.place_id) - Vector2(14, 22)
+	_pawn.position = _place_pos(GameState.place_id) - Vector2(12, 19)
 
 	var controls := Widgets.panel()
 	Layout.place(controls, Layout.rect("map", "controls"))
@@ -195,7 +188,7 @@ func _run_route(path: Array) -> void:
 	_set_travel_buttons(false)
 	_die.visible = false
 	_info.visible = true
-	_pawn.position = _place_pos(GameState.place_id) - Vector2(14, 22)
+	_pawn.position = _place_pos(GameState.place_id) - Vector2(12, 19)
 	_content.set_meta("route", PackedVector2Array())
 	_refresh_hud()
 	arrived.emit(GameState.place_id, ambush)
@@ -237,7 +230,7 @@ func _hop(origin: String, dest: String, cost: int) -> String:
 func _set_hop_alpha(alpha: float, points: PackedVector2Array, length: float) -> void:
 	var pos := RouteFinder.point_along(points, length * alpha)
 	_pawn.visible = true
-	_pawn.position = pos - Vector2(14, 22)
+	_pawn.position = pos - Vector2(12, 19)
 	if points.size() >= 2:
 		var ahead := RouteFinder.point_along(points, minf(length, length * alpha + 4.0))
 		_pawn.flip_h = ahead.x < pos.x
@@ -329,6 +322,26 @@ func _pan(delta: Vector2) -> void:
 
 
 func paint_route(canvas: Control) -> void:
+	var grass := ArtPack.texture("map/tile_grass.png")
+	var content := Layout.vec("map", "content")
+	if grass:
+		var y := 0.0
+		while y < content.y:
+			var x := 0.0
+			while x < content.x:
+				var tile := grass
+				if int(x / 16.0 + y / 16.0) % 7 == 0:
+					var flowers := ArtPack.texture("map/tile_grass_flowers.png")
+					if flowers:
+						tile = flowers
+				canvas.draw_texture(tile, Vector2(x, y))
+				x += 16.0
+			y += 16.0
+	for place_id in ContentDB.places.keys():
+		var place: Dictionary = ContentDB.place(str(place_id))
+		var loc := ArtPack.texture("map/loc_%s.png" % str(place.get("sprite", "village")))
+		if loc:
+			canvas.draw_texture(loc, _place_pos(str(place_id)) - Vector2(16, 28))
 	var points: PackedVector2Array = _content.get_meta("route", PackedVector2Array())
 	if points.is_empty() and _selected != "" and not _traveling:
 		var path: Array = RouteFinder.fewest_hops(GameState.place_id, _selected, ContentDB.edges)

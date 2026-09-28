@@ -1,0 +1,899 @@
+{
+ "combat/d6_white.png": {
+  "frames": 6,
+  "frame_size": [
+   8,
+   8
+  ],
+  "fps": 12,
+  "anchor": [
+   4,
+   7
+  ],
+  "notes": "frame i = face i+1. Cycle randomly while rolling, stop on the result face."
+ },
+ "combat/d6_red.png": {
+  "frames": 6,
+  "frame_size": [
+   8,
+   8
+  ],
+  "fps": 12,
+  "anchor": [
+   4,
+   7
+  ],
+  "notes": "frame i = face i+1. Cycle randomly while rolling, stop on the result face."
+ },
+ "combat/d6_blue.png": {
+  "frames": 6,
+  "frame_size": [
+   8,
+   8
+  ],
+  "fps": 12,
+  "anchor": [
+   4,
+   7
+  ],
+  "notes": "frame i = face i+1. Cycle randomly while rolling, stop on the result face."
+ },
+ "combat/d6_green.png": {
+  "frames": 6,
+  "frame_size": [
+   8,
+   8
+  ],
+  "fps": 12,
+  "anchor": [
+   4,
+   7
+  ],
+  "notes": "frame i = face i+1. Cycle randomly while rolling, stop on the result face."
+ },
+ "combat/d6_yellow.png": {
+  "frames": 6,
+  "frame_size": [
+   8,
+   8
+  ],
+  "fps": 12,
+  "anchor": [
+   4,
+   7
+  ],
+  "notes": "frame i = face i+1. Cycle randomly while rolling, stop on the result face."
+ },
+ "combat/d6_black.png": {
+  "frames": 6,
+  "frame_size": [
+   8,
+   8
+  ],
+  "fps": 12,
+  "anchor": [
+   4,
+   7
+  ],
+  "notes": "frame i = face i+1. Cycle randomly while rolling, stop on the result face."
+ },
+ "combat/d6_all.png": {
+  "frame_size": [
+   8,
+   8
+  ],
+  "notes": "6x6 grid: rows white,red,blue,green,yellow,black; columns faces 1-6."
+ },
+ "map/tile_grass.png": {
+  "anchor": [
+   0,
+   0
+  ],
+  "notes": "16x16 seamless. "
+ },
+ "map/tile_grass_flowers.png": {
+  "anchor": [
+   0,
+   0
+  ],
+  "notes": "16x16 seamless. "
+ },
+ "map/tile_road_h.png": {
+  "anchor": [
+   0,
+   0
+  ],
+  "notes": "16x16 seamless. "
+ },
+ "map/tile_road_v.png": {
+  "anchor": [
+   0,
+   0
+  ],
+  "notes": "16x16 seamless. road_h rotated 90."
+ },
+ "map/tile_road_corner.png": {
+  "anchor": [
+   0,
+   0
+  ],
+  "notes": "16x16 seamless. connects EAST+SOUTH; flip_h -> W+S, flip_v -> E+N, flip_h+flip_v -> W+N."
+ },
+ "map/tile_road_cross.png": {
+  "anchor": [
+   0,
+   0
+  ],
+  "notes": "16x16 seamless. "
+ },
+ "map/tile_road_t.png": {
+  "anchor": [
+   0,
+   0
+  ],
+  "notes": "16x16 seamless. T-junction joining EAST+WEST+SOUTH; flip_v -> E+W+N; see tile_road_t_* for the vertical variants."
+ },
+ "map/tile_river_h.png": {
+  "anchor": [
+   0,
+   0
+  ],
+  "notes": "16x16 seamless. "
+ },
+ "map/tile_river_v.png": {
+  "anchor": [
+   0,
+   0
+  ],
+  "notes": "16x16 seamless. river_h rotated 90."
+ },
+ "map/tile_river_corner.png": {
+  "anchor": [
+   0,
+   0
+  ],
+  "notes": "16x16 seamless. connects EAST+SOUTH; flips give the other 3 rotations."
+ },
+ "map/tile_bridge_h.png": {
+  "anchor": [
+   0,
+   0
+  ],
+  "notes": "16x16 seamless. road E-W over a N-S river; joins road_h and river_v."
+ },
+ "map/tile_bridge_v.png": {
+  "anchor": [
+   0,
+   0
+  ],
+  "notes": "16x16 seamless. bridge_h rotated 90 (road N-S over an E-W river)."
+ },
+ "map/tile_road_corner_es.png": {
+  "anchor": [
+   0,
+   0
+  ],
+  "notes": "road corner joining ES (pre-flipped copy)."
+ },
+ "map/tile_road_corner_ws.png": {
+  "anchor": [
+   0,
+   0
+  ],
+  "notes": "road corner joining WS (pre-flipped copy)."
+ },
+ "map/tile_road_corner_en.png": {
+  "anchor": [
+   0,
+   0
+  ],
+  "notes": "road corner joining EN (pre-flipped copy)."
+ },
+ "map/tile_road_corner_wn.png": {
+  "anchor": [
+   0,
+   0
+  ],
+  "notes": "road corner joining WN (pre-flipped copy)."
+ },
+ "map/tile_road_t_ews.png": {
+  "anchor": [
+   0,
+   0
+  ],
+  "notes": "T-junction joining EWS (pre-rotated copy)."
+ },
+ "map/tile_road_t_ewn.png": {
+  "anchor": [
+   0,
+   0
+  ],
+  "notes": "T-junction joining EWN (pre-rotated copy)."
+ },
+ "map/tile_road_t_nse.png": {
+  "anchor": [
+   0,
+   0
+  ],
+  "notes": "T-junction joining NSE (pre-rotated copy)."
+ },
+ "map/tile_road_t_nsw.png": {
+  "anchor": [
+   0,
+   0
+  ],
+  "notes": "T-junction joining NSW (pre-rotated copy)."
+ },
+ "map/tiles_preview.png": {
+  "notes": "QA preview showing tiles assembled (not a runtime asset)."
+ },
+ "ui/btn_attack.png": {
+  "anchor": [
+   0,
+   0
+  ],
+  "notes": "normal state. 28x28, icon area rect [4,4,20,20]."
+ },
+ "ui/btn_attack_active.png": {
+  "anchor": [
+   0,
+   0
+  ],
+  "notes": "highlighted/selected state (gold frame). 28x28, icon area rect [4,4,20,20]."
+ },
+ "ui/btn_skill.png": {
+  "anchor": [
+   0,
+   0
+  ],
+  "notes": "normal state. 28x28, icon area rect [4,4,20,20]."
+ },
+ "ui/btn_skill_active.png": {
+  "anchor": [
+   0,
+   0
+  ],
+  "notes": "highlighted/selected state (gold frame). 28x28, icon area rect [4,4,20,20]."
+ },
+ "ui/btn_item.png": {
+  "anchor": [
+   0,
+   0
+  ],
+  "notes": "normal state. 28x28, icon area rect [4,4,20,20]."
+ },
+ "ui/btn_item_active.png": {
+  "anchor": [
+   0,
+   0
+  ],
+  "notes": "highlighted/selected state (gold frame). 28x28, icon area rect [4,4,20,20]."
+ },
+ "ui/btn_cover.png": {
+  "anchor": [
+   0,
+   0
+  ],
+  "notes": "normal state. 28x28, icon area rect [4,4,20,20]."
+ },
+ "ui/btn_cover_active.png": {
+  "anchor": [
+   0,
+   0
+  ],
+  "notes": "highlighted/selected state (gold frame). 28x28, icon area rect [4,4,20,20]."
+ },
+ "ui/btn_run.png": {
+  "anchor": [
+   0,
+   0
+  ],
+  "notes": "normal state. 28x28, icon area rect [4,4,20,20]."
+ },
+ "ui/btn_run_active.png": {
+  "anchor": [
+   0,
+   0
+  ],
+  "notes": "highlighted/selected state (gold frame). 28x28, icon area rect [4,4,20,20]."
+ },
+ "ui/portrait_frame.png": {
+  "anchor": [
+   0,
+   0
+  ],
+  "portrait_rect": [
+   2,
+   2,
+   20,
+   20
+  ],
+  "notes": "24x24 (2px border). Draw the 20x20 portrait crop at [2,2]; ink fill behind."
+ },
+ "ui/portrait_frame_active.png": {
+  "anchor": [
+   0,
+   0
+  ],
+  "portrait_rect": [
+   2,
+   2,
+   20,
+   20
+  ],
+  "notes": "24x24 (2px border). Draw the 20x20 portrait crop at [2,2]; ink fill behind."
+ },
+ "ui/bar_hp.png": {
+  "notes": "TextureProgressBar fill (54x5). Row0 highlight, row4 shadow. Crop/scale width only (nearest)."
+ },
+ "ui/bar_mp.png": {
+  "notes": "MP fill (54x5)."
+ },
+ "ui/bar_bg.png": {
+  "notes": "56x7 under-texture; fill goes at offset [1,1].",
+  "fill_rect": [
+   1,
+   1,
+   54,
+   5
+  ]
+ },
+ "ui/bar_hp_tile.png": {
+  "notes": "12x5 horizontally tileable fill for arbitrary bar lengths."
+ },
+ "ui/bar_mp_tile.png": {
+  "notes": "12x5 horizontally tileable fill."
+ },
+ "ui/enemy_bar_bg.png": {
+  "anchor": [
+   16,
+   4
+  ],
+  "fill_rect": [
+   1,
+   1,
+   30,
+   3
+  ],
+  "notes": "small monster HP bar trough; bottom-centre anchor goes on the monster hp_bar_anchor."
+ },
+ "ui/enemy_bar_hp.png": {
+  "notes": "30x3 monster HP fill, draw at [1,1] inside enemy_bar_bg, crop width by HP%."
+ },
+ "ui/hp_mp_card.png": {
+  "anchor": [
+   0,
+   0
+  ],
+  "portrait_rect": [
+   4,
+   4,
+   20,
+   20
+  ],
+  "hp_bar_rect": [
+   36,
+   6,
+   54,
+   5
+  ],
+  "mp_bar_rect": [
+   36,
+   16,
+   54,
+   5
+  ],
+  "hp_label": [
+   27,
+   7
+  ],
+  "mp_label": [
+   27,
+   17
+  ],
+  "notes": "96x28. Empty bar troughs are baked in; draw bar_hp/bar_mp fills (54x5) at the rects, scaled/cropped horizontally by HP%."
+ },
+ "ui/panel_parchment.png": {
+  "nine_slice_margins": {
+   "left": 6,
+   "top": 6,
+   "right": 6,
+   "bottom": 6
+  },
+  "notes": "48x48 NinePatchRect source; margins 6px each side (frame 5px + 1px interior). Centre may tile or stretch (speckle is sparse)."
+ },
+ "ui/panel_dark.png": {
+  "nine_slice_margins": {
+   "left": 6,
+   "top": 6,
+   "right": 6,
+   "bottom": 6
+  },
+  "notes": "48x48 NinePatchRect source; margins 6px each side (frame 5px + 1px interior). Centre may tile or stretch (speckle is sparse)."
+ },
+ "ui/dmg_font_hp.png": {
+  "frames": 12,
+  "frame_size": [
+   7,
+   9
+  ],
+  "notes": "glyph order '0123456789+-'; advance 6px (1px outline overlap). Colour ec5a44 / shade c02c2c, outline #120c18."
+ },
+ "ui/dmg_font_mp.png": {
+  "frames": 12,
+  "frame_size": [
+   7,
+   9
+  ],
+  "notes": "glyph order '0123456789+-'; advance 6px (1px outline overlap). Colour 4c9ce8 / shade 3466cc, outline #120c18."
+ },
+ "ui/dmg_font_heal.png": {
+  "frames": 12,
+  "frame_size": [
+   7,
+   9
+  ],
+  "notes": "glyph order '0123456789+-'; advance 6px (1px outline overlap). Colour b4dc62 / shade 7cbc3c, outline #120c18."
+ },
+ "ui/dmg_numbers_preview.png": {
+  "notes": "QA preview of damage numbers over the forest backdrop (not a runtime asset)."
+ },
+ "combat/table.png": {
+  "anchor": [
+   150,
+   43
+  ],
+  "top_surface_rows": [
+   1,
+   13
+  ],
+  "near_edge_y": 14,
+  "apron_rows": [
+   15,
+   20
+  ],
+  "legacy": true,
+  "notes": "LEGACY (landscape). v2 procedural 300x44, calm grain. Bottom-centre anchor."
+ },
+ "combat/table_portrait.png": {
+  "anchor": [
+   133,
+   39
+  ],
+  "top_surface_rows": [
+   1,
+   12
+  ],
+  "near_edge_y": 13,
+  "apron_rows": [
+   14,
+   19
+  ],
+  "notes": "PORTRAIT table (v5: widened 250->266 for a 5-seat party), procedural 266x40: 3 long planks, 3 flat wood tones, tan highlight lip on the near edge. Bottom-centre anchor; GM hands/props sit on the top surface rows."
+ },
+ "combat/d20_roll.png": {
+  "frames": 4,
+  "frame_size": [
+   24,
+   24
+  ],
+  "fps": 12,
+  "anchor": [
+   12,
+   23
+  ],
+  "notes": "v2 24x24. Loop frames 0-2 while tumbling (flat/pointy silhouettes alternate), then land on frame 3 (legible 20) or swap in the rolled face from d20_results.png."
+ },
+ "combat/d20_results.png": {
+  "frames": 20,
+  "frame_size": [
+   24,
+   24
+  ],
+  "anchor": [
+   12,
+   23
+  ],
+  "notes": "result faces: frame i shows number i+1 (bold 5x7 digits in #120c18 on a white triangle)."
+ },
+ "combat/d20_nat20.png": {
+  "anchor": [
+   12,
+   23
+  ],
+  "notes": "gold natural-20 result frame (swap in for frame 3 on a nat 20)."
+ },
+ "ui/portrait/hp_mp_card_narrow.png": {
+  "anchor": [
+   0,
+   0
+  ],
+  "portrait_rect": [
+   4,
+   4,
+   20,
+   20
+  ],
+  "hp_bar_rect": [
+   36,
+   6,
+   88,
+   5
+  ],
+  "mp_bar_rect": [
+   36,
+   16,
+   88,
+   5
+  ],
+  "hp_label": [
+   27,
+   7
+  ],
+  "mp_label": [
+   27,
+   17
+  ],
+  "notes": "130x28 portrait-layout card (2x2 grid). Draw bar_hp_88/bar_mp_88 at the rects, cropped by %."
+ },
+ "ui/portrait/bar_hp_88.png": {
+  "notes": "88x5 HP fill for the narrow card."
+ },
+ "ui/portrait/bar_mp_88.png": {
+  "notes": "88x5 MP fill for the narrow card."
+ },
+ "ui/portrait/bar_bg_90.png": {
+  "fill_rect": [
+   1,
+   1,
+   88,
+   5
+  ],
+  "notes": "90x7 trough (already baked into the narrow card)."
+ },
+ "ui/portrait/hp_mp_card_compact.png": {
+  "anchor": [
+   0,
+   0
+  ],
+  "size": [
+   52,
+   44
+  ],
+  "portrait_rect": [
+   16,
+   4,
+   20,
+   20
+  ],
+  "hp_bar_rect": [
+   4,
+   27,
+   44,
+   5
+  ],
+  "mp_bar_rect": [
+   4,
+   34,
+   44,
+   5
+  ],
+  "notes": "v5 compact vertical party card 52x44 for a 5-wide row (step 54 = 52 + 2px gap). Face crop (paperdoll portrait_crop_rect) at portrait_rect; bar_hp_44/bar_mp_44 at the bar rects, cropped by %. Bars are colour-coded red/blue (no HP/MP text at this size)."
+ },
+ "ui/portrait/hp_mp_card_compact_active.png": {
+  "anchor": [
+   0,
+   0
+  ],
+  "size": [
+   52,
+   44
+  ],
+  "portrait_rect": [
+   16,
+   4,
+   20,
+   20
+  ],
+  "hp_bar_rect": [
+   4,
+   27,
+   44,
+   5
+  ],
+  "mp_bar_rect": [
+   4,
+   34,
+   44,
+   5
+  ],
+  "notes": "ACTIVE/current-turn highlight (gold frame). v5 compact vertical party card 52x44 for a 5-wide row (step 54 = 52 + 2px gap). Face crop (paperdoll portrait_crop_rect) at portrait_rect; bar_hp_44/bar_mp_44 at the bar rects, cropped by %. Bars are colour-coded red/blue (no HP/MP text at this size)."
+ },
+ "ui/portrait/bar_hp_44.png": {
+  "notes": "44x5 HP fill for hp_mp_card_compact (rect [4,27,44,5])."
+ },
+ "ui/portrait/bar_mp_44.png": {
+  "notes": "44x5 MP fill for hp_mp_card_compact (rect [4,34,44,5])."
+ },
+ "ui/portrait/btn32_attack.png": {
+  "anchor": [
+   0,
+   0
+  ],
+  "icon_rect": [
+   6,
+   6,
+   20,
+   20
+  ],
+  "notes": "32x32 bottom-bar action button (same icon art as ui/btn_*)."
+ },
+ "ui/portrait/btn32_attack_active.png": {
+  "anchor": [
+   0,
+   0
+  ],
+  "icon_rect": [
+   6,
+   6,
+   20,
+   20
+  ],
+  "notes": "selected (gold). 32x32 bottom-bar action button (same icon art as ui/btn_*)."
+ },
+ "ui/portrait/btn32_skill.png": {
+  "anchor": [
+   0,
+   0
+  ],
+  "icon_rect": [
+   6,
+   6,
+   20,
+   20
+  ],
+  "notes": "32x32 bottom-bar action button (same icon art as ui/btn_*)."
+ },
+ "ui/portrait/btn32_skill_active.png": {
+  "anchor": [
+   0,
+   0
+  ],
+  "icon_rect": [
+   6,
+   6,
+   20,
+   20
+  ],
+  "notes": "selected (gold). 32x32 bottom-bar action button (same icon art as ui/btn_*)."
+ },
+ "ui/portrait/btn32_item.png": {
+  "anchor": [
+   0,
+   0
+  ],
+  "icon_rect": [
+   6,
+   6,
+   20,
+   20
+  ],
+  "notes": "32x32 bottom-bar action button (same icon art as ui/btn_*)."
+ },
+ "ui/portrait/btn32_item_active.png": {
+  "anchor": [
+   0,
+   0
+  ],
+  "icon_rect": [
+   6,
+   6,
+   20,
+   20
+  ],
+  "notes": "selected (gold). 32x32 bottom-bar action button (same icon art as ui/btn_*)."
+ },
+ "ui/portrait/btn32_cover.png": {
+  "anchor": [
+   0,
+   0
+  ],
+  "icon_rect": [
+   6,
+   6,
+   20,
+   20
+  ],
+  "notes": "32x32 bottom-bar action button (same icon art as ui/btn_*)."
+ },
+ "ui/portrait/btn32_cover_active.png": {
+  "anchor": [
+   0,
+   0
+  ],
+  "icon_rect": [
+   6,
+   6,
+   20,
+   20
+  ],
+  "notes": "selected (gold). 32x32 bottom-bar action button (same icon art as ui/btn_*)."
+ },
+ "ui/portrait/btn32_run.png": {
+  "anchor": [
+   0,
+   0
+  ],
+  "icon_rect": [
+   6,
+   6,
+   20,
+   20
+  ],
+  "notes": "32x32 bottom-bar action button (same icon art as ui/btn_*)."
+ },
+ "ui/portrait/btn32_run_active.png": {
+  "anchor": [
+   0,
+   0
+  ],
+  "icon_rect": [
+   6,
+   6,
+   20,
+   20
+  ],
+  "notes": "selected (gold). 32x32 bottom-bar action button (same icon art as ui/btn_*)."
+ },
+ "ui/portrait/action_bar.png": {
+  "anchor": [
+   0,
+   47
+  ],
+  "nine_slice_margins": {
+   "left": 6,
+   "top": 6,
+   "right": 6,
+   "bottom": 6
+  },
+  "button_rects": [
+   [
+    19,
+    8,
+    32,
+    32
+   ],
+   [
+    69,
+    8,
+    32,
+    32
+   ],
+   [
+    119,
+    8,
+    32,
+    32
+   ],
+   [
+    169,
+    8,
+    32,
+    32
+   ],
+   [
+    219,
+    8,
+    32,
+    32
+   ]
+  ],
+  "notes": "270x48 bottom bar; place at y=432 (bottom-left anchor at y 479). 5 buttons 32x32, 18px gaps, order attack/skill/item/cover/run."
+ },
+ "ui/portrait/top_bar.png": {
+  "anchor": [
+   0,
+   0
+  ],
+  "nine_slice_margins": {
+   "left": 3,
+   "top": 3,
+   "right": 3,
+   "bottom": 3
+  },
+  "gold_icon_pos": [
+   5,
+   5
+  ],
+  "gold_text_pos": [
+   18,
+   8
+  ],
+  "menu_btn_pos": [
+   249,
+   1
+  ],
+  "notes": "270x20 map/creator top bar."
+ },
+ "ui/icon_gold.png": {
+  "anchor": [
+   0,
+   0
+  ],
+  "notes": "10x10 gold coin."
+ },
+ "ui/btn_menu.png": {
+  "anchor": [
+   0,
+   0
+  ],
+  "notes": "18x18 menu (hamburger) button."
+ },
+ "map/marker_arrow.png": {
+  "frames": 2,
+  "frame_size": [
+   9,
+   12
+  ],
+  "fps": 3,
+  "anchor": [
+   4,
+   11
+  ],
+  "notes": "destination marker, bottom tip at the anchor; 2px bob."
+ },
+ "ui/btn_confirm.png": {
+  "anchor": [
+   0,
+   0
+  ],
+  "notes": "56x24 confirm (check) button."
+ },
+ "ui/btn_random.png": {
+  "anchor": [
+   0,
+   0
+  ],
+  "notes": "56x24 randomise (die) button."
+ },
+ "ui/btn_arrow_right.png": {
+  "anchor": [
+   0,
+   0
+  ],
+  "notes": "14x22 creator cycle arrow."
+ },
+ "ui/btn_arrow_left.png": {
+  "anchor": [
+   0,
+   0
+  ],
+  "notes": "14x22 creator cycle arrow."
+ },
+ "ui/swatch_frame.png": {
+  "anchor": [
+   0,
+   0
+  ],
+  "swatch_rect": [
+   2,
+   2,
+   12,
+   12
+  ],
+  "notes": "16x16 colour swatch frame; transparent 12x12 centre for the colour."
+ },
+ "ui/swatch_frame_active.png": {
+  "anchor": [
+   0,
+   0
+  ],
+  "swatch_rect": [
+   2,
+   2,
+   12,
+   12
+  ],
+  "notes": "16x16 colour swatch frame; transparent 12x12 centre for the colour."
+ }
+}
