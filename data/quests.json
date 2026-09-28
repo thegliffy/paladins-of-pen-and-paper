@@ -1,0 +1,10 @@
+[
+  {
+    "id": "reed_trouble",
+    "name": "Reed Trouble",
+    "place": "millpond",
+    "description": "The miller at Candlewick says the pond is crawling. Win a fight at Millpond.",
+    "xp": 40,
+    "gold": 80
+  }
+]

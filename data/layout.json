@@ -1,0 +1,50 @@
+{
+  "active": "portrait",
+  "portrait": {
+    "viewport": [270, 480],
+    "font": 16,
+    "font_small": 12,
+    "font_tiny": 10,
+    "margin": 4,
+    "button_min": [48, 44],
+    "doll_scale": 1.85,
+    "monster_front_drop": 30,
+    "monster_back_lift": 16,
+    "combat": {
+      "initiative": [4, 2, 262, 24],
+      "monsters": [0, 26, 270, 104],
+      "table": [6, 164, 258, 64],
+      "gm": [135, 198],
+      "seats": [[16, 214], [104, 218], [188, 214]],
+      "cards": [4, 292, 262, 90],
+      "caption": [6, 384, 258, 18],
+      "actions": [2, 404, 266, 72]
+    },
+    "map": {
+      "top_bar": [0, 0, 270, 28],
+      "view": [0, 28, 270, 344],
+      "controls": [0, 372, 270, 108],
+      "content": [250, 760]
+    },
+    "creator": {
+      "header": [0, 0, 270, 22],
+      "doll": [0, 22, 270, 124],
+      "tabs": [4, 148, 262, 30],
+      "options": [4, 180, 262, 200],
+      "stats": [4, 382, 262, 20],
+      "actions": [4, 404, 262, 72]
+    },
+    "hub": {
+      "banner": [4, 4, 262, 20]
+    },
+    "title": {
+      "block": [16, 64, 238, 140],
+      "actions": [24, 320, 222, 130]
+    }
+  },
+  "landscape": {
+    "ready": false,
+    "note": "Reserved for the desktop pass. Author this block, set ready to true, and set active to landscape. Screens read Layout and do not hardcode portrait coordinates.",
+    "viewport": [480, 270]
+  }
+}

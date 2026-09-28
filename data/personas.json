@@ -1,0 +1,58 @@
+[
+  {
+    "id": "mason",
+    "name": "Mason",
+    "body": 3,
+    "senses": 0,
+    "mind": 0,
+    "passive_id": "oakhide",
+    "passive_name": "Oakhide",
+    "passive_desc": "Mason's hide-tough skin adds 8 damage reduction.",
+    "dr": 8,
+    "initiative": 0,
+    "spell_bonus": 0.0,
+    "travel_bonus": 0
+  },
+  {
+    "id": "pip",
+    "name": "Pip",
+    "body": 1,
+    "senses": 2,
+    "mind": 0,
+    "passive_id": "trail_sense",
+    "passive_name": "Trail Sense",
+    "passive_desc": "Pip reads the room early: +2 initiative.",
+    "dr": 0,
+    "initiative": 2,
+    "spell_bonus": 0.0,
+    "travel_bonus": 0
+  },
+  {
+    "id": "nim",
+    "name": "Nim",
+    "body": 0,
+    "senses": 0,
+    "mind": 3,
+    "passive_id": "inkpot",
+    "passive_name": "Inkpot",
+    "passive_desc": "Nim's notes add 10% to spell damage.",
+    "dr": 0,
+    "initiative": 0,
+    "spell_bonus": 0.1,
+    "travel_bonus": 0
+  },
+  {
+    "id": "sable",
+    "name": "Sable",
+    "body": 1,
+    "senses": 1,
+    "mind": 1,
+    "passive_id": "waybread",
+    "passive_name": "Waybread",
+    "passive_desc": "Sable packs for the road: +1 on travel rolls.",
+    "dr": 0,
+    "initiative": 0,
+    "spell_bonus": 0.0,
+    "travel_bonus": 1
+  }
+]

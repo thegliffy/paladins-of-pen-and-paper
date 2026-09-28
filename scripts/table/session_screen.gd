@@ -1,0 +1,833 @@
+extends Control
+class_name SessionScreen
+## Table scene for the hub and for combat. Positions come from Layout.
+
+signal action_pressed(action_id: String)
+signal target_pressed(target_id: String)
+signal continue_pressed
+
+var _monster_layer: Control
+var _seat_layer: Control
+var _seats: Array = []
+var _monsters := {}
+var _bars := {}
+var _actions: HBoxContainer
+var _caption: Label
+var _initiative: HBoxContainer
+var _cards: HBoxContainer
+var _banner: Label
+var _modal: Control
+var _dice: Control
+var _dice_labels: Array = []
+var _targeting := false
+var _flickers: Array = []
+var _table: TextureRect
+var _gm: TextureRect
+var _idle := 0.0
+var _idle_frame := 0
+
+
+func _ready() -> void:
+	_build_chrome()
+	show_hub()
+
+
+func _process(delta: float) -> void:
+	_idle += delta
+	if _idle < 0.5:
+		return
+	_idle = 0.0
+	_idle_frame = 1 - _idle_frame
+	for id in _monsters.keys():
+		var node: Control = _monsters[id]
+		if not node.visible or bool(node.get_meta("acting", false)):
+			continue
+		_set_frame(node, _idle_frame)
+
+
+func show_hub() -> void:
+	clear_monsters()
+	_set_table_visible(true)
+	_initiative.visible = false
+	_banner.visible = true
+	var place: Dictionary = ContentDB.place(GameState.place_id)
+	_banner.text = "%s   %d gold" % [place["name"], GameState.gold]
+	_caption.text = str(place["description"])
+	_sync_party()
+	var fight: bool = (place.get("monsters", []) as Array).size() > 0
+	set_actions([
+		{"id": "travel", "label": "Travel", "icon": "icon_run"},
+		{"id": "fight", "label": "Fight", "icon": "icon_attack", "disabled": not fight},
+		{"id": "rest", "label": "Rest", "icon": "icon_cover"},
+		{"id": "quest", "label": "Quest", "icon": "icon_skill"},
+		{"id": "party", "label": "Party", "icon": "icon_item"},
+	])
+	_close_modal()
+
+
+func location_banner(text: String) -> void:
+	_caption.text = text
+	await get_tree().create_timer(Timing.LOCATION_BANNER).timeout
+	if is_instance_valid(self):
+		var place: Dictionary = ContentDB.place(GameState.place_id)
+		_caption.text = str(place.get("description", ""))
+
+
+func stage_battle_preview() -> void:
+	show_hub()
+	_banner.visible = false
+	_initiative.visible = true
+	var rows := [
+		{"id": "thicket_imp", "hp_ratio": 0.7},
+		{"id": "cave_howler", "hp_ratio": 1.0},
+		{"id": "puddleblob", "hp_ratio": 0.45},
+	]
+	var units := []
+	for i in rows.size():
+		var monster: Dictionary = ContentDB.monster(rows[i]["id"])
+		var hp := Formulas.monster_max_hp(int(monster["level"]), int(monster["body"]), int(monster["mind"]))
+		units.append({
+			"id": "m%d" % i,
+			"kind": rows[i]["id"],
+			"name": monster["name"],
+			"side": "monster",
+			"hp": int(float(hp) * float(rows[i]["hp_ratio"])),
+			"max_hp": hp,
+			"mp": 0,
+			"max_mp": 1,
+			"back_row": bool(monster["back_row"]),
+		})
+	for unit in units:
+		_add_monster(unit)
+	_layout_monsters()
+	_raise(0, true)
+	_caption.text = "Mason's turn"
+	set_actions([
+		{"id": "attack", "label": "Attack", "icon": "icon_attack"},
+		{"id": "skill", "label": "Skill", "icon": "icon_skill"},
+		{"id": "item", "label": "Item", "icon": "icon_item"},
+		{"id": "cover", "label": "Cover", "icon": "icon_cover"},
+		{"id": "run", "label": "Run", "icon": "icon_run"},
+	])
+	var order := []
+	order.append({"id": "p0", "side": "player", "index": 0})
+	for unit in units:
+		order.append({"id": unit["id"], "side": "monster", "kind": unit["kind"]})
+	order.append({"id": "p1", "side": "player", "index": 1})
+	order.append({"id": "p2", "side": "player", "index": 2})
+	set_initiative(order, "p0")
+	if GameState.party.size() > 1:
+		GameState.party[1]["hp"] = int(int(GameState.combat_stats(GameState.party[1])["max_hp"]) * 0.62)
+		_sync_party()
+
+
+func intro(ambush: bool) -> void:
+	set_actions([])
+	clear_monsters()
+	_set_table_visible(false)
+	_initiative.visible = false
+	_banner.visible = false
+	_caption.text = "Ambush!" if ambush else "The table goes quiet."
+	await get_tree().create_timer(Timing.BATTLE_INTRO).timeout
+	_set_table_visible(true)
+	_initiative.visible = true
+
+
+func clear_monsters() -> void:
+	for id in _monsters.keys():
+		var node: Node = _monsters[id]
+		if is_instance_valid(node):
+			node.queue_free()
+	_monsters.clear()
+	for key in _bars.keys():
+		if str(key).begins_with("m"):
+			_bars.erase(key)
+
+
+func present_units(units: Array) -> void:
+	clear_monsters()
+	for unit in units:
+		if str(unit["side"]) == "monster":
+			_add_monster(unit)
+	_layout_monsters()
+	_sync_from_units(units)
+
+
+func set_initiative(order: Array, current_id: String) -> void:
+	for child in _initiative.get_children():
+		child.queue_free()
+	for entry in order:
+		var slot := Panel.new()
+		slot.custom_minimum_size = Vector2(22, 22)
+		var box := StyleBoxFlat.new()
+		box.bg_color = Color(0.15, 0.1, 0.08)
+		box.border_color = SpriteCatalog.HIGHLIGHT if str(entry["id"]) == current_id else Color(0.3, 0.22, 0.16)
+		box.set_border_width_all(2 if str(entry["id"]) == current_id else 1)
+		slot.add_theme_stylebox_override("panel", box)
+		var portrait := _mini_portrait(entry)
+		portrait.set_anchors_preset(Control.PRESET_FULL_RECT)
+		slot.add_child(portrait)
+		_initiative.add_child(slot)
+
+
+func set_actions(entries: Array) -> void:
+	for child in _actions.get_children():
+		child.free()
+	for entry in entries:
+		var button := Widgets.make_button(str(entry["label"]), Vector2(48, 60))
+		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		var icon_name := str(entry.get("icon", ""))
+		if icon_name != "" and FileAccess.file_exists("res://art/ui/%s.png" % icon_name):
+			button.icon = SpriteCatalog.ui(icon_name)
+			button.expand_icon = true
+			button.add_theme_constant_override("icon_max_width", 18)
+		button.disabled = bool(entry.get("disabled", false))
+		var action_id := str(entry["id"])
+		button.pressed.connect(func():
+			Sfx.play("tap")
+			action_pressed.emit(action_id)
+		)
+		_actions.add_child(button)
+
+
+func set_actions_enabled(enabled: bool) -> void:
+	for child in _actions.get_children():
+		if child is Button:
+			child.disabled = not enabled
+
+
+func set_caption(text: String) -> void:
+	_caption.text = text
+
+
+func raise_member(index: int, up: bool) -> void:
+	_raise(index, up)
+
+
+func set_cover(index: int, on: bool) -> void:
+	if index < 0 or index >= _seats.size():
+		return
+	var seat: Control = _seats[index]
+	seat.modulate = Color(0.5, 0.5, 0.5, 0.8) if on else Color.WHITE
+
+
+func lunge(id: String, delta_y: float, duration: float) -> void:
+	var node := _node_for(id)
+	if node == null:
+		return
+	var origin: Vector2 = node.position
+	var tween := create_tween()
+	tween.tween_property(node, "position", origin + Vector2(0, delta_y), duration * 0.45)
+	tween.tween_property(node, "position", origin, duration * 0.55)
+
+
+func monster_pose(id: String, pose: String) -> void:
+	var node := _node_for(id)
+	if node == null:
+		return
+	match pose:
+		"windup", "attack":
+			node.set_meta("acting", true)
+			_set_frame(node, 2 if pose == "windup" else 3)
+		_:
+			node.set_meta("acting", false)
+			_set_frame(node, _idle_frame)
+
+
+func react_hit(id: String, texts: Array, hp_ratio: float, mp_ratio: float) -> void:
+	var node := _node_for(id)
+	if node == null:
+		return
+	var visual := node.get_node_or_null("Sprite")
+	if visual == null:
+		visual = node.get_node_or_null("Doll")
+	if visual is Control:
+		var sprite := visual as Control
+		var origin_x := sprite.position.x
+		var tween := create_tween()
+		tween.tween_property(sprite, "position:x", origin_x + Timing.PUNCH_PIXELS, 0.08)
+		tween.tween_property(sprite, "position:x", origin_x - 3.0, 0.08)
+		tween.tween_property(sprite, "position:x", origin_x, 0.14)
+		var flash := create_tween()
+		var base := sprite.modulate
+		flash.tween_property(sprite, "modulate", Color(1, 0.3, 0.3, base.a), Timing.HIT_BLINK_IN)
+		flash.tween_property(sprite, "modulate", base, Timing.HIT_BLINK_OUT)
+	if _bars.has(id):
+		Widgets.tween_bar(_bars[id]["hp"], hp_ratio, Timing.HP_TWEEN)
+		if _bars[id].has("mp"):
+			Widgets.tween_bar(_bars[id]["mp"], mp_ratio, Timing.HP_TWEEN)
+	var delay := 0.0
+	for entry in texts:
+		_queue_floater(id, str(entry["text"]), entry["color"], delay)
+		delay += Timing.FLOATER_QUEUE
+	Sfx.play("hit")
+
+
+func death_blink(id: String) -> void:
+	var node := _node_for(id)
+	if node == null:
+		return
+	var visual := node.get_node_or_null("Sprite")
+	if visual == null:
+		visual = node.get_node_or_null("Doll")
+	if visual == null:
+		return
+	for step in range(6, 0, -1):
+		visual.visible = false
+		await get_tree().create_timer(Timing.DEATH_BLINK_OFF).timeout
+		visual.visible = true
+		await get_tree().create_timer(Timing.DEATH_BLINK_OFF * float(step)).timeout
+	if str(id).begins_with("m"):
+		node.visible = false
+	else:
+		visual.modulate = Color(1, 1, 1, 0.35)
+
+
+func set_target_mode(valid_ids: Array, hint: String) -> void:
+	_targeting = true
+	_caption.text = hint
+	_stop_flickers()
+	for id in _monsters.keys():
+		var visual := _visual(_monsters[id])
+		if visual == null:
+			continue
+		if valid_ids.has(str(id)):
+			_flicker(visual)
+		else:
+			var tween := create_tween()
+			tween.tween_property(visual, "modulate", Color(0.45, 0.45, 0.45), Timing.UNTARGET_GREY)
+	for i in _seats.size():
+		var card := _cards.get_child(i) if i < _cards.get_child_count() else null
+		if card == null:
+			continue
+		if valid_ids.has("p%d" % i):
+			_flicker(card)
+		else:
+			card.modulate = Color.WHITE
+
+
+func clear_target_mode() -> void:
+	_targeting = false
+	_stop_flickers()
+	for id in _monsters.keys():
+		var visual := _visual(_monsters[id])
+		if visual:
+			visual.modulate = Color.WHITE
+	for card in _cards.get_children():
+		card.modulate = Color.WHITE
+
+
+func show_choices(entries: Array, back_id: String) -> void:
+	_close_modal()
+	_modal = Widgets.panel()
+	_modal.position = Vector2(8, 210)
+	_modal.size = Vector2(254, 180)
+	add_child(_modal)
+	var box := VBoxContainer.new()
+	box.position = Vector2(6, 6)
+	box.size = Vector2(242, 168)
+	box.add_theme_constant_override("separation", 4)
+	_modal.add_child(box)
+	for entry in entries:
+		var button := Widgets.make_button(str(entry["text"]), Vector2(230, 36))
+		button.disabled = bool(entry.get("disabled", false))
+		var choice_id := str(entry["id"])
+		button.pressed.connect(func(): action_pressed.emit(choice_id))
+		box.add_child(button)
+	set_actions([{"id": back_id, "label": "Back", "icon": ""}])
+
+
+func hide_choices() -> void:
+	_close_modal()
+
+
+func open_dice(count: int, stat_name: String) -> void:
+	_close_dice()
+	_dice = Widgets.panel("res://art/ui/panel_dark.png")
+	_dice.position = Vector2(12, 250)
+	_dice.size = Vector2(246, 90)
+	add_child(_dice)
+	var row := HBoxContainer.new()
+	row.set_anchors_preset(Control.PRESET_FULL_RECT)
+	row.offset_left = 6
+	row.offset_top = 8
+	row.offset_right = -6
+	row.offset_bottom = -8
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	_dice.add_child(row)
+	_dice_labels.clear()
+	var tint := SpriteCatalog.HP if stat_name == "body" else SpriteCatalog.SAFE if stat_name == "senses" else SpriteCatalog.MP
+	for _i in count:
+		var col := VBoxContainer.new()
+		col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		col.alignment = BoxContainer.ALIGNMENT_CENTER
+		var face := TextureRect.new()
+		face.texture = SpriteCatalog.ui("die")
+		face.custom_minimum_size = Vector2(16, 16)
+		face.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+		face.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		face.modulate = tint
+		var number := Widgets.label("?", Layout.font_small(), SpriteCatalog.LIGHT)
+		number.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		var tag := Widgets.label("", Layout.font_tiny(), SpriteCatalog.LIGHT)
+		tag.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		col.add_child(face)
+		col.add_child(number)
+		col.add_child(tag)
+		row.add_child(col)
+		_dice_labels.append({"face": face, "number": number, "tag": tag})
+
+
+func set_die(index: int, label_text: String, number: String, success: int) -> void:
+	if index < 0 or index >= _dice_labels.size():
+		return
+	var row: Dictionary = _dice_labels[index]
+	var tag: Label = row["tag"]
+	var num: Label = row["number"]
+	var face: TextureRect = row["face"]
+	tag.text = label_text
+	num.text = number
+	if success == 0:
+		face.texture = SpriteCatalog.ui("die_fail")
+	elif success == 1:
+		face.texture = SpriteCatalog.ui("die")
+
+
+func close_dice() -> void:
+	_close_dice()
+
+
+func play_chicken() -> void:
+	var chick := TextureRect.new()
+	chick.texture = SpriteCatalog.ui("chicken")
+	chick.size = Vector2(16, 16)
+	chick.position = Vector2(180, 300)
+	add_child(chick)
+	var tween := create_tween()
+	tween.tween_property(chick, "position", Vector2(40, 250), Timing.CHICKEN_MOVE)
+	await get_tree().create_timer(Timing.CHICKEN_SFX_AT).timeout
+	Sfx.play("chicken")
+	if tween.is_valid() and tween.is_running():
+		await tween.finished
+	else:
+		await get_tree().create_timer(0.2).timeout
+	if is_instance_valid(chick):
+		chick.queue_free()
+
+
+func show_end(title: String, body: String, from_ratio: float, to_ratio: float) -> void:
+	_close_modal()
+	_modal = Widgets.panel()
+	_modal.position = Vector2(12, 168)
+	_modal.size = Vector2(246, 230)
+	add_child(_modal)
+	var heading := Widgets.label(title, Layout.font_size())
+	heading.position = Vector2(8, 8)
+	heading.size = Vector2(230, 24)
+	_modal.add_child(heading)
+	var copy := Widgets.label(body, Layout.font_tiny())
+	copy.position = Vector2(8, 36)
+	copy.size = Vector2(230, 120)
+	copy.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_modal.add_child(copy)
+	var bar := Widgets.bar(220, 10, SpriteCatalog.GOLD, SpriteCatalog.HP_BACK)
+	bar["root"].position = Vector2(12, 164)
+	_modal.add_child(bar["root"])
+	Widgets.set_bar(bar, from_ratio)
+	Widgets.tween_bar(bar, to_ratio, Timing.XP_TWEEN)
+	await get_tree().create_timer(Timing.XP_TWEEN).timeout
+	var button := Widgets.make_button("Continue", Vector2(220, 44))
+	button.position = Vector2(12, 180)
+	button.pressed.connect(func(): continue_pressed.emit())
+	_modal.add_child(button)
+	await continue_pressed
+	_close_modal()
+
+
+func open_party() -> void:
+	var lines := PackedStringArray()
+	for member in GameState.party:
+		var stats := GameState.combat_stats(member)
+		lines.append("%s  Lv%d  %d/%d HP  %d SP" % [
+			GameState.display_name(member), int(member["level"]), int(member["hp"]), stats["max_hp"], GameState.unspent_points(member)
+		])
+		lines.append("B%d S%d M%d  Atk %d  DR %d" % [stats["body"], stats["senses"], stats["mind"], stats["attack"], stats["dr"]])
+	_open_text_modal("Party", "\n".join(lines), _party_buttons())
+
+
+func open_quest() -> void:
+	var quest: Dictionary = ContentDB.quest("reed_trouble")
+	var done := GameState.quests_done.has("reed_trouble")
+	var body := "%s\n\n%s\n\n%s" % [quest.get("name", "Quest"), quest.get("description", ""), "Done." if done else "Still open."]
+	_open_text_modal("Quest", body, [])
+
+
+func sync_unit(unit: Dictionary) -> void:
+	var id := str(unit["id"])
+	if not _bars.has(id):
+		return
+	var hp_ratio := 0.0 if int(unit["max_hp"]) <= 0 else float(unit["hp"]) / float(unit["max_hp"])
+	var mp_ratio := 0.0 if int(unit.get("max_mp", 1)) <= 0 else float(unit.get("mp", 0)) / float(unit["max_mp"])
+	Widgets.set_bar(_bars[id]["hp"], hp_ratio)
+	if _bars[id].has("mp"):
+		Widgets.set_bar(_bars[id]["mp"], mp_ratio)
+	var node := _node_for(id)
+	if node and node.has_node("Conds"):
+		var names: Array = []
+		for cond in unit.get("conditions", []):
+			names.append(str(cond["id"]))
+		node.get_node("Conds").text = " ".join(names)
+
+
+func _build_chrome() -> void:
+	var bg := TextureRect.new()
+	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
+	bg.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	bg.stretch_mode = TextureRect.STRETCH_SCALE
+	bg.texture = SpriteCatalog.background("meadow")
+	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(bg)
+	_monster_layer = Control.new()
+	_monster_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_monster_layer.set_anchors_preset(Control.PRESET_FULL_RECT)
+	add_child(_monster_layer)
+	_gm = TextureRect.new()
+	_gm.texture = SpriteCatalog.ui("gm")
+	_gm.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var gm_size := Vector2(72, 80)
+	_gm.size = gm_size
+	var gm_feet := Layout.vec("combat", "gm")
+	_gm.position = gm_feet - Vector2(gm_size.x * SpriteCatalog.GM_ANCHOR.x, gm_size.y * SpriteCatalog.GM_ANCHOR.y)
+	add_child(_gm)
+	_table = TextureRect.new()
+	_table.texture = SpriteCatalog.ui("table")
+	_table.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_table.stretch_mode = TextureRect.STRETCH_SCALE
+	_table.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	Layout.place(_table, Layout.rect("combat", "table"))
+	add_child(_table)
+	_seat_layer = Control.new()
+	_seat_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_seat_layer.set_anchors_preset(Control.PRESET_FULL_RECT)
+	add_child(_seat_layer)
+	_initiative = HBoxContainer.new()
+	Layout.place(_initiative, Layout.rect("combat", "initiative"))
+	_initiative.alignment = BoxContainer.ALIGNMENT_CENTER
+	_initiative.add_theme_constant_override("separation", 2)
+	add_child(_initiative)
+	_banner = Widgets.label("", Layout.font_small())
+	Layout.place(_banner, Layout.rect("hub", "banner"))
+	add_child(_banner)
+	_cards = HBoxContainer.new()
+	Layout.place(_cards, Layout.rect("combat", "cards"))
+	_cards.add_theme_constant_override("separation", 4)
+	add_child(_cards)
+	_caption = Widgets.label("", Layout.font_tiny(), SpriteCatalog.LIGHT)
+	var caption_rect := Layout.rect("combat", "caption")
+	Layout.place(_caption, caption_rect)
+	_caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	add_child(_caption)
+	var action_back := ColorRect.new()
+	action_back.color = Color(0.12, 0.08, 0.05, 0.55)
+	Layout.place(action_back, Layout.rect("combat", "actions"))
+	add_child(action_back)
+	_actions = HBoxContainer.new()
+	Layout.place(_actions, Layout.rect("combat", "actions"))
+	_actions.add_theme_constant_override("separation", 3)
+	add_child(_actions)
+
+
+func _sync_party() -> void:
+	for child in _seat_layer.get_children():
+		child.free()
+	for child in _cards.get_children():
+		child.free()
+	_seats.clear()
+	var points := Layout.seat_points()
+	for index in GameState.party.size():
+		var member: Dictionary = GameState.party[index]
+		var stats := GameState.combat_stats(member)
+		var seat := Control.new()
+		seat.position = points[index]
+		seat.size = SpriteCatalog.BACK_SIZE
+		seat.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var bracket := Panel.new()
+		bracket.name = "Bracket"
+		bracket.visible = false
+		bracket.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		bracket.position = Vector2(-3, -8)
+		bracket.size = SpriteCatalog.BACK_SIZE + Vector2(6, 10)
+		var border := StyleBoxFlat.new()
+		border.bg_color = Color(0, 0, 0, 0)
+		border.border_color = SpriteCatalog.HIGHLIGHT
+		border.set_border_width_all(2)
+		bracket.add_theme_stylebox_override("panel", border)
+		seat.add_child(bracket)
+		var doll := PaperDoll.new()
+		doll.name = "Doll"
+		doll.set_look(member["look"], str(member["class_id"]), str(member["race"]), "back")
+		seat.add_child(doll)
+		var arrow := TextureRect.new()
+		arrow.name = "Arrow"
+		arrow.texture = SpriteCatalog.ui("arrow")
+		arrow.visible = false
+		arrow.position = Vector2(14, -16)
+		arrow.size = Vector2(12, 12)
+		arrow.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		seat.add_child(arrow)
+		_seat_layer.add_child(seat)
+		_seats.append(seat)
+		var pid := "p%d" % index
+		var card := Panel.new()
+		card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		card.mouse_filter = Control.MOUSE_FILTER_STOP
+		card.gui_input.connect(_card_input.bind(pid))
+		var card_box := StyleBoxFlat.new()
+		card_box.bg_color = Color(0.16, 0.1, 0.07, 0.92)
+		card_box.border_color = Color(0.45, 0.32, 0.18)
+		card_box.set_border_width_all(1)
+		card_box.content_margin_left = 3
+		card_box.content_margin_right = 3
+		card_box.content_margin_top = 2
+		card_box.content_margin_bottom = 2
+		card.add_theme_stylebox_override("panel", card_box)
+		var name := Widgets.label(ContentDB.persona(str(member["persona"]))["name"], Layout.font_tiny(), SpriteCatalog.LIGHT)
+		name.position = Vector2(3, 1)
+		card.add_child(name)
+		var hp := Widgets.bar(70, 8, SpriteCatalog.HP, SpriteCatalog.HP_BACK)
+		hp["root"].position = Vector2(3, 16)
+		card.add_child(hp["root"])
+		var mp := Widgets.bar(70, 8, SpriteCatalog.MP, SpriteCatalog.MP_BACK)
+		mp["root"].position = Vector2(3, 28)
+		card.add_child(mp["root"])
+		Widgets.set_bar(hp, float(member["hp"]) / float(stats["max_hp"]))
+		Widgets.set_bar(mp, float(member["mp"]) / float(stats["max_mp"]))
+		_bars[pid] = {"hp": hp, "mp": mp}
+		_cards.add_child(card)
+	var kind := str(ContentDB.place(GameState.place_id).get("kind", "meadow"))
+	var bg := get_child(0) as TextureRect
+	if bg:
+		bg.texture = SpriteCatalog.background(kind)
+
+
+func _sync_from_units(units: Array) -> void:
+	for unit in units:
+		sync_unit(unit)
+
+
+func _add_monster(unit: Dictionary) -> void:
+	var node := Control.new()
+	node.size = Vector2(64, 64)
+	node.set_meta("back", bool(unit.get("back_row", false)))
+	node.set_meta("kind", str(unit["kind"]))
+	node.set_meta("strip", SpriteCatalog.monster_strip(str(unit["kind"])))
+	var bar := Widgets.bar(48, 6, SpriteCatalog.HP, SpriteCatalog.HP_BACK)
+	bar["root"].position = Vector2(8, 0)
+	node.add_child(bar["root"])
+	Widgets.set_bar(bar, float(unit["hp"]) / float(maxi(1, int(unit["max_hp"]))))
+	_bars[str(unit["id"])] = {"hp": bar}
+	var sprite := TextureRect.new()
+	sprite.name = "Sprite"
+	sprite.position = Vector2(8, 8)
+	sprite.size = Vector2(48, 48)
+	sprite.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	sprite.stretch_mode = TextureRect.STRETCH_SCALE
+	sprite.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	sprite.texture = SpriteCatalog.monster_frame(node.get_meta("strip"), 0)
+	node.add_child(sprite)
+	var conds := Widgets.label("", Layout.font_tiny(), SpriteCatalog.LIGHT)
+	conds.name = "Conds"
+	conds.position = Vector2(0, 56)
+	conds.size = Vector2(64, 12)
+	node.add_child(conds)
+	var uid := str(unit["id"])
+	node.gui_input.connect(func(event: InputEvent):
+		if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+			target_pressed.emit(uid)
+	)
+	_monster_layer.add_child(node)
+	_monsters[uid] = node
+
+
+func _layout_monsters() -> void:
+	var area := Layout.rect("combat", "monsters")
+	var ids: Array = _monsters.keys()
+	var count := maxi(1, ids.size())
+	for i in ids.size():
+		var node: Control = _monsters[ids[i]]
+		var slot_w := area.size.x / float(count)
+		var x := area.position.x + slot_w * float(i) + (slot_w - node.size.x) * 0.5
+		var y := area.position.y + Layout.num("monster_front_drop")
+		if bool(node.get_meta("back", false)):
+			y -= Layout.num("monster_back_lift")
+		node.position = Vector2(x, y)
+
+
+func _raise(index: int, up: bool) -> void:
+	for i in _seats.size():
+		var seat: Control = _seats[i]
+		var base: Vector2 = Layout.seat_points()[i]
+		seat.position = base + Vector2(0, -Timing.PLAYER_RISE_PX if up and i == index else 0)
+		seat.get_node("Bracket").visible = up and i == index
+		seat.get_node("Arrow").visible = up and i == index
+
+
+func _set_table_visible(show_table: bool) -> void:
+	_gm.visible = show_table
+	_table.visible = show_table
+	_seat_layer.visible = show_table
+
+
+func _set_frame(node: Control, frame: int) -> void:
+	var sprite := node.get_node_or_null("Sprite")
+	if sprite is TextureRect and node.has_meta("strip"):
+		(sprite as TextureRect).texture = SpriteCatalog.monster_frame(node.get_meta("strip"), frame)
+
+
+func _node_for(id: String) -> Control:
+	if _monsters.has(id):
+		return _monsters[id]
+	if id.begins_with("p"):
+		var index := int(id.substr(1))
+		if index >= 0 and index < _seats.size():
+			return _seats[index]
+	return null
+
+
+func _visual(node: Control) -> Control:
+	var sprite := node.get_node_or_null("Sprite")
+	if sprite:
+		return sprite
+	return node.get_node_or_null("Doll")
+
+
+func _card_input(event: InputEvent, pid: String) -> void:
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		target_pressed.emit(pid)
+
+
+func _queue_floater(id: String, text: String, color: Color, delay: float) -> void:
+	if delay <= 0.0:
+		_spawn_floater(id, text, color)
+		return
+	var timer := get_tree().create_timer(delay)
+	timer.timeout.connect(func(): _spawn_floater(id, text, color))
+
+
+func _spawn_floater(id: String, text: String, color: Color) -> void:
+	var node := _node_for(id)
+	if node == null:
+		return
+	var label := Widgets.label(text, Layout.font_small(), color)
+	label.position = node.global_position - global_position + Vector2(8, 0)
+	add_child(label)
+	var tween := create_tween()
+	tween.tween_property(label, "position:y", label.position.y - 18, 0.6)
+	tween.parallel().tween_property(label, "modulate:a", 0.0, 0.6)
+	tween.finished.connect(label.queue_free)
+
+
+func _flicker(node: Control) -> void:
+	var tween := create_tween()
+	tween.set_loops()
+	tween.tween_property(node, "modulate", Color(1, 1, 1, 0.45), Timing.TARGET_FLICKER_OFF)
+	tween.tween_property(node, "modulate", Color.WHITE, Timing.TARGET_FLICKER_ON)
+	_flickers.append(tween)
+
+
+func _stop_flickers() -> void:
+	for tween in _flickers:
+		if tween is Tween and (tween as Tween).is_valid():
+			(tween as Tween).kill()
+	_flickers.clear()
+
+
+func _mini_portrait(entry: Dictionary) -> Control:
+	var clip := Control.new()
+	clip.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	clip.clip_contents = true
+	if str(entry.get("side", "")) == "player":
+		var index := int(entry.get("index", 0))
+		if index < GameState.party.size():
+			var member: Dictionary = GameState.party[index]
+			var doll := PaperDoll.new()
+			doll.set_look(member["look"], str(member["class_id"]), str(member["race"]), "front")
+			doll.scale = Vector2(0.4, 0.4)
+			clip.add_child(doll)
+	else:
+		var rect := TextureRect.new()
+		rect.texture = SpriteCatalog.monster_frame(SpriteCatalog.monster_strip(str(entry.get("kind", "puddleblob"))), 0)
+		rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		rect.set_anchors_preset(Control.PRESET_FULL_RECT)
+		clip.add_child(rect)
+	return clip
+
+
+func _close_modal() -> void:
+	if _modal and is_instance_valid(_modal):
+		_modal.queue_free()
+	_modal = null
+
+
+func _close_dice() -> void:
+	if _dice and is_instance_valid(_dice):
+		_dice.queue_free()
+	_dice = null
+	_dice_labels.clear()
+
+
+func _open_text_modal(title: String, body: String, extra: Array) -> void:
+	_close_modal()
+	_modal = Widgets.panel()
+	_modal.position = Vector2(10, 70)
+	_modal.size = Vector2(250, 320)
+	add_child(_modal)
+	var heading := Widgets.label(title, Layout.font_size())
+	heading.position = Vector2(8, 6)
+	_modal.add_child(heading)
+	var copy := Widgets.label(body, Layout.font_tiny())
+	copy.position = Vector2(8, 28)
+	copy.size = Vector2(234, 200)
+	copy.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_modal.add_child(copy)
+	var y := 230.0
+	for entry in extra:
+		var button := Widgets.make_button(str(entry["text"]), Vector2(230, 32))
+		button.position = Vector2(8, y)
+		var skill_id := str(entry["id"])
+		var member_index := int(entry["member"])
+		button.pressed.connect(_spend.bind(member_index, skill_id))
+		_modal.add_child(button)
+		y += 34
+	var close := Widgets.make_button("Close", Vector2(230, 40))
+	close.position = Vector2(8, 276)
+	close.pressed.connect(_close_modal)
+	_modal.add_child(close)
+
+
+func _party_buttons() -> Array:
+	var buttons: Array = []
+	for index in GameState.party.size():
+		var member: Dictionary = GameState.party[index]
+		if GameState.unspent_points(member) <= 0:
+			continue
+		for skill_id in member["skill_ranks"].keys():
+			var skill: Dictionary = ContentDB.skill(str(skill_id))
+			buttons.append({
+				"text": "+ %s (%s)" % [skill["name"], ContentDB.persona(str(member["persona"]))["name"]],
+				"id": str(skill_id),
+				"member": index,
+			})
+	return buttons
+
+
+func _spend(member_index: int, skill_id: String) -> void:
+	var member: Dictionary = GameState.party[member_index]
+	if GameState.spend_point(member, skill_id):
+		Sfx.play("good")
+		open_party()
+
+
+func _backdrop_kind() -> void:
+	pass

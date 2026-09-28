@@ -1,0 +1,11 @@
+{
+  "head_count": 8,
+  "hair_count": 8,
+  "skins": ["#ffe0c8", "#f3c3a0", "#e0a07a", "#c68658", "#a86b45", "#8d5524", "#6b3a22", "#4a2c1a"],
+  "hairs": ["#2b2118", "#6b3a22", "#a15a32", "#e0b44a", "#f4f0e6", "#8d93a0", "#a83248", "#3a3a8a"],
+  "outfits": ["#2f4f8a", "#6a3a8a", "#2e6a3a", "#8a3030", "#c4a15a", "#4a4e55", "#d5dbe3", "#1f7a7a"],
+  "doll_front": [48, 64],
+  "doll_back": [40, 52],
+  "monster_frame": [48, 48],
+  "monster_frames": 4
+}

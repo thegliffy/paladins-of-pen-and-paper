@@ -1,0 +1,16 @@
+[
+  {
+    "id": "tonic",
+    "name": "Hearth Tonic",
+    "kind": "heal_hp",
+    "amount": 50,
+    "description": "Restores 50 health."
+  },
+  {
+    "id": "vial",
+    "name": "Lamp Vial",
+    "kind": "heal_mp",
+    "amount": 40,
+    "description": "Restores 40 energy."
+  }
+]

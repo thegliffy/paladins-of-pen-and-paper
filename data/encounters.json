@@ -1,0 +1,9 @@
+{
+  "difficulties": {
+    "patrol": 0.45,
+    "wild_rest_ambush": 0.25,
+    "ambush_min": 0.1,
+    "ambush_max": 0.5
+  },
+  "notes": "Travel ambushes roll difficulty from 1..5 over 10. Patrol uses a fixed difficulty. Composition walks the place monster list."
+}

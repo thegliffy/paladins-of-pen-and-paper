@@ -1,0 +1,42 @@
+[
+  {
+    "id": "paladin",
+    "name": "Paladin",
+    "body": 3,
+    "senses": 1,
+    "mind": 2,
+    "role": "tank",
+    "skills": ["oathstrike", "hearthmend"],
+    "blurb": "Holds the line and closes wounds."
+  },
+  {
+    "id": "wizard",
+    "name": "Wizard",
+    "body": 1,
+    "senses": 2,
+    "mind": 3,
+    "role": "caster",
+    "skills": ["emberburst", "frostpin"],
+    "blurb": "Burns a path or pins a foe in frost."
+  },
+  {
+    "id": "ranger",
+    "name": "Ranger",
+    "body": 2,
+    "senses": 3,
+    "mind": 1,
+    "role": "striker",
+    "skills": ["marked_shot", "thorn_volley"],
+    "blurb": "Strikes first and scatters the back line."
+  },
+  {
+    "id": "bard",
+    "name": "Bard",
+    "body": 2,
+    "senses": 1,
+    "mind": 3,
+    "role": "healer",
+    "skills": ["mending_verse", "dissonant_chord"],
+    "blurb": "Mends with a verse and sours a whole row."
+  }
+]
