@@ -9,7 +9,7 @@ def L(rel): return Image.open(OUT + rel).convert('RGBA')
 def frame_of(rel, i, fw):
     im = L(rel); return im.crop((i * fw, 0, (i + 1) * fw, im.height))
 META = {}
-for f in ('meta_cut.json', 'meta_proc.json', 'meta_doll.json', 'meta_skills.json', 'meta_regions.json'):
+for f in ('meta_cut.json', 'meta_proc.json', 'meta_doll.json', 'meta_skills.json'):
     d = json.load(open(W_ + f)); META.update(d['meta'] if 'meta' in d else d)
 DOLL = json.load(open(W_ + 'meta_doll.json')); SKM = json.load(open(W_ + 'meta_skills.json'))['motifs']; SKK = json.load(open(W_ + 'meta_skills.json'))['kinds']
 
@@ -141,14 +141,14 @@ META['ui/portrait/action_bar_examples.png'] = dict(notes='QA: the v6 bar swappin
 META['ui/portrait/action_bar_examples_3x.png'] = dict(notes='3x nearest.')
 
 # ---------- scene_test_portrait ----------
-P = L(globals().get('SCENE_BG', 'combat/bg_forest_portrait.png'))
+P = L('combat/bg_forest_portrait.png')
 def pput(im, ax, ay, anchor): P.alpha_composite(im, (ax - anchor[0], ay - anchor[1]))
 PPARTY = ['paladin', 'cleric', 'rogue', 'druid', 'wizard']          # v5: max party 5, mixed
 def dflt_front(c):
     d = DOLL['seat_defaults'][c]; return doll_front(d['skin'], d['head'], d['hair'], d['hair_color'], d['outfit'], c, d['hat'])
 pparty = [dflt_front(c) for c in PPARTY]
 # initiative strip: 5 party + 3 monsters, scrollable-looking (dark rail, next-round portrait clipped at the right edge)
-INIT = globals().get('SCENE_INIT', [('p', 0), ('m', 'goblin'), ('p', 4), ('p', 3), ('m', 'bat'), ('p', 2), ('m', 'slime'), ('p', 1)])
+INIT = [('p', 0), ('m', 'goblin'), ('p', 4), ('p', 3), ('m', 'bat'), ('p', 2), ('m', 'slime'), ('p', 1)]
 ini = [portrait_of(pparty[v]) if k == 'p' else L(f'monsters/{v}/{v}_portrait.png') for k, v in INIT]
 INI_Y, INI_STEP, INI_X0 = 3, 29, 4
 rail = nine('ui/panel_dark.png', 270, 30); P.alpha_composite(rail, (0, INI_Y - 3))
@@ -160,11 +160,11 @@ for i, p in enumerate(ini + [portrait_of(pparty[0])]):
         rx = xx + 26; strip_im.paste(C['gold'] + (255,), (rx, 1, rx + 1, 23))         # round divider
 P.alpha_composite(strip_im.crop((0, 0, 256 - INI_X0, 24)), (INI_X0, INI_Y))
 for k_, (x_, y_) in enumerate([(265, INI_Y + 9), (266, INI_Y + 10), (265, INI_Y + 11), (264, INI_Y + 8), (264, INI_Y + 12), (264, INI_Y + 10)]): P.putpixel((x_, y_), C['cream'] + (255,))   # scroll chevron
-PMON = globals().get('SCENE_PMON', [('goblin', 52, 262), ('bat', 135, 222), ('slime', 220, 266)])
+PMON = [('goblin', 52, 262), ('bat', 135, 222), ('slime', 220, 266)]
 for n, x, y in PMON:
     m = META[f'monsters/{n}/{n}_idle.png']; im = frame_of(f'monsters/{n}/{n}_idle.png', 0, 80); pput(im, x, y, m['anchor'])
     hx, hy = x - 40 + m['hp_bar_anchor'][0], y - 64 + m['hp_bar_anchor'][1]
-    pput(L('ui/enemy_bar_bg.png'), hx, hy, (16, 4)); pct = globals().get('SCENE_PCT', {'goblin': 1.0, 'bat': 0.6, 'slime': 0.85})[n]
+    pput(L('ui/enemy_bar_bg.png'), hx, hy, (16, 4)); pct = {'goblin': 1.0, 'bat': 0.6, 'slime': 0.85}[n]
     P.alpha_composite(L('ui/enemy_bar_hp.png').crop((0, 0, int(30 * pct), 3)), (hx - 15, hy - 3))
 for i, ch in enumerate('-7'):
     k = '0123456789+-'.index(ch); P.alpha_composite(DIG.crop((k * 7, 0, k * 7 + 7, 9)), (158 + i * 6, 162))
@@ -340,76 +340,6 @@ SKILL_CARD_LAYOUT = dict(width=CARD_W, height='desc_y + lines*8 + 3 + strip 14 +
     copy_note='all skill names/descriptions in the mocks are PLACEHOLDER until docs/CLASSES.md lands.', font='pack 3x5 pixel font (pal.py FONT, original; added % , \' = ?). m5x7 (CC0) is referenced but not bundled.')
 
 PORTRAIT_LAYOUT['skill_card'] = SKILL_CARD_LAYOUT
-# ---------- DRAFT regions: approval sheets + example composite ----------
-RGJ = json.load(open(W_ + 'meta_regions.json'))['regions']
-LOC_ORDER = [p_['id'] for p_ in RGJ['places']]
-def label_bar(im, x, y, w, s1, s2=None, bg='ink'):
-    im.paste(C[bg] + (255,), (x, y, x + w, y + 9)); text(im, x + 2, y + 2, s1, C['gold'])
-    if s2: text(im, x + w - 2 - text_w(s2), y + 2, s2, C['mist'])
-# A) backdrops side by side
-GAP = 6; BW = len(LOC_ORDER) * (270 + GAP) + GAP
-AB = Image.new('RGBA', (BW, 480 + 14 + 2 * GAP), C['slate'] + (255,))
-for i, lid in enumerate(LOC_ORDER):
-    pl = RGJ['places'][i]; x0 = GAP + i * (270 + GAP)
-    label_bar(AB, x0, GAP, 270, pl['name'].upper(), (pl['region'].upper() + ' / LV ' + str(pl['level'])))
-    AB.alpha_composite(L(f'combat/bg_{lid}_portrait.png'), (x0, GAP + 12))
-save(AB, 'approval/backdrops_1x.png'); save(upsc(AB, 2), 'approval/backdrops_2x.png')
-META['approval/backdrops_1x.png'] = dict(status='draft_pending_approval', notes='APPROVAL SHEET (not runtime): the 6 Greenmere location backdrops at 1x, labelled name / region / level.')
-META['approval/backdrops_2x.png'] = dict(status='draft_pending_approval', notes='2x nearest of approval/backdrops_1x.png.')
-# B) monster lineup grouped by region, each card on a crop of that region's backdrop stand zone
-REG_BG = dict(meadow='millpond', coast='lantern_reach', cave='howling_cleft', keep='gravel_keep')
-EXM = RGJ['existing']; DRM = RGJ['draft_monsters']
-CWd, CHt = 88, 96; rows = []
-for kind in ('meadow', 'coast', 'cave', 'keep'):
-    r_ = RGJ['regions'][kind]; rows.append((kind, r_))
-maxn = max(len(r_['existing']) + len(r_['new']) for _, r_ in rows)
-LW = 8 + maxn * (CWd + 4) + 4; LH = 8 + len(rows) * (CHt + 20) + 16
-LU = Image.new('RGBA', (LW, LH), C['slate'] + (255,))
-text(LU, 8, 4, 'GREENMERE MONSTERS BY REGION  -  NEW = DRAFT, PENDING APPROVAL  -  LARGE = WIDER TABLE SLOT (COST 5)', C['cream'])
-y = 14
-for kind, r_ in rows:
-    places = ', '.join(p_['name'].upper() for p_ in RGJ['places'] if p_['region'] == kind)
-    label_bar(LU, 4, y, LW - 8, f'{kind.upper()}: {places}', f"{r_['regular']} REGULAR + {r_['large']} LARGE")
-    y += 12; bgim = L(f'combat/bg_{REG_BG[kind]}_portrait.png')
-    for j, mid in enumerate(r_['existing'] + r_['new']):
-        new_ = mid in DRM
-        if new_: nm, sz, spr_ = DRM[mid]['name'], DRM[mid]['size'], mid
-        else: nm, sz, spr_ = EXM[mid]
-        x0 = 8 + j * (CWd + 4)
-        card = bgim.crop((135 - CWd // 2 - 40 + (j * 23) % 80, 196, 135 - CWd // 2 - 40 + (j * 23) % 80 + CWd, 196 + 74))
-        card.alpha_composite(L(f'monsters/{spr_}/{spr_}_still.png'), ((CWd - 80) // 2, 2))
-        LU.alpha_composite(card, (x0, y))
-        LU.paste(C['gold' if new_ else 'gray'] + (255,), (x0, y + 74, x0 + CWd, y + 75))
-        LU.paste(C['ink'] + (255,), (x0, y + 75, x0 + CWd, y + CHt))
-        text(LU, x0 + 2, y + 77, nm.upper()[:21], C['white'])
-        text(LU, x0 + 2, y + 84, ('LARGE' if sz == 'large' else 'REGULAR'), C['coral'] if sz == 'large' else C['mist'])
-        if new_:
-            LU.paste(C['gold'] + (255,), (x0 + CWd - 15, y + 83, x0 + CWd - 1, y + 90)); text(LU, x0 + CWd - 14, y + 84, 'NEW', C['outline'])
-        else: text(LU, x0 + 2, y + 90, ('SPRITE ' + spr_).upper(), C['gray'])
-    y += CHt + 8
-save(LU, 'approval/monster_lineup.png'); save(upsc(LU, 2), 'approval/monster_lineup_2x.png')
-META['approval/monster_lineup.png'] = dict(status='draft_pending_approval', notes='APPROVAL SHEET (not runtime): monsters grouped by region (existing first, NEW drafts tagged gold), each on a crop of its region backdrop stand zone; existing ones show the pack sprite that data/monsters.json maps them to.')
-META['approval/monster_lineup_2x.png'] = dict(status='draft_pending_approval', notes='2x nearest of approval/monster_lineup.png.')
-# C) example composite: Lantern Reach with coast monsters (incl. the new large Kelpback), full party/table/bar UI
-_src = open(os.path.abspath(__file__)).read()
-_scene = _src.split('# ---------- scene_test_portrait ----------\n', 1)[1].split("\nsave(P, 'scene_test_portrait.png')", 1)[0]
-_ns = dict(globals()); _ns.update(SCENE_BG='combat/bg_lantern_reach_portrait.png',
-    SCENE_PMON=[('bottlecrab', 52, 262), ('kelpback', 135, 222), ('squallgull', 220, 266)],
-    SCENE_INIT=[('p', 0), ('m', 'bottlecrab'), ('p', 4), ('p', 3), ('m', 'kelpback'), ('p', 2), ('m', 'squallgull'), ('p', 1)],
-    SCENE_PCT={'bottlecrab': 1.0, 'kelpback': 0.6, 'squallgull': 0.85})
-exec(compile(_scene, 'scene_block', 'exec'), _ns)
-save(_ns['P'], 'scene_test_portrait_lantern_reach.png'); save(upsc(_ns['P'], 4), 'scene_test_portrait_lantern_reach_4x.png')
-META['scene_test_portrait_lantern_reach.png'] = dict(status='draft_pending_approval', notes='QA composite (not runtime): DRAFT Lantern Reach backdrop + coast monsters Bottlecrab / Kelpback Snapper (LARGE) / Squallgull at the standard monster marks, with the v7 party, table, seat bars + HP numbers and v6 action bar.')
-META['scene_test_portrait_lantern_reach_4x.png'] = dict(status='draft_pending_approval', notes='4x nearest.')
-# D) per-region monsters on their own backdrops (extra check)
-for kind, lid, trio in (('meadow', 'briar_cross', ['bramblet', 'briar_hound', 'grinmud_toad']), ('cave', 'howling_cleft', ['gloomgrub', 'marshlurker', 'dripfang']), ('keep', 'gravel_keep', ['pebble_squire', 'gravel_brute', 'hollow_helm'])):
-    _ns = dict(globals()); spr3 = [m if m in DRM else EXM[m][2] for m in trio]
-    _ns.update(SCENE_BG=f'combat/bg_{lid}_portrait.png', SCENE_PMON=[(spr3[0], 52, 262), (spr3[1], 135, 222), (spr3[2], 220, 266)],
-        SCENE_INIT=[('p', 0), ('m', spr3[0]), ('p', 4), ('p', 3), ('m', spr3[1]), ('p', 2), ('m', spr3[2]), ('p', 1)], SCENE_PCT={spr3[0]: 1.0, spr3[1]: 0.6, spr3[2]: 0.85})
-    exec(compile(_scene, 'scene_block', 'exec'), _ns)
-    save(_ns['P'], f'approval/scene_{lid}.png')
-    META[f'approval/scene_{lid}.png'] = dict(status='draft_pending_approval', notes=f'QA composite (not runtime): {lid} backdrop with {", ".join(trio)} and the full portrait UI.')
-
 # ---------- map_test_portrait ----------
 TL = {k: L(f'map/tile_{k}.png') for k in ['grass', 'grass_flowers', 'road_h', 'road_v', 'road_cross', 'river_h', 'bridge_v']}
 for k in ('es', 'ws', 'en', 'wn'): TL['c_' + k] = L(f'map/tile_road_corner_{k}.png')
@@ -683,12 +613,6 @@ void fragment() {
 """) else ''),
     classes=CLASSES_BLOCK, skills=SKILLS_BLOCK, fx=FX_BLOCK,
     files=entries)
-for _n, _v in RGJ['draft_monsters'].items():
-    MAN['monsters'][_n] = dict(frame_size=[80, 70], feet_anchor=[40, 64], hp_bar_anchor=_v['hp_bar_anchor'], status=_v['status'], name=_v['name'], region=_v['region'], size=_v['size'], concept=_v['concept'], flying=_v['flying'],
-        anims=dict(idle=dict(frames=2, fps=2, loop=True), attack=dict(frames=3, fps=5), hit=dict(frames=2, fps=8), death=dict(frames=4, fps=8)),
-        notes='DRAFT, pending approval. Same 80x70 strips / feet anchor / anims as the existing monsters; not referenced by data/monsters.json yet.')
-MAN['regions'] = RGJ
-MAN['location_backdrops'] = {p_['id']: dict(file=p_['backdrop'], region=p_['region'], status='draft_pending_approval', horizon_y=141, monster_feet_band=[222, 266], calm_below_y=300) for p_ in RGJ['places']}
 json.dump(MAN, open(OUT + 'manifest.json', 'w'), indent=1)
 # markdown
 def fmt(v): return json.dumps(v) if not isinstance(v, str) else v
@@ -707,9 +631,6 @@ md = ['# Paladins of Pen and Paper: Phase 0 sprite pack', '', f'Generated {MAN["
       '### Seat = creator doll (recipe)', 'Canvas 48x78, anchor [24,77]. ' + ' → '.join(SEAT_RECIPE['steps'][:6]) + '. ' + SEAT_RECIPE['steps'][6] + '. ' + SEAT_RECIPE['note'], '',
       '## Skill icons (20x20, 5 per class)', SKILLS_BLOCK['reason_20px'] + ' Active slot: ' + SKILLS_BLOCK['slot'] + '. Passive slot: ' + SKILLS_BLOCK['passive_slot'] + '.', '', '| file | motif | suggested |', '|---|---|---|'] + ['| ui/skills/%s.png | %s | %s |' % (k, v, SKK[k]) for k, v in sorted(SKM.items())] + ['',
       '## Skill card popup (portrait)', 'Tap a skill once to open its notebook card (9-slice `ui/portrait/skill_card_panel.png`, margins L14 T10 R6 B6, tiled; tail `skill_card_tail.png`) and arm the slot (`skill_slot_armed.png`, 2 frames). Tap the same slot again to cast; another slot switches; elsewhere closes; passives never cast. Card: 2x icon frame, name, ACTIVE/PASSIVE tag, MP badge, target icon + text, cooldown, 3-line description, prompt strip (ready pulse / passive / NOT ENOUGH MP / ON COOLDOWN: n). Rects: `' + json.dumps(CARD_RECTS) + '`. Mocks: `scene_test_portrait_skillcard(+_4x).png`, `ui/portrait/skill_card_examples(+_3x).png`. All copy is PLACEHOLDER.', '',
-      '## Greenmere regions (DRAFT, pending approval)', 'Regions = `places[].kind` in data/region.json. Backdrops `combat/bg_<location>_portrait.png` (270x480, horizon y141, monster feet y222-266, calm below y300). New monsters (same 80x70 strips/anchors/anims) are listed in `manifest.json` under `monsters` with `status: draft_pending_approval`, and the full table is in `regions`. Approval sheets: `approval/backdrops_1x.png` / `_2x`, `approval/monster_lineup.png` / `_2x`, composite `scene_test_portrait_lantern_reach(+_4x).png`, extra `approval/scene_*.png`.', '',
-      '| location | region | lv | existing monsters | new (draft) | backdrop |', '|---|---|---|---|---|---|'] + ['| %s | %s | %d | %s | %s | %s |' % (p_['name'], p_['region'], p_['level'], ', '.join(p_['monsters']) or '(none, town)', ', '.join(p_['suggested_new']) or '-', p_['backdrop']) for p_ in RGJ['places']] + ['',
-      '| new monster | region | size | concept |', '|---|---|---|---|'] + ['| %s (`%s`) | %s | %s | %s |' % (v['name'], k, v['region'], v['size'], v['concept']) for k, v in RGJ['draft_monsters'].items()] + ['',
       '## Skill FX', '| strip | frame size | frames | fps | anchor | loop / segments | notes |', '|---|---|---|---|---|---|---|'] + ['| fx/%s.png | %s | %s | %s | %s | %s | %s |' % (k, 'x'.join(map(str, v['frame_size'])), v['frames'], v['fps'], fmt(v['anchor']), fmt(v.get('segments', v.get('loop'))), v['notes']) for k, v in FX_BLOCK.items()] + ['',
       'FX style: no black outline (glow effects); bright core stepping to a darker coloured rim, binary alpha, fades via ordered dither. `fx_test_portrait.png` shows one frame of each at native scale.', '',
       '**Legacy (landscape-only):** ' + ', '.join('`%s`' % p for p in PORTRAIT['legacy_landscape_files']), '',

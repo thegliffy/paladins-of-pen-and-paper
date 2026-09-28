@@ -1,0 +1,1757 @@
+{
+ "meta": {
+  "combat/bg_candlewick_portrait.png": {
+   "anchor": [
+    0,
+    0
+   ],
+   "status": "draft_pending_approval",
+   "location": "candlewick",
+   "location_name": "Candlewick",
+   "region": "town",
+   "horizon_y": 141,
+   "monster_feet_band": [
+    222,
+    266
+   ],
+   "notes": "DRAFT Candlewick (town) combat backdrop, 270x480, same framing as bg_forest_portrait: sky/landmarks above the horizon (y141), monster stand zone y~180-270 kept low-contrast, calmer texture below y~300 (table y343-382, seats and bars below). Procedural, flat shading, pack palette, alpha 255. Candlewick has no monsters in data/region.json (town / inn); backdrop provided for completeness."
+  },
+  "combat/bg_millpond_portrait.png": {
+   "anchor": [
+    0,
+    0
+   ],
+   "status": "draft_pending_approval",
+   "location": "millpond",
+   "location_name": "Millpond",
+   "region": "meadow",
+   "horizon_y": 141,
+   "monster_feet_band": [
+    222,
+    266
+   ],
+   "notes": "DRAFT Millpond (meadow) combat backdrop, 270x480, same framing as bg_forest_portrait: sky/landmarks above the horizon (y141), monster stand zone y~180-270 kept low-contrast, calmer texture below y~300 (table y343-382, seats and bars below). Procedural, flat shading, pack palette, alpha 255."
+  },
+  "combat/bg_briar_cross_portrait.png": {
+   "anchor": [
+    0,
+    0
+   ],
+   "status": "draft_pending_approval",
+   "location": "briar_cross",
+   "location_name": "Briar Cross",
+   "region": "meadow",
+   "horizon_y": 141,
+   "monster_feet_band": [
+    222,
+    266
+   ],
+   "notes": "DRAFT Briar Cross (meadow) combat backdrop, 270x480, same framing as bg_forest_portrait: sky/landmarks above the horizon (y141), monster stand zone y~180-270 kept low-contrast, calmer texture below y~300 (table y343-382, seats and bars below). Procedural, flat shading, pack palette, alpha 255."
+  },
+  "combat/bg_lantern_reach_portrait.png": {
+   "anchor": [
+    0,
+    0
+   ],
+   "status": "draft_pending_approval",
+   "location": "lantern_reach",
+   "location_name": "Lantern Reach",
+   "region": "coast",
+   "horizon_y": 141,
+   "monster_feet_band": [
+    222,
+    266
+   ],
+   "notes": "DRAFT Lantern Reach (coast) combat backdrop, 270x480, same framing as bg_forest_portrait: sky/landmarks above the horizon (y141), monster stand zone y~180-270 kept low-contrast, calmer texture below y~300 (table y343-382, seats and bars below). Procedural, flat shading, pack palette, alpha 255."
+  },
+  "combat/bg_howling_cleft_portrait.png": {
+   "anchor": [
+    0,
+    0
+   ],
+   "status": "draft_pending_approval",
+   "location": "howling_cleft",
+   "location_name": "Howling Cleft",
+   "region": "cave",
+   "horizon_y": 141,
+   "monster_feet_band": [
+    222,
+    266
+   ],
+   "notes": "DRAFT Howling Cleft (cave) combat backdrop, 270x480, same framing as bg_forest_portrait: sky/landmarks above the horizon (y141), monster stand zone y~180-270 kept low-contrast, calmer texture below y~300 (table y343-382, seats and bars below). Procedural, flat shading, pack palette, alpha 255."
+  },
+  "combat/bg_gravel_keep_portrait.png": {
+   "anchor": [
+    0,
+    0
+   ],
+   "status": "draft_pending_approval",
+   "location": "gravel_keep",
+   "location_name": "Gravel Keep",
+   "region": "keep",
+   "horizon_y": 141,
+   "monster_feet_band": [
+    222,
+    266
+   ],
+   "notes": "DRAFT Gravel Keep (keep) combat backdrop, 270x480, same framing as bg_forest_portrait: sky/landmarks above the horizon (y141), monster stand zone y~180-270 kept low-contrast, calmer texture below y~300 (table y343-382, seats and bars below). Procedural, flat shading, pack palette, alpha 255."
+  },
+  "monsters/bramblet/bramblet_idle.png": {
+   "frames": 2,
+   "frame_size": [
+    80,
+    70
+   ],
+   "fps": 2,
+   "anchor": [
+    40,
+    64
+   ],
+   "hp_bar_anchor": [
+    40,
+    12
+   ],
+   "portrait_rect": [
+    30,
+    31,
+    20,
+    20
+   ],
+   "loop": true,
+   "status": "draft_pending_approval",
+   "region": "meadow",
+   "monster_size": "regular"
+  },
+  "monsters/bramblet/bramblet_attack.png": {
+   "frames": 3,
+   "frame_size": [
+    80,
+    70
+   ],
+   "fps": 5,
+   "anchor": [
+    40,
+    64
+   ],
+   "hp_bar_anchor": [
+    40,
+    12
+   ],
+   "portrait_rect": [
+    30,
+    31,
+    20,
+    20
+   ],
+   "loop": false,
+   "status": "draft_pending_approval",
+   "region": "meadow",
+   "monster_size": "regular"
+  },
+  "monsters/bramblet/bramblet_hit.png": {
+   "frames": 2,
+   "frame_size": [
+    80,
+    70
+   ],
+   "fps": 8,
+   "anchor": [
+    40,
+    64
+   ],
+   "hp_bar_anchor": [
+    40,
+    12
+   ],
+   "portrait_rect": [
+    30,
+    31,
+    20,
+    20
+   ],
+   "loop": false,
+   "status": "draft_pending_approval",
+   "region": "meadow",
+   "monster_size": "regular"
+  },
+  "monsters/bramblet/bramblet_death.png": {
+   "frames": 4,
+   "frame_size": [
+    80,
+    70
+   ],
+   "fps": 8,
+   "anchor": [
+    40,
+    64
+   ],
+   "hp_bar_anchor": [
+    40,
+    12
+   ],
+   "portrait_rect": [
+    30,
+    31,
+    20,
+    20
+   ],
+   "loop": false,
+   "status": "draft_pending_approval",
+   "region": "meadow",
+   "monster_size": "regular"
+  },
+  "monsters/bramblet/bramblet_portrait.png": {
+   "notes": "20x20 head crop (rect [30, 31, 20, 20] of the rest frame) for the initiative strip.",
+   "status": "draft_pending_approval"
+  },
+  "monsters/bramblet/bramblet_still.png": {
+   "anchor": [
+    40,
+    64
+   ],
+   "hp_bar_anchor": [
+    40,
+    12
+   ],
+   "notes": "single rest frame (portraits / initiative).",
+   "status": "draft_pending_approval"
+  },
+  "monsters/grinmud_toad/grinmud_toad_idle.png": {
+   "frames": 2,
+   "frame_size": [
+    80,
+    70
+   ],
+   "fps": 2,
+   "anchor": [
+    40,
+    64
+   ],
+   "hp_bar_anchor": [
+    40,
+    20
+   ],
+   "portrait_rect": [
+    30,
+    29,
+    20,
+    20
+   ],
+   "loop": true,
+   "status": "draft_pending_approval",
+   "region": "meadow",
+   "monster_size": "regular"
+  },
+  "monsters/grinmud_toad/grinmud_toad_attack.png": {
+   "frames": 3,
+   "frame_size": [
+    80,
+    70
+   ],
+   "fps": 5,
+   "anchor": [
+    40,
+    64
+   ],
+   "hp_bar_anchor": [
+    40,
+    20
+   ],
+   "portrait_rect": [
+    30,
+    29,
+    20,
+    20
+   ],
+   "loop": false,
+   "status": "draft_pending_approval",
+   "region": "meadow",
+   "monster_size": "regular"
+  },
+  "monsters/grinmud_toad/grinmud_toad_hit.png": {
+   "frames": 2,
+   "frame_size": [
+    80,
+    70
+   ],
+   "fps": 8,
+   "anchor": [
+    40,
+    64
+   ],
+   "hp_bar_anchor": [
+    40,
+    20
+   ],
+   "portrait_rect": [
+    30,
+    29,
+    20,
+    20
+   ],
+   "loop": false,
+   "status": "draft_pending_approval",
+   "region": "meadow",
+   "monster_size": "regular"
+  },
+  "monsters/grinmud_toad/grinmud_toad_death.png": {
+   "frames": 4,
+   "frame_size": [
+    80,
+    70
+   ],
+   "fps": 8,
+   "anchor": [
+    40,
+    64
+   ],
+   "hp_bar_anchor": [
+    40,
+    20
+   ],
+   "portrait_rect": [
+    30,
+    29,
+    20,
+    20
+   ],
+   "loop": false,
+   "status": "draft_pending_approval",
+   "region": "meadow",
+   "monster_size": "regular"
+  },
+  "monsters/grinmud_toad/grinmud_toad_portrait.png": {
+   "notes": "20x20 head crop (rect [30, 29, 20, 20] of the rest frame) for the initiative strip.",
+   "status": "draft_pending_approval"
+  },
+  "monsters/grinmud_toad/grinmud_toad_still.png": {
+   "anchor": [
+    40,
+    64
+   ],
+   "hp_bar_anchor": [
+    40,
+    20
+   ],
+   "notes": "single rest frame (portraits / initiative).",
+   "status": "draft_pending_approval"
+  },
+  "monsters/bottlecrab/bottlecrab_idle.png": {
+   "frames": 2,
+   "frame_size": [
+    80,
+    70
+   ],
+   "fps": 2,
+   "anchor": [
+    40,
+    64
+   ],
+   "hp_bar_anchor": [
+    40,
+    3
+   ],
+   "portrait_rect": [
+    30,
+    35,
+    20,
+    20
+   ],
+   "loop": true,
+   "status": "draft_pending_approval",
+   "region": "coast",
+   "monster_size": "regular"
+  },
+  "monsters/bottlecrab/bottlecrab_attack.png": {
+   "frames": 3,
+   "frame_size": [
+    80,
+    70
+   ],
+   "fps": 5,
+   "anchor": [
+    40,
+    64
+   ],
+   "hp_bar_anchor": [
+    40,
+    3
+   ],
+   "portrait_rect": [
+    30,
+    35,
+    20,
+    20
+   ],
+   "loop": false,
+   "status": "draft_pending_approval",
+   "region": "coast",
+   "monster_size": "regular"
+  },
+  "monsters/bottlecrab/bottlecrab_hit.png": {
+   "frames": 2,
+   "frame_size": [
+    80,
+    70
+   ],
+   "fps": 8,
+   "anchor": [
+    40,
+    64
+   ],
+   "hp_bar_anchor": [
+    40,
+    3
+   ],
+   "portrait_rect": [
+    30,
+    35,
+    20,
+    20
+   ],
+   "loop": false,
+   "status": "draft_pending_approval",
+   "region": "coast",
+   "monster_size": "regular"
+  },
+  "monsters/bottlecrab/bottlecrab_death.png": {
+   "frames": 4,
+   "frame_size": [
+    80,
+    70
+   ],
+   "fps": 8,
+   "anchor": [
+    40,
+    64
+   ],
+   "hp_bar_anchor": [
+    40,
+    3
+   ],
+   "portrait_rect": [
+    30,
+    35,
+    20,
+    20
+   ],
+   "loop": false,
+   "status": "draft_pending_approval",
+   "region": "coast",
+   "monster_size": "regular"
+  },
+  "monsters/bottlecrab/bottlecrab_portrait.png": {
+   "notes": "20x20 head crop (rect [30, 35, 20, 20] of the rest frame) for the initiative strip.",
+   "status": "draft_pending_approval"
+  },
+  "monsters/bottlecrab/bottlecrab_still.png": {
+   "anchor": [
+    40,
+    64
+   ],
+   "hp_bar_anchor": [
+    40,
+    3
+   ],
+   "notes": "single rest frame (portraits / initiative).",
+   "status": "draft_pending_approval"
+  },
+  "monsters/squallgull/squallgull_idle.png": {
+   "frames": 2,
+   "frame_size": [
+    80,
+    70
+   ],
+   "fps": 2,
+   "anchor": [
+    40,
+    64
+   ],
+   "hp_bar_anchor": [
+    40,
+    12
+   ],
+   "portrait_rect": [
+    31,
+    26,
+    20,
+    20
+   ],
+   "loop": true,
+   "status": "draft_pending_approval",
+   "region": "coast",
+   "monster_size": "regular"
+  },
+  "monsters/squallgull/squallgull_attack.png": {
+   "frames": 3,
+   "frame_size": [
+    80,
+    70
+   ],
+   "fps": 5,
+   "anchor": [
+    40,
+    64
+   ],
+   "hp_bar_anchor": [
+    40,
+    12
+   ],
+   "portrait_rect": [
+    31,
+    26,
+    20,
+    20
+   ],
+   "loop": false,
+   "status": "draft_pending_approval",
+   "region": "coast",
+   "monster_size": "regular"
+  },
+  "monsters/squallgull/squallgull_hit.png": {
+   "frames": 2,
+   "frame_size": [
+    80,
+    70
+   ],
+   "fps": 8,
+   "anchor": [
+    40,
+    64
+   ],
+   "hp_bar_anchor": [
+    40,
+    12
+   ],
+   "portrait_rect": [
+    31,
+    26,
+    20,
+    20
+   ],
+   "loop": false,
+   "status": "draft_pending_approval",
+   "region": "coast",
+   "monster_size": "regular"
+  },
+  "monsters/squallgull/squallgull_death.png": {
+   "frames": 4,
+   "frame_size": [
+    80,
+    70
+   ],
+   "fps": 8,
+   "anchor": [
+    40,
+    64
+   ],
+   "hp_bar_anchor": [
+    40,
+    12
+   ],
+   "portrait_rect": [
+    31,
+    26,
+    20,
+    20
+   ],
+   "loop": false,
+   "status": "draft_pending_approval",
+   "region": "coast",
+   "monster_size": "regular"
+  },
+  "monsters/squallgull/squallgull_portrait.png": {
+   "notes": "20x20 head crop (rect [31, 26, 20, 20] of the rest frame) for the initiative strip.",
+   "status": "draft_pending_approval"
+  },
+  "monsters/squallgull/squallgull_still.png": {
+   "anchor": [
+    40,
+    64
+   ],
+   "hp_bar_anchor": [
+    40,
+    12
+   ],
+   "notes": "single rest frame (portraits / initiative).",
+   "status": "draft_pending_approval"
+  },
+  "monsters/kelpback/kelpback_idle.png": {
+   "frames": 2,
+   "frame_size": [
+    80,
+    70
+   ],
+   "fps": 2,
+   "anchor": [
+    40,
+    64
+   ],
+   "hp_bar_anchor": [
+    40,
+    12
+   ],
+   "portrait_rect": [
+    6,
+    30,
+    20,
+    20
+   ],
+   "loop": true,
+   "status": "draft_pending_approval",
+   "region": "coast",
+   "monster_size": "large"
+  },
+  "monsters/kelpback/kelpback_attack.png": {
+   "frames": 3,
+   "frame_size": [
+    80,
+    70
+   ],
+   "fps": 5,
+   "anchor": [
+    40,
+    64
+   ],
+   "hp_bar_anchor": [
+    40,
+    12
+   ],
+   "portrait_rect": [
+    6,
+    30,
+    20,
+    20
+   ],
+   "loop": false,
+   "status": "draft_pending_approval",
+   "region": "coast",
+   "monster_size": "large"
+  },
+  "monsters/kelpback/kelpback_hit.png": {
+   "frames": 2,
+   "frame_size": [
+    80,
+    70
+   ],
+   "fps": 8,
+   "anchor": [
+    40,
+    64
+   ],
+   "hp_bar_anchor": [
+    40,
+    12
+   ],
+   "portrait_rect": [
+    6,
+    30,
+    20,
+    20
+   ],
+   "loop": false,
+   "status": "draft_pending_approval",
+   "region": "coast",
+   "monster_size": "large"
+  },
+  "monsters/kelpback/kelpback_death.png": {
+   "frames": 4,
+   "frame_size": [
+    80,
+    70
+   ],
+   "fps": 8,
+   "anchor": [
+    40,
+    64
+   ],
+   "hp_bar_anchor": [
+    40,
+    12
+   ],
+   "portrait_rect": [
+    6,
+    30,
+    20,
+    20
+   ],
+   "loop": false,
+   "status": "draft_pending_approval",
+   "region": "coast",
+   "monster_size": "large"
+  },
+  "monsters/kelpback/kelpback_portrait.png": {
+   "notes": "20x20 head crop (rect [6, 30, 20, 20] of the rest frame) for the initiative strip.",
+   "status": "draft_pending_approval"
+  },
+  "monsters/kelpback/kelpback_still.png": {
+   "anchor": [
+    40,
+    64
+   ],
+   "hp_bar_anchor": [
+    40,
+    12
+   ],
+   "notes": "single rest frame (portraits / initiative).",
+   "status": "draft_pending_approval"
+  },
+  "monsters/gloomgrub/gloomgrub_idle.png": {
+   "frames": 2,
+   "frame_size": [
+    80,
+    70
+   ],
+   "fps": 2,
+   "anchor": [
+    40,
+    64
+   ],
+   "hp_bar_anchor": [
+    40,
+    22
+   ],
+   "portrait_rect": [
+    10,
+    36,
+    20,
+    20
+   ],
+   "loop": true,
+   "status": "draft_pending_approval",
+   "region": "cave",
+   "monster_size": "regular"
+  },
+  "monsters/gloomgrub/gloomgrub_attack.png": {
+   "frames": 3,
+   "frame_size": [
+    80,
+    70
+   ],
+   "fps": 5,
+   "anchor": [
+    40,
+    64
+   ],
+   "hp_bar_anchor": [
+    40,
+    22
+   ],
+   "portrait_rect": [
+    10,
+    36,
+    20,
+    20
+   ],
+   "loop": false,
+   "status": "draft_pending_approval",
+   "region": "cave",
+   "monster_size": "regular"
+  },
+  "monsters/gloomgrub/gloomgrub_hit.png": {
+   "frames": 2,
+   "frame_size": [
+    80,
+    70
+   ],
+   "fps": 8,
+   "anchor": [
+    40,
+    64
+   ],
+   "hp_bar_anchor": [
+    40,
+    22
+   ],
+   "portrait_rect": [
+    10,
+    36,
+    20,
+    20
+   ],
+   "loop": false,
+   "status": "draft_pending_approval",
+   "region": "cave",
+   "monster_size": "regular"
+  },
+  "monsters/gloomgrub/gloomgrub_death.png": {
+   "frames": 4,
+   "frame_size": [
+    80,
+    70
+   ],
+   "fps": 8,
+   "anchor": [
+    40,
+    64
+   ],
+   "hp_bar_anchor": [
+    40,
+    22
+   ],
+   "portrait_rect": [
+    10,
+    36,
+    20,
+    20
+   ],
+   "loop": false,
+   "status": "draft_pending_approval",
+   "region": "cave",
+   "monster_size": "regular"
+  },
+  "monsters/gloomgrub/gloomgrub_portrait.png": {
+   "notes": "20x20 head crop (rect [10, 36, 20, 20] of the rest frame) for the initiative strip.",
+   "status": "draft_pending_approval"
+  },
+  "monsters/gloomgrub/gloomgrub_still.png": {
+   "anchor": [
+    40,
+    64
+   ],
+   "hp_bar_anchor": [
+    40,
+    22
+   ],
+   "notes": "single rest frame (portraits / initiative).",
+   "status": "draft_pending_approval"
+  },
+  "monsters/dripfang/dripfang_idle.png": {
+   "frames": 2,
+   "frame_size": [
+    80,
+    70
+   ],
+   "fps": 2,
+   "anchor": [
+    40,
+    64
+   ],
+   "hp_bar_anchor": [
+    40,
+    1
+   ],
+   "portrait_rect": [
+    31,
+    24,
+    20,
+    20
+   ],
+   "loop": true,
+   "status": "draft_pending_approval",
+   "region": "cave",
+   "monster_size": "regular"
+  },
+  "monsters/dripfang/dripfang_attack.png": {
+   "frames": 3,
+   "frame_size": [
+    80,
+    70
+   ],
+   "fps": 5,
+   "anchor": [
+    40,
+    64
+   ],
+   "hp_bar_anchor": [
+    40,
+    1
+   ],
+   "portrait_rect": [
+    31,
+    24,
+    20,
+    20
+   ],
+   "loop": false,
+   "status": "draft_pending_approval",
+   "region": "cave",
+   "monster_size": "regular"
+  },
+  "monsters/dripfang/dripfang_hit.png": {
+   "frames": 2,
+   "frame_size": [
+    80,
+    70
+   ],
+   "fps": 8,
+   "anchor": [
+    40,
+    64
+   ],
+   "hp_bar_anchor": [
+    40,
+    1
+   ],
+   "portrait_rect": [
+    31,
+    24,
+    20,
+    20
+   ],
+   "loop": false,
+   "status": "draft_pending_approval",
+   "region": "cave",
+   "monster_size": "regular"
+  },
+  "monsters/dripfang/dripfang_death.png": {
+   "frames": 4,
+   "frame_size": [
+    80,
+    70
+   ],
+   "fps": 8,
+   "anchor": [
+    40,
+    64
+   ],
+   "hp_bar_anchor": [
+    40,
+    1
+   ],
+   "portrait_rect": [
+    31,
+    24,
+    20,
+    20
+   ],
+   "loop": false,
+   "status": "draft_pending_approval",
+   "region": "cave",
+   "monster_size": "regular"
+  },
+  "monsters/dripfang/dripfang_portrait.png": {
+   "notes": "20x20 head crop (rect [31, 24, 20, 20] of the rest frame) for the initiative strip.",
+   "status": "draft_pending_approval"
+  },
+  "monsters/dripfang/dripfang_still.png": {
+   "anchor": [
+    40,
+    64
+   ],
+   "hp_bar_anchor": [
+    40,
+    1
+   ],
+   "notes": "single rest frame (portraits / initiative).",
+   "status": "draft_pending_approval"
+  },
+  "monsters/pebble_squire/pebble_squire_idle.png": {
+   "frames": 2,
+   "frame_size": [
+    80,
+    70
+   ],
+   "fps": 2,
+   "anchor": [
+    40,
+    64
+   ],
+   "hp_bar_anchor": [
+    40,
+    2
+   ],
+   "portrait_rect": [
+    29,
+    15,
+    20,
+    20
+   ],
+   "loop": true,
+   "status": "draft_pending_approval",
+   "region": "keep",
+   "monster_size": "regular"
+  },
+  "monsters/pebble_squire/pebble_squire_attack.png": {
+   "frames": 3,
+   "frame_size": [
+    80,
+    70
+   ],
+   "fps": 5,
+   "anchor": [
+    40,
+    64
+   ],
+   "hp_bar_anchor": [
+    40,
+    2
+   ],
+   "portrait_rect": [
+    29,
+    15,
+    20,
+    20
+   ],
+   "loop": false,
+   "status": "draft_pending_approval",
+   "region": "keep",
+   "monster_size": "regular"
+  },
+  "monsters/pebble_squire/pebble_squire_hit.png": {
+   "frames": 2,
+   "frame_size": [
+    80,
+    70
+   ],
+   "fps": 8,
+   "anchor": [
+    40,
+    64
+   ],
+   "hp_bar_anchor": [
+    40,
+    2
+   ],
+   "portrait_rect": [
+    29,
+    15,
+    20,
+    20
+   ],
+   "loop": false,
+   "status": "draft_pending_approval",
+   "region": "keep",
+   "monster_size": "regular"
+  },
+  "monsters/pebble_squire/pebble_squire_death.png": {
+   "frames": 4,
+   "frame_size": [
+    80,
+    70
+   ],
+   "fps": 8,
+   "anchor": [
+    40,
+    64
+   ],
+   "hp_bar_anchor": [
+    40,
+    2
+   ],
+   "portrait_rect": [
+    29,
+    15,
+    20,
+    20
+   ],
+   "loop": false,
+   "status": "draft_pending_approval",
+   "region": "keep",
+   "monster_size": "regular"
+  },
+  "monsters/pebble_squire/pebble_squire_portrait.png": {
+   "notes": "20x20 head crop (rect [29, 15, 20, 20] of the rest frame) for the initiative strip.",
+   "status": "draft_pending_approval"
+  },
+  "monsters/pebble_squire/pebble_squire_still.png": {
+   "anchor": [
+    40,
+    64
+   ],
+   "hp_bar_anchor": [
+    40,
+    2
+   ],
+   "notes": "single rest frame (portraits / initiative).",
+   "status": "draft_pending_approval"
+  },
+  "monsters/hollow_helm/hollow_helm_idle.png": {
+   "frames": 2,
+   "frame_size": [
+    80,
+    70
+   ],
+   "fps": 2,
+   "anchor": [
+    40,
+    64
+   ],
+   "hp_bar_anchor": [
+    40,
+    1
+   ],
+   "portrait_rect": [
+    28,
+    17,
+    20,
+    20
+   ],
+   "loop": true,
+   "status": "draft_pending_approval",
+   "region": "keep",
+   "monster_size": "regular"
+  },
+  "monsters/hollow_helm/hollow_helm_attack.png": {
+   "frames": 3,
+   "frame_size": [
+    80,
+    70
+   ],
+   "fps": 5,
+   "anchor": [
+    40,
+    64
+   ],
+   "hp_bar_anchor": [
+    40,
+    1
+   ],
+   "portrait_rect": [
+    28,
+    17,
+    20,
+    20
+   ],
+   "loop": false,
+   "status": "draft_pending_approval",
+   "region": "keep",
+   "monster_size": "regular"
+  },
+  "monsters/hollow_helm/hollow_helm_hit.png": {
+   "frames": 2,
+   "frame_size": [
+    80,
+    70
+   ],
+   "fps": 8,
+   "anchor": [
+    40,
+    64
+   ],
+   "hp_bar_anchor": [
+    40,
+    1
+   ],
+   "portrait_rect": [
+    28,
+    17,
+    20,
+    20
+   ],
+   "loop": false,
+   "status": "draft_pending_approval",
+   "region": "keep",
+   "monster_size": "regular"
+  },
+  "monsters/hollow_helm/hollow_helm_death.png": {
+   "frames": 4,
+   "frame_size": [
+    80,
+    70
+   ],
+   "fps": 8,
+   "anchor": [
+    40,
+    64
+   ],
+   "hp_bar_anchor": [
+    40,
+    1
+   ],
+   "portrait_rect": [
+    28,
+    17,
+    20,
+    20
+   ],
+   "loop": false,
+   "status": "draft_pending_approval",
+   "region": "keep",
+   "monster_size": "regular"
+  },
+  "monsters/hollow_helm/hollow_helm_portrait.png": {
+   "notes": "20x20 head crop (rect [28, 17, 20, 20] of the rest frame) for the initiative strip.",
+   "status": "draft_pending_approval"
+  },
+  "monsters/hollow_helm/hollow_helm_still.png": {
+   "anchor": [
+    40,
+    64
+   ],
+   "hp_bar_anchor": [
+    40,
+    1
+   ],
+   "notes": "single rest frame (portraits / initiative).",
+   "status": "draft_pending_approval"
+  },
+  "monsters/cobble_rat/cobble_rat_idle.png": {
+   "frames": 2,
+   "frame_size": [
+    80,
+    70
+   ],
+   "fps": 2,
+   "anchor": [
+    40,
+    64
+   ],
+   "hp_bar_anchor": [
+    40,
+    28
+   ],
+   "portrait_rect": [
+    11,
+    39,
+    20,
+    20
+   ],
+   "loop": true,
+   "status": "draft_pending_approval",
+   "region": "keep",
+   "monster_size": "regular"
+  },
+  "monsters/cobble_rat/cobble_rat_attack.png": {
+   "frames": 3,
+   "frame_size": [
+    80,
+    70
+   ],
+   "fps": 5,
+   "anchor": [
+    40,
+    64
+   ],
+   "hp_bar_anchor": [
+    40,
+    28
+   ],
+   "portrait_rect": [
+    11,
+    39,
+    20,
+    20
+   ],
+   "loop": false,
+   "status": "draft_pending_approval",
+   "region": "keep",
+   "monster_size": "regular"
+  },
+  "monsters/cobble_rat/cobble_rat_hit.png": {
+   "frames": 2,
+   "frame_size": [
+    80,
+    70
+   ],
+   "fps": 8,
+   "anchor": [
+    40,
+    64
+   ],
+   "hp_bar_anchor": [
+    40,
+    28
+   ],
+   "portrait_rect": [
+    11,
+    39,
+    20,
+    20
+   ],
+   "loop": false,
+   "status": "draft_pending_approval",
+   "region": "keep",
+   "monster_size": "regular"
+  },
+  "monsters/cobble_rat/cobble_rat_death.png": {
+   "frames": 4,
+   "frame_size": [
+    80,
+    70
+   ],
+   "fps": 8,
+   "anchor": [
+    40,
+    64
+   ],
+   "hp_bar_anchor": [
+    40,
+    28
+   ],
+   "portrait_rect": [
+    11,
+    39,
+    20,
+    20
+   ],
+   "loop": false,
+   "status": "draft_pending_approval",
+   "region": "keep",
+   "monster_size": "regular"
+  },
+  "monsters/cobble_rat/cobble_rat_portrait.png": {
+   "notes": "20x20 head crop (rect [11, 39, 20, 20] of the rest frame) for the initiative strip.",
+   "status": "draft_pending_approval"
+  },
+  "monsters/cobble_rat/cobble_rat_still.png": {
+   "anchor": [
+    40,
+    64
+   ],
+   "hp_bar_anchor": [
+    40,
+    28
+   ],
+   "notes": "single rest frame (portraits / initiative).",
+   "status": "draft_pending_approval"
+  }
+ },
+ "regions": {
+  "source": "thegliffy/paladins-of-pen-and-paper @ cursor/phase-0-playable-slice-9a5e: data/region.json (places[].kind = region) + data/monsters.json",
+  "note": "The region is the place \"kind\" (town/meadow/coast/cave/keep); the map itself is one region file (greenmere). Town (Candlewick) has no monsters by design, so it is excluded from the 4-regular/1-large rule.",
+  "places": [
+   {
+    "id": "candlewick",
+    "name": "Candlewick",
+    "region": "town",
+    "level": 1,
+    "monsters": [],
+    "suggested_new": [],
+    "backdrop": "combat/bg_candlewick_portrait.png"
+   },
+   {
+    "id": "millpond",
+    "name": "Millpond",
+    "region": "meadow",
+    "level": 1,
+    "monsters": [
+     "puddleblob",
+     "thicket_imp"
+    ],
+    "suggested_new": [
+     "grinmud_toad"
+    ],
+    "backdrop": "combat/bg_millpond_portrait.png"
+   },
+   {
+    "id": "briar_cross",
+    "name": "Briar Cross",
+    "region": "meadow",
+    "level": 2,
+    "monsters": [
+     "cinder_mite",
+     "briar_hound",
+     "thicket_imp"
+    ],
+    "suggested_new": [
+     "bramblet"
+    ],
+    "backdrop": "combat/bg_briar_cross_portrait.png"
+   },
+   {
+    "id": "lantern_reach",
+    "name": "Lantern Reach",
+    "region": "coast",
+    "level": 2,
+    "monsters": [
+     "lantern_wisp",
+     "cinder_mite",
+     "briar_hound"
+    ],
+    "suggested_new": [
+     "bottlecrab",
+     "squallgull",
+     "kelpback"
+    ],
+    "backdrop": "combat/bg_lantern_reach_portrait.png"
+   },
+   {
+    "id": "howling_cleft",
+    "name": "Howling Cleft",
+    "region": "cave",
+    "level": 3,
+    "monsters": [
+     "cave_howler",
+     "marshlurker",
+     "briar_hound",
+     "lantern_wisp"
+    ],
+    "suggested_new": [
+     "gloomgrub",
+     "dripfang"
+    ],
+    "backdrop": "combat/bg_howling_cleft_portrait.png"
+   },
+   {
+    "id": "gravel_keep",
+    "name": "Gravel Keep",
+    "region": "keep",
+    "level": 4,
+    "monsters": [
+     "gravel_brute",
+     "cave_howler",
+     "marshlurker",
+     "briar_hound"
+    ],
+    "suggested_new": [
+     "pebble_squire",
+     "hollow_helm",
+     "cobble_rat"
+    ],
+    "backdrop": "combat/bg_gravel_keep_portrait.png"
+   }
+  ],
+  "regions": {
+   "town": {
+    "places": [
+     "candlewick"
+    ],
+    "existing": [],
+    "new": [],
+    "regular": 0,
+    "large": 0,
+    "meets_4_regular_1_large": false
+   },
+   "meadow": {
+    "places": [
+     "millpond",
+     "briar_cross"
+    ],
+    "existing": [
+     "puddleblob",
+     "thicket_imp",
+     "cinder_mite",
+     "briar_hound"
+    ],
+    "new": [
+     "bramblet",
+     "grinmud_toad"
+    ],
+    "regular": 5,
+    "large": 1,
+    "meets_4_regular_1_large": true
+   },
+   "coast": {
+    "places": [
+     "lantern_reach"
+    ],
+    "existing": [
+     "lantern_wisp",
+     "cinder_mite",
+     "briar_hound"
+    ],
+    "new": [
+     "bottlecrab",
+     "squallgull",
+     "kelpback"
+    ],
+    "regular": 4,
+    "large": 2,
+    "meets_4_regular_1_large": true
+   },
+   "cave": {
+    "places": [
+     "howling_cleft"
+    ],
+    "existing": [
+     "cave_howler",
+     "marshlurker",
+     "briar_hound",
+     "lantern_wisp"
+    ],
+    "new": [
+     "gloomgrub",
+     "dripfang"
+    ],
+    "regular": 4,
+    "large": 2,
+    "meets_4_regular_1_large": true
+   },
+   "keep": {
+    "places": [
+     "gravel_keep"
+    ],
+    "existing": [
+     "gravel_brute",
+     "cave_howler",
+     "marshlurker",
+     "briar_hound"
+    ],
+    "new": [
+     "pebble_squire",
+     "hollow_helm",
+     "cobble_rat"
+    ],
+    "regular": 4,
+    "large": 3,
+    "meets_4_regular_1_large": true
+   }
+  },
+  "existing": {
+   "puddleblob": [
+    "Puddleblob",
+    "regular",
+    "slime"
+   ],
+   "thicket_imp": [
+    "Thicket Imp",
+    "regular",
+    "imp"
+   ],
+   "cinder_mite": [
+    "Cinder Mite",
+    "regular",
+    "goblin"
+   ],
+   "briar_hound": [
+    "Briar Hound",
+    "large",
+    "wolf"
+   ],
+   "lantern_wisp": [
+    "Lantern Wisp",
+    "regular",
+    "mushroom"
+   ],
+   "cave_howler": [
+    "Cave Howler",
+    "regular",
+    "bat"
+   ],
+   "marshlurker": [
+    "Marshlurker",
+    "large",
+    "skeleton"
+   ],
+   "gravel_brute": [
+    "Gravel Brute",
+    "large",
+    "golem"
+   ]
+  },
+  "draft_monsters": {
+   "bramblet": {
+    "name": "Bramblet",
+    "region": "meadow",
+    "size": "regular",
+    "concept": "A rolling hedge-ball with leaf ears, berries and a grudge against anyone who cuts the Briar Cross hedge.",
+    "sprite_size": [
+     45,
+     49
+    ],
+    "top": 16,
+    "portrait_rect": [
+     30,
+     31,
+     20,
+     20
+    ],
+    "hp_bar_anchor": [
+     40,
+     12
+    ],
+    "flying": false,
+    "status": "draft_pending_approval"
+   },
+   "grinmud_toad": {
+    "name": "Grinmud Toad",
+    "region": "meadow",
+    "size": "regular",
+    "concept": "The thing that grins from the Millpond mud: a squat brown toad with a lily-pad cap and far too many teeth.",
+    "sprite_size": [
+     56,
+     41
+    ],
+    "top": 24,
+    "portrait_rect": [
+     30,
+     29,
+     20,
+     20
+    ],
+    "hp_bar_anchor": [
+     40,
+     20
+    ],
+    "flying": false,
+    "status": "draft_pending_approval"
+   },
+   "bottlecrab": {
+    "name": "Bottlecrab",
+    "region": "coast",
+    "size": "regular",
+    "concept": "A hermit crab that moved into a washed-up message bottle; snips first, reads never.",
+    "sprite_size": [
+     59,
+     58
+    ],
+    "top": 7,
+    "portrait_rect": [
+     30,
+     35,
+     20,
+     20
+    ],
+    "hp_bar_anchor": [
+     40,
+     3
+    ],
+    "flying": false,
+    "status": "draft_pending_approval"
+   },
+   "squallgull": {
+    "name": "Squallgull",
+    "region": "coast",
+    "size": "regular",
+    "concept": "A scowling grey gull that drags its own tiny storm cloud around the lighthouse.",
+    "sprite_size": [
+     71,
+     49
+    ],
+    "top": 16,
+    "portrait_rect": [
+     31,
+     26,
+     20,
+     20
+    ],
+    "hp_bar_anchor": [
+     40,
+     12
+    ],
+    "flying": true,
+    "status": "draft_pending_approval"
+   },
+   "kelpback": {
+    "name": "Kelpback Snapper",
+    "region": "coast",
+    "size": "large",
+    "concept": "A barnacled snapping turtle draped in kelp that hauls itself out of the shallows.",
+    "sprite_size": [
+     71,
+     49
+    ],
+    "top": 16,
+    "portrait_rect": [
+     6,
+     30,
+     20,
+     20
+    ],
+    "hp_bar_anchor": [
+     40,
+     12
+    ],
+    "flying": false,
+    "status": "draft_pending_approval"
+   },
+   "gloomgrub": {
+    "name": "Gloomgrub",
+    "region": "cave",
+    "size": "regular",
+    "concept": "A pale segmented cave grub with glowing cyan spots and clacking mandibles.",
+    "sprite_size": [
+     68,
+     39
+    ],
+    "top": 26,
+    "portrait_rect": [
+     10,
+     36,
+     20,
+     20
+    ],
+    "hp_bar_anchor": [
+     40,
+     22
+    ],
+    "flying": false,
+    "status": "draft_pending_approval"
+   },
+   "dripfang": {
+    "name": "Dripfang",
+    "region": "cave",
+    "size": "regular",
+    "concept": "A stalagmite that is not a stalagmite: yellow eyes, a stony maw, drips down its sides.",
+    "sprite_size": [
+     52,
+     60
+    ],
+    "top": 5,
+    "portrait_rect": [
+     31,
+     24,
+     20,
+     20
+    ],
+    "hp_bar_anchor": [
+     40,
+     1
+    ],
+    "flying": false,
+    "status": "draft_pending_approval"
+   },
+   "pebble_squire": {
+    "name": "Pebble Squire",
+    "region": "keep",
+    "size": "regular",
+    "concept": "A pile of walking pebbles in a dented bucket helm with a wooden sword; the small stones that walk at dusk.",
+    "sprite_size": [
+     52,
+     59
+    ],
+    "top": 6,
+    "portrait_rect": [
+     29,
+     15,
+     20,
+     20
+    ],
+    "hp_bar_anchor": [
+     40,
+     2
+    ],
+    "flying": false,
+    "status": "draft_pending_approval"
+   },
+   "hollow_helm": {
+    "name": "Hollow Helm",
+    "region": "keep",
+    "size": "regular",
+    "concept": "An empty great helm and two gauntlets floating over a tattered tabard, still keeping watch.",
+    "sprite_size": [
+     63,
+     63
+    ],
+    "top": 2,
+    "portrait_rect": [
+     28,
+     17,
+     20,
+     20
+    ],
+    "hp_bar_anchor": [
+     40,
+     1
+    ],
+    "flying": true,
+    "status": "draft_pending_approval"
+   },
+   "cobble_rat": {
+    "name": "Cobble Rat",
+    "region": "keep",
+    "size": "regular",
+    "concept": "A courtyard rat wearing a patch of cobblestones as a shell.",
+    "sprite_size": [
+     71,
+     33
+    ],
+    "top": 32,
+    "portrait_rect": [
+     11,
+     39,
+     20,
+     20
+    ],
+    "hp_bar_anchor": [
+     40,
+     28
+    ],
+    "flying": false,
+    "status": "draft_pending_approval"
+   }
+  },
+  "status": "draft_pending_approval"
+ }
+}

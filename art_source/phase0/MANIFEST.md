@@ -287,6 +287,31 @@ Canvas 48x78, anchor [24,77]. back/body_back_skin_<skin> → back/outfit_back ti
 ## Skill card popup (portrait)
 Tap a skill once to open its notebook card (9-slice `ui/portrait/skill_card_panel.png`, margins L14 T10 R6 B6, tiled; tail `skill_card_tail.png`) and arm the slot (`skill_slot_armed.png`, 2 frames). Tap the same slot again to cast; another slot switches; elsewhere closes; passives never cast. Card: 2x icon frame, name, ACTIVE/PASSIVE tag, MP badge, target icon + text, cooldown, 3-line description, prompt strip (ready pulse / passive / NOT ENOUGH MP / ON COOLDOWN: n). Rects: `{"icon_frame": [16, 12, 44, 44], "name": [66, 13], "name_scale": 2, "tag_right_margin": 8, "tag_y": 12, "cost_row": [66, 25], "target_row": [66, 35], "cd_row": [66, 45], "desc": [16, 62], "desc_line_h": 8, "desc_chars": 49, "strip_h": 14, "strip_margin_x": 8, "bottom_pad": 5}`. Mocks: `scene_test_portrait_skillcard(+_4x).png`, `ui/portrait/skill_card_examples(+_3x).png`. All copy is PLACEHOLDER.
 
+## Greenmere regions (DRAFT, pending approval)
+Regions = `places[].kind` in data/region.json. Backdrops `combat/bg_<location>_portrait.png` (270x480, horizon y141, monster feet y222-266, calm below y300). New monsters (same 80x70 strips/anchors/anims) are listed in `manifest.json` under `monsters` with `status: draft_pending_approval`, and the full table is in `regions`. Approval sheets: `approval/backdrops_1x.png` / `_2x`, `approval/monster_lineup.png` / `_2x`, composite `scene_test_portrait_lantern_reach(+_4x).png`, extra `approval/scene_*.png`.
+
+| location | region | lv | existing monsters | new (draft) | backdrop |
+|---|---|---|---|---|---|
+| Candlewick | town | 1 | (none, town) | - | combat/bg_candlewick_portrait.png |
+| Millpond | meadow | 1 | puddleblob, thicket_imp | grinmud_toad | combat/bg_millpond_portrait.png |
+| Briar Cross | meadow | 2 | cinder_mite, briar_hound, thicket_imp | bramblet | combat/bg_briar_cross_portrait.png |
+| Lantern Reach | coast | 2 | lantern_wisp, cinder_mite, briar_hound | bottlecrab, squallgull, kelpback | combat/bg_lantern_reach_portrait.png |
+| Howling Cleft | cave | 3 | cave_howler, marshlurker, briar_hound, lantern_wisp | gloomgrub, dripfang | combat/bg_howling_cleft_portrait.png |
+| Gravel Keep | keep | 4 | gravel_brute, cave_howler, marshlurker, briar_hound | pebble_squire, hollow_helm, cobble_rat | combat/bg_gravel_keep_portrait.png |
+
+| new monster | region | size | concept |
+|---|---|---|---|
+| Bramblet (`bramblet`) | meadow | regular | A rolling hedge-ball with leaf ears, berries and a grudge against anyone who cuts the Briar Cross hedge. |
+| Grinmud Toad (`grinmud_toad`) | meadow | regular | The thing that grins from the Millpond mud: a squat brown toad with a lily-pad cap and far too many teeth. |
+| Bottlecrab (`bottlecrab`) | coast | regular | A hermit crab that moved into a washed-up message bottle; snips first, reads never. |
+| Squallgull (`squallgull`) | coast | regular | A scowling grey gull that drags its own tiny storm cloud around the lighthouse. |
+| Kelpback Snapper (`kelpback`) | coast | large | A barnacled snapping turtle draped in kelp that hauls itself out of the shallows. |
+| Gloomgrub (`gloomgrub`) | cave | regular | A pale segmented cave grub with glowing cyan spots and clacking mandibles. |
+| Dripfang (`dripfang`) | cave | regular | A stalagmite that is not a stalagmite: yellow eyes, a stony maw, drips down its sides. |
+| Pebble Squire (`pebble_squire`) | keep | regular | A pile of walking pebbles in a dented bucket helm with a wooden sword; the small stones that walk at dusk. |
+| Hollow Helm (`hollow_helm`) | keep | regular | An empty great helm and two gauntlets floating over a tattered tabard, still keeping watch. |
+| Cobble Rat (`cobble_rat`) | keep | regular | A courtyard rat wearing a patch of cobblestones as a shell. |
+
 ## Skill FX
 | strip | frame size | frames | fps | anchor | loop / segments | notes |
 |---|---|---|---|---|---|---|
@@ -309,8 +334,21 @@ FX style: no black outline (glow effects); bright core stepping to a darker colo
 ## Files
 | path | size | frames | frame size | fps | anchor | extra | notes |
 |---|---|---|---|---|---|---|---|
+| approval/backdrops_1x.png | 1662x506 | 1 | 1662x506 |  |  | status=draft_pending_approval | APPROVAL SHEET (not runtime): the 6 Greenmere location backdrops at 1x, labelled name / region / level. |
+| approval/backdrops_2x.png | 3324x1012 | 1 | 3324x1012 |  |  | status=draft_pending_approval | 2x nearest of approval/backdrops_1x.png. |
+| approval/monster_lineup.png | 656x488 | 1 | 656x488 |  |  | status=draft_pending_approval | APPROVAL SHEET (not runtime): monsters grouped by region (existing first, NEW drafts tagged gold), each on a crop of its region backdrop stand zone; existing ones show the pack sprite that data/monsters.json maps them to. |
+| approval/monster_lineup_2x.png | 1312x976 | 1 | 1312x976 |  |  | status=draft_pending_approval | 2x nearest of approval/monster_lineup.png. |
+| approval/scene_briar_cross.png | 270x480 | 1 | 270x480 |  |  | status=draft_pending_approval | QA composite (not runtime): briar_cross backdrop with bramblet, briar_hound, grinmud_toad and the full portrait UI. |
+| approval/scene_gravel_keep.png | 270x480 | 1 | 270x480 |  |  | status=draft_pending_approval | QA composite (not runtime): gravel_keep backdrop with pebble_squire, gravel_brute, hollow_helm and the full portrait UI. |
+| approval/scene_howling_cleft.png | 270x480 | 1 | 270x480 |  |  | status=draft_pending_approval | QA composite (not runtime): howling_cleft backdrop with gloomgrub, marshlurker, dripfang and the full portrait UI. |
+| combat/bg_briar_cross_portrait.png | 270x480 | 1 | 270x480 |  | [0, 0] | status=draft_pending_approval, location=briar_cross, location_name=Briar Cross, region=meadow, horizon_y=141, monster_feet_band=[222, 266] | DRAFT Briar Cross (meadow) combat backdrop, 270x480, same framing as bg_forest_portrait: sky/landmarks above the horizon (y141), monster stand zone y~180-270 kept low-contrast, calmer texture below y~300 (table y343-382, seats and bars below). Procedural, flat shading, pack palette, alpha 255. |
+| combat/bg_candlewick_portrait.png | 270x480 | 1 | 270x480 |  | [0, 0] | status=draft_pending_approval, location=candlewick, location_name=Candlewick, region=town, horizon_y=141, monster_feet_band=[222, 266] | DRAFT Candlewick (town) combat backdrop, 270x480, same framing as bg_forest_portrait: sky/landmarks above the horizon (y141), monster stand zone y~180-270 kept low-contrast, calmer texture below y~300 (table y343-382, seats and bars below). Procedural, flat shading, pack palette, alpha 255. Candlewick has no monsters in data/region.json (town / inn); backdrop provided for completeness. |
 | combat/bg_forest.png | 480x270 | 1 | 480x270 |  | [0, 0] | legacy=true | LEGACY (landscape 480x270): use combat/bg_forest_portrait.png. 480x270 full-screen backdrop; sky/treeline top, meadow starts ~y108; place monster feet on y~115-135 (upper half). Rows 214-269 are a mirrored meadow band (normally hidden by table/UI). |
 | combat/bg_forest_portrait.png | 270x480 | 1 | 270x480 |  | [0, 0] | meadow_start_y=141, monster_feet_band=[150, 200] | PORTRAIT 270x480 backdrop recomposed from the same forest source: sky 0-~40, tree line to y~141, meadow below. v3: rows ~196-479 are a seamless procedural meadow (value-noise grass clumps, tufts, scattered dirt patches), dither-blended into the source meadow over y196-231. No repeats or mirror lines. |
+| combat/bg_gravel_keep_portrait.png | 270x480 | 1 | 270x480 |  | [0, 0] | status=draft_pending_approval, location=gravel_keep, location_name=Gravel Keep, region=keep, horizon_y=141, monster_feet_band=[222, 266] | DRAFT Gravel Keep (keep) combat backdrop, 270x480, same framing as bg_forest_portrait: sky/landmarks above the horizon (y141), monster stand zone y~180-270 kept low-contrast, calmer texture below y~300 (table y343-382, seats and bars below). Procedural, flat shading, pack palette, alpha 255. |
+| combat/bg_howling_cleft_portrait.png | 270x480 | 1 | 270x480 |  | [0, 0] | status=draft_pending_approval, location=howling_cleft, location_name=Howling Cleft, region=cave, horizon_y=141, monster_feet_band=[222, 266] | DRAFT Howling Cleft (cave) combat backdrop, 270x480, same framing as bg_forest_portrait: sky/landmarks above the horizon (y141), monster stand zone y~180-270 kept low-contrast, calmer texture below y~300 (table y343-382, seats and bars below). Procedural, flat shading, pack palette, alpha 255. |
+| combat/bg_lantern_reach_portrait.png | 270x480 | 1 | 270x480 |  | [0, 0] | status=draft_pending_approval, location=lantern_reach, location_name=Lantern Reach, region=coast, horizon_y=141, monster_feet_band=[222, 266] | DRAFT Lantern Reach (coast) combat backdrop, 270x480, same framing as bg_forest_portrait: sky/landmarks above the horizon (y141), monster stand zone y~180-270 kept low-contrast, calmer texture below y~300 (table y343-382, seats and bars below). Procedural, flat shading, pack palette, alpha 255. |
+| combat/bg_millpond_portrait.png | 270x480 | 1 | 270x480 |  | [0, 0] | status=draft_pending_approval, location=millpond, location_name=Millpond, region=meadow, horizon_y=141, monster_feet_band=[222, 266] | DRAFT Millpond (meadow) combat backdrop, 270x480, same framing as bg_forest_portrait: sky/landmarks above the horizon (y141), monster stand zone y~180-270 kept low-contrast, calmer texture below y~300 (table y343-382, seats and bars below). Procedural, flat shading, pack palette, alpha 255. |
 | combat/d20_nat20.png | 24x24 | 1 | 24x24 |  | [12, 23] |  | gold natural-20 result frame (swap in for frame 3 on a nat 20). |
 | combat/d20_results.png | 480x24 | 20 | 24x24 |  | [12, 23] |  | result faces: frame i shows number i+1 (bold 5x7 digits in #120c18 on a white triangle). |
 | combat/d20_roll.png | 96x24 | 4 | 24x24 | 12 | [12, 23] |  | v2 24x24. Loop frames 0-2 while tumbling (flat/pointy silhouettes alternate), then land on frame 3 (legible 20) or swap in the rolled face from d20_results.png. |
@@ -327,7 +365,7 @@ FX style: no black outline (glow effects); bright core stepping to a darker colo
 | combat/gm_talk.png | 44x46 | 1 | 44x46 |  | [22, 45] |  | bottom-centre anchor; place so the table overlaps his hands (bottom ~8px). |
 | combat/table.png | 300x44 | 1 | 300x44 |  | [150, 43] | top_surface_rows=[1, 13], near_edge_y=14, apron_rows=[15, 20], legacy=true | LEGACY (landscape 480x270): use combat/table_portrait.png (250x40). v2 procedural 300x44, calm grain. Bottom-centre anchor. |
 | combat/table_portrait.png | 266x40 | 1 | 266x40 |  | [133, 39] | top_surface_rows=[1, 12], near_edge_y=13, apron_rows=[14, 19] | PORTRAIT table (v5: widened 250->266 for a 5-seat party), procedural 266x40: 3 long planks, 3 flat wood tones, tan highlight lip on the near edge. Bottom-centre anchor; GM hands/props sit on the top surface rows. |
-| contact_sheet.png | 2400x13686 | 1 | 2400x13686 |  |  |  | every primary asset at 3x nearest (items <=8px shown at an extra 2x). paperdoll/tinted/* variants are represented by the ramp previews and paperdoll_preview.png. |
+| contact_sheet.png | 2400x21900 | 1 | 2400x21900 |  |  |  | every primary asset at 3x nearest (items <=8px shown at an extra 2x). paperdoll/tinted/* variants are represented by the ramp previews and paperdoll_preview.png. |
 | creator_test_portrait.png | 270x480 | 1 | 270x480 |  |  |  | PORTRAIT 270x480 mock built only from pack files (QA). |
 | creator_test_portrait_4x.png | 1080x1920 | 1 | 1080x1920 |  |  |  | 4x nearest upscale. |
 | fx/fx_buff_aura.png | 336x72 | 6 | 56x72 | 10 | [28, 71] | style=no black outline (glow FX): bright core -> darker coloured rim, binary alpha, fades via ordered dither | gold rising aura + chevrons; anchor on feet. Draw the whole strip BEHIND the seat for a softer look, or in front (ring front arc overlaps feet). |
@@ -380,6 +418,36 @@ FX style: no black outline (glow effects); bright core stepping to a darker colo
 | monsters/bat/bat_idle.png | 160x70 | 2 | 80x70 | 2 | [40, 64] | hp_bar_anchor=[40, 22], portrait_rect=[30, 28, 20, 20] |  |
 | monsters/bat/bat_portrait.png | 20x20 | 1 | 20x20 |  |  |  | 20x20 head crop (rect [30, 28, 20, 20] of the rest frame) for the initiative strip. |
 | monsters/bat/bat_still.png | 80x70 | 1 | 80x70 |  | [40, 64] | hp_bar_anchor=[40, 22] | single rest frame (portraits / initiative). |
+| monsters/bottlecrab/bottlecrab_attack.png | 240x70 | 3 | 80x70 | 5 | [40, 64] | hp_bar_anchor=[40, 3], portrait_rect=[30, 35, 20, 20], status=draft_pending_approval, region=coast, monster_size=regular |  |
+| monsters/bottlecrab/bottlecrab_death.png | 320x70 | 4 | 80x70 | 8 | [40, 64] | hp_bar_anchor=[40, 3], portrait_rect=[30, 35, 20, 20], status=draft_pending_approval, region=coast, monster_size=regular |  |
+| monsters/bottlecrab/bottlecrab_hit.png | 160x70 | 2 | 80x70 | 8 | [40, 64] | hp_bar_anchor=[40, 3], portrait_rect=[30, 35, 20, 20], status=draft_pending_approval, region=coast, monster_size=regular |  |
+| monsters/bottlecrab/bottlecrab_idle.png | 160x70 | 2 | 80x70 | 2 | [40, 64] | hp_bar_anchor=[40, 3], portrait_rect=[30, 35, 20, 20], status=draft_pending_approval, region=coast, monster_size=regular |  |
+| monsters/bottlecrab/bottlecrab_portrait.png | 20x20 | 1 | 20x20 |  |  | status=draft_pending_approval | 20x20 head crop (rect [30, 35, 20, 20] of the rest frame) for the initiative strip. |
+| monsters/bottlecrab/bottlecrab_still.png | 80x70 | 1 | 80x70 |  | [40, 64] | hp_bar_anchor=[40, 3], status=draft_pending_approval | single rest frame (portraits / initiative). |
+| monsters/bramblet/bramblet_attack.png | 240x70 | 3 | 80x70 | 5 | [40, 64] | hp_bar_anchor=[40, 12], portrait_rect=[30, 31, 20, 20], status=draft_pending_approval, region=meadow, monster_size=regular |  |
+| monsters/bramblet/bramblet_death.png | 320x70 | 4 | 80x70 | 8 | [40, 64] | hp_bar_anchor=[40, 12], portrait_rect=[30, 31, 20, 20], status=draft_pending_approval, region=meadow, monster_size=regular |  |
+| monsters/bramblet/bramblet_hit.png | 160x70 | 2 | 80x70 | 8 | [40, 64] | hp_bar_anchor=[40, 12], portrait_rect=[30, 31, 20, 20], status=draft_pending_approval, region=meadow, monster_size=regular |  |
+| monsters/bramblet/bramblet_idle.png | 160x70 | 2 | 80x70 | 2 | [40, 64] | hp_bar_anchor=[40, 12], portrait_rect=[30, 31, 20, 20], status=draft_pending_approval, region=meadow, monster_size=regular |  |
+| monsters/bramblet/bramblet_portrait.png | 20x20 | 1 | 20x20 |  |  | status=draft_pending_approval | 20x20 head crop (rect [30, 31, 20, 20] of the rest frame) for the initiative strip. |
+| monsters/bramblet/bramblet_still.png | 80x70 | 1 | 80x70 |  | [40, 64] | hp_bar_anchor=[40, 12], status=draft_pending_approval | single rest frame (portraits / initiative). |
+| monsters/cobble_rat/cobble_rat_attack.png | 240x70 | 3 | 80x70 | 5 | [40, 64] | hp_bar_anchor=[40, 28], portrait_rect=[11, 39, 20, 20], status=draft_pending_approval, region=keep, monster_size=regular |  |
+| monsters/cobble_rat/cobble_rat_death.png | 320x70 | 4 | 80x70 | 8 | [40, 64] | hp_bar_anchor=[40, 28], portrait_rect=[11, 39, 20, 20], status=draft_pending_approval, region=keep, monster_size=regular |  |
+| monsters/cobble_rat/cobble_rat_hit.png | 160x70 | 2 | 80x70 | 8 | [40, 64] | hp_bar_anchor=[40, 28], portrait_rect=[11, 39, 20, 20], status=draft_pending_approval, region=keep, monster_size=regular |  |
+| monsters/cobble_rat/cobble_rat_idle.png | 160x70 | 2 | 80x70 | 2 | [40, 64] | hp_bar_anchor=[40, 28], portrait_rect=[11, 39, 20, 20], status=draft_pending_approval, region=keep, monster_size=regular |  |
+| monsters/cobble_rat/cobble_rat_portrait.png | 20x20 | 1 | 20x20 |  |  | status=draft_pending_approval | 20x20 head crop (rect [11, 39, 20, 20] of the rest frame) for the initiative strip. |
+| monsters/cobble_rat/cobble_rat_still.png | 80x70 | 1 | 80x70 |  | [40, 64] | hp_bar_anchor=[40, 28], status=draft_pending_approval | single rest frame (portraits / initiative). |
+| monsters/dripfang/dripfang_attack.png | 240x70 | 3 | 80x70 | 5 | [40, 64] | hp_bar_anchor=[40, 1], portrait_rect=[31, 24, 20, 20], status=draft_pending_approval, region=cave, monster_size=regular |  |
+| monsters/dripfang/dripfang_death.png | 320x70 | 4 | 80x70 | 8 | [40, 64] | hp_bar_anchor=[40, 1], portrait_rect=[31, 24, 20, 20], status=draft_pending_approval, region=cave, monster_size=regular |  |
+| monsters/dripfang/dripfang_hit.png | 160x70 | 2 | 80x70 | 8 | [40, 64] | hp_bar_anchor=[40, 1], portrait_rect=[31, 24, 20, 20], status=draft_pending_approval, region=cave, monster_size=regular |  |
+| monsters/dripfang/dripfang_idle.png | 160x70 | 2 | 80x70 | 2 | [40, 64] | hp_bar_anchor=[40, 1], portrait_rect=[31, 24, 20, 20], status=draft_pending_approval, region=cave, monster_size=regular |  |
+| monsters/dripfang/dripfang_portrait.png | 20x20 | 1 | 20x20 |  |  | status=draft_pending_approval | 20x20 head crop (rect [31, 24, 20, 20] of the rest frame) for the initiative strip. |
+| monsters/dripfang/dripfang_still.png | 80x70 | 1 | 80x70 |  | [40, 64] | hp_bar_anchor=[40, 1], status=draft_pending_approval | single rest frame (portraits / initiative). |
+| monsters/gloomgrub/gloomgrub_attack.png | 240x70 | 3 | 80x70 | 5 | [40, 64] | hp_bar_anchor=[40, 22], portrait_rect=[10, 36, 20, 20], status=draft_pending_approval, region=cave, monster_size=regular |  |
+| monsters/gloomgrub/gloomgrub_death.png | 320x70 | 4 | 80x70 | 8 | [40, 64] | hp_bar_anchor=[40, 22], portrait_rect=[10, 36, 20, 20], status=draft_pending_approval, region=cave, monster_size=regular |  |
+| monsters/gloomgrub/gloomgrub_hit.png | 160x70 | 2 | 80x70 | 8 | [40, 64] | hp_bar_anchor=[40, 22], portrait_rect=[10, 36, 20, 20], status=draft_pending_approval, region=cave, monster_size=regular |  |
+| monsters/gloomgrub/gloomgrub_idle.png | 160x70 | 2 | 80x70 | 2 | [40, 64] | hp_bar_anchor=[40, 22], portrait_rect=[10, 36, 20, 20], status=draft_pending_approval, region=cave, monster_size=regular |  |
+| monsters/gloomgrub/gloomgrub_portrait.png | 20x20 | 1 | 20x20 |  |  | status=draft_pending_approval | 20x20 head crop (rect [10, 36, 20, 20] of the rest frame) for the initiative strip. |
+| monsters/gloomgrub/gloomgrub_still.png | 80x70 | 1 | 80x70 |  | [40, 64] | hp_bar_anchor=[40, 22], status=draft_pending_approval | single rest frame (portraits / initiative). |
 | monsters/goblin/goblin_attack.png | 240x70 | 3 | 80x70 | 5 | [40, 64] | hp_bar_anchor=[40, 12], portrait_rect=[26, 16, 20, 20] |  |
 | monsters/goblin/goblin_death.png | 320x70 | 4 | 80x70 | 8 | [40, 64] | hp_bar_anchor=[40, 12], portrait_rect=[26, 16, 20, 20] |  |
 | monsters/goblin/goblin_hit.png | 160x70 | 2 | 80x70 | 8 | [40, 64] | hp_bar_anchor=[40, 12], portrait_rect=[26, 16, 20, 20] |  |
@@ -392,18 +460,42 @@ FX style: no black outline (glow effects); bright core stepping to a darker colo
 | monsters/golem/golem_idle.png | 160x70 | 2 | 80x70 | 2 | [40, 64] | hp_bar_anchor=[40, 1], portrait_rect=[22, 4, 20, 20] |  |
 | monsters/golem/golem_portrait.png | 20x20 | 1 | 20x20 |  |  |  | 20x20 head crop (rect [22, 4, 20, 20] of the rest frame) for the initiative strip. |
 | monsters/golem/golem_still.png | 80x70 | 1 | 80x70 |  | [40, 64] | hp_bar_anchor=[40, 1] | single rest frame (portraits / initiative). |
+| monsters/grinmud_toad/grinmud_toad_attack.png | 240x70 | 3 | 80x70 | 5 | [40, 64] | hp_bar_anchor=[40, 20], portrait_rect=[30, 29, 20, 20], status=draft_pending_approval, region=meadow, monster_size=regular |  |
+| monsters/grinmud_toad/grinmud_toad_death.png | 320x70 | 4 | 80x70 | 8 | [40, 64] | hp_bar_anchor=[40, 20], portrait_rect=[30, 29, 20, 20], status=draft_pending_approval, region=meadow, monster_size=regular |  |
+| monsters/grinmud_toad/grinmud_toad_hit.png | 160x70 | 2 | 80x70 | 8 | [40, 64] | hp_bar_anchor=[40, 20], portrait_rect=[30, 29, 20, 20], status=draft_pending_approval, region=meadow, monster_size=regular |  |
+| monsters/grinmud_toad/grinmud_toad_idle.png | 160x70 | 2 | 80x70 | 2 | [40, 64] | hp_bar_anchor=[40, 20], portrait_rect=[30, 29, 20, 20], status=draft_pending_approval, region=meadow, monster_size=regular |  |
+| monsters/grinmud_toad/grinmud_toad_portrait.png | 20x20 | 1 | 20x20 |  |  | status=draft_pending_approval | 20x20 head crop (rect [30, 29, 20, 20] of the rest frame) for the initiative strip. |
+| monsters/grinmud_toad/grinmud_toad_still.png | 80x70 | 1 | 80x70 |  | [40, 64] | hp_bar_anchor=[40, 20], status=draft_pending_approval | single rest frame (portraits / initiative). |
+| monsters/hollow_helm/hollow_helm_attack.png | 240x70 | 3 | 80x70 | 5 | [40, 64] | hp_bar_anchor=[40, 1], portrait_rect=[28, 17, 20, 20], status=draft_pending_approval, region=keep, monster_size=regular |  |
+| monsters/hollow_helm/hollow_helm_death.png | 320x70 | 4 | 80x70 | 8 | [40, 64] | hp_bar_anchor=[40, 1], portrait_rect=[28, 17, 20, 20], status=draft_pending_approval, region=keep, monster_size=regular |  |
+| monsters/hollow_helm/hollow_helm_hit.png | 160x70 | 2 | 80x70 | 8 | [40, 64] | hp_bar_anchor=[40, 1], portrait_rect=[28, 17, 20, 20], status=draft_pending_approval, region=keep, monster_size=regular |  |
+| monsters/hollow_helm/hollow_helm_idle.png | 160x70 | 2 | 80x70 | 2 | [40, 64] | hp_bar_anchor=[40, 1], portrait_rect=[28, 17, 20, 20], status=draft_pending_approval, region=keep, monster_size=regular |  |
+| monsters/hollow_helm/hollow_helm_portrait.png | 20x20 | 1 | 20x20 |  |  | status=draft_pending_approval | 20x20 head crop (rect [28, 17, 20, 20] of the rest frame) for the initiative strip. |
+| monsters/hollow_helm/hollow_helm_still.png | 80x70 | 1 | 80x70 |  | [40, 64] | hp_bar_anchor=[40, 1], status=draft_pending_approval | single rest frame (portraits / initiative). |
 | monsters/imp/imp_attack.png | 240x70 | 3 | 80x70 | 5 | [40, 64] | hp_bar_anchor=[40, 11], portrait_rect=[19, 17, 20, 20] |  |
 | monsters/imp/imp_death.png | 320x70 | 4 | 80x70 | 8 | [40, 64] | hp_bar_anchor=[40, 11], portrait_rect=[19, 17, 20, 20] |  |
 | monsters/imp/imp_hit.png | 160x70 | 2 | 80x70 | 8 | [40, 64] | hp_bar_anchor=[40, 11], portrait_rect=[19, 17, 20, 20] |  |
 | monsters/imp/imp_idle.png | 160x70 | 2 | 80x70 | 2 | [40, 64] | hp_bar_anchor=[40, 11], portrait_rect=[19, 17, 20, 20] |  |
 | monsters/imp/imp_portrait.png | 20x20 | 1 | 20x20 |  |  |  | 20x20 head crop (rect [19, 17, 20, 20] of the rest frame) for the initiative strip. |
 | monsters/imp/imp_still.png | 80x70 | 1 | 80x70 |  | [40, 64] | hp_bar_anchor=[40, 11] | single rest frame (portraits / initiative). |
+| monsters/kelpback/kelpback_attack.png | 240x70 | 3 | 80x70 | 5 | [40, 64] | hp_bar_anchor=[40, 12], portrait_rect=[6, 30, 20, 20], status=draft_pending_approval, region=coast, monster_size=large |  |
+| monsters/kelpback/kelpback_death.png | 320x70 | 4 | 80x70 | 8 | [40, 64] | hp_bar_anchor=[40, 12], portrait_rect=[6, 30, 20, 20], status=draft_pending_approval, region=coast, monster_size=large |  |
+| monsters/kelpback/kelpback_hit.png | 160x70 | 2 | 80x70 | 8 | [40, 64] | hp_bar_anchor=[40, 12], portrait_rect=[6, 30, 20, 20], status=draft_pending_approval, region=coast, monster_size=large |  |
+| monsters/kelpback/kelpback_idle.png | 160x70 | 2 | 80x70 | 2 | [40, 64] | hp_bar_anchor=[40, 12], portrait_rect=[6, 30, 20, 20], status=draft_pending_approval, region=coast, monster_size=large |  |
+| monsters/kelpback/kelpback_portrait.png | 20x20 | 1 | 20x20 |  |  | status=draft_pending_approval | 20x20 head crop (rect [6, 30, 20, 20] of the rest frame) for the initiative strip. |
+| monsters/kelpback/kelpback_still.png | 80x70 | 1 | 80x70 |  | [40, 64] | hp_bar_anchor=[40, 12], status=draft_pending_approval | single rest frame (portraits / initiative). |
 | monsters/mushroom/mushroom_attack.png | 240x70 | 3 | 80x70 | 5 | [40, 64] | hp_bar_anchor=[40, 15], portrait_rect=[30, 33, 20, 20] |  |
 | monsters/mushroom/mushroom_death.png | 320x70 | 4 | 80x70 | 8 | [40, 64] | hp_bar_anchor=[40, 15], portrait_rect=[30, 33, 20, 20] |  |
 | monsters/mushroom/mushroom_hit.png | 160x70 | 2 | 80x70 | 8 | [40, 64] | hp_bar_anchor=[40, 15], portrait_rect=[30, 33, 20, 20] |  |
 | monsters/mushroom/mushroom_idle.png | 160x70 | 2 | 80x70 | 2 | [40, 64] | hp_bar_anchor=[40, 15], portrait_rect=[30, 33, 20, 20] |  |
 | monsters/mushroom/mushroom_portrait.png | 20x20 | 1 | 20x20 |  |  |  | 20x20 head crop (rect [30, 33, 20, 20] of the rest frame) for the initiative strip. |
 | monsters/mushroom/mushroom_still.png | 80x70 | 1 | 80x70 |  | [40, 64] | hp_bar_anchor=[40, 15] | single rest frame (portraits / initiative). |
+| monsters/pebble_squire/pebble_squire_attack.png | 240x70 | 3 | 80x70 | 5 | [40, 64] | hp_bar_anchor=[40, 2], portrait_rect=[29, 15, 20, 20], status=draft_pending_approval, region=keep, monster_size=regular |  |
+| monsters/pebble_squire/pebble_squire_death.png | 320x70 | 4 | 80x70 | 8 | [40, 64] | hp_bar_anchor=[40, 2], portrait_rect=[29, 15, 20, 20], status=draft_pending_approval, region=keep, monster_size=regular |  |
+| monsters/pebble_squire/pebble_squire_hit.png | 160x70 | 2 | 80x70 | 8 | [40, 64] | hp_bar_anchor=[40, 2], portrait_rect=[29, 15, 20, 20], status=draft_pending_approval, region=keep, monster_size=regular |  |
+| monsters/pebble_squire/pebble_squire_idle.png | 160x70 | 2 | 80x70 | 2 | [40, 64] | hp_bar_anchor=[40, 2], portrait_rect=[29, 15, 20, 20], status=draft_pending_approval, region=keep, monster_size=regular |  |
+| monsters/pebble_squire/pebble_squire_portrait.png | 20x20 | 1 | 20x20 |  |  | status=draft_pending_approval | 20x20 head crop (rect [29, 15, 20, 20] of the rest frame) for the initiative strip. |
+| monsters/pebble_squire/pebble_squire_still.png | 80x70 | 1 | 80x70 |  | [40, 64] | hp_bar_anchor=[40, 2], status=draft_pending_approval | single rest frame (portraits / initiative). |
 | monsters/skeleton/skeleton_attack.png | 240x70 | 3 | 80x70 | 5 | [40, 64] | hp_bar_anchor=[40, 9], portrait_rect=[33, 13, 20, 20] |  |
 | monsters/skeleton/skeleton_death.png | 320x70 | 4 | 80x70 | 8 | [40, 64] | hp_bar_anchor=[40, 9], portrait_rect=[33, 13, 20, 20] |  |
 | monsters/skeleton/skeleton_hit.png | 160x70 | 2 | 80x70 | 8 | [40, 64] | hp_bar_anchor=[40, 9], portrait_rect=[33, 13, 20, 20] |  |
@@ -416,6 +508,12 @@ FX style: no black outline (glow effects); bright core stepping to a darker colo
 | monsters/slime/slime_idle.png | 160x70 | 2 | 80x70 | 2 | [40, 64] | hp_bar_anchor=[40, 30], portrait_rect=[30, 38, 20, 20] |  |
 | monsters/slime/slime_portrait.png | 20x20 | 1 | 20x20 |  |  |  | 20x20 head crop (rect [30, 38, 20, 20] of the rest frame) for the initiative strip. |
 | monsters/slime/slime_still.png | 80x70 | 1 | 80x70 |  | [40, 64] | hp_bar_anchor=[40, 30] | single rest frame (portraits / initiative). |
+| monsters/squallgull/squallgull_attack.png | 240x70 | 3 | 80x70 | 5 | [40, 64] | hp_bar_anchor=[40, 12], portrait_rect=[31, 26, 20, 20], status=draft_pending_approval, region=coast, monster_size=regular |  |
+| monsters/squallgull/squallgull_death.png | 320x70 | 4 | 80x70 | 8 | [40, 64] | hp_bar_anchor=[40, 12], portrait_rect=[31, 26, 20, 20], status=draft_pending_approval, region=coast, monster_size=regular |  |
+| monsters/squallgull/squallgull_hit.png | 160x70 | 2 | 80x70 | 8 | [40, 64] | hp_bar_anchor=[40, 12], portrait_rect=[31, 26, 20, 20], status=draft_pending_approval, region=coast, monster_size=regular |  |
+| monsters/squallgull/squallgull_idle.png | 160x70 | 2 | 80x70 | 2 | [40, 64] | hp_bar_anchor=[40, 12], portrait_rect=[31, 26, 20, 20], status=draft_pending_approval, region=coast, monster_size=regular |  |
+| monsters/squallgull/squallgull_portrait.png | 20x20 | 1 | 20x20 |  |  | status=draft_pending_approval | 20x20 head crop (rect [31, 26, 20, 20] of the rest frame) for the initiative strip. |
+| monsters/squallgull/squallgull_still.png | 80x70 | 1 | 80x70 |  | [40, 64] | hp_bar_anchor=[40, 12], status=draft_pending_approval | single rest frame (portraits / initiative). |
 | monsters/wolf/wolf_attack.png | 240x70 | 3 | 80x70 | 5 | [40, 64] | hp_bar_anchor=[40, 12], portrait_rect=[12, 17, 20, 20] |  |
 | monsters/wolf/wolf_death.png | 320x70 | 4 | 80x70 | 8 | [40, 64] | hp_bar_anchor=[40, 12], portrait_rect=[12, 17, 20, 20] |  |
 | monsters/wolf/wolf_hit.png | 160x70 | 2 | 80x70 | 8 | [40, 64] | hp_bar_anchor=[40, 12], portrait_rect=[12, 17, 20, 20] |  |
@@ -621,6 +719,8 @@ FX style: no black outline (glow effects); bright core stepping to a darker colo
 | scene_test_4x.png | 1920x1080 | 1 | 1920x1080 |  |  | legacy=true | LEGACY (landscape 480x270): see scene_test_portrait_4x.png. 4x nearest upscale of scene_test.png. |
 | scene_test_portrait.png | 270x480 | 1 | 270x480 |  |  |  | PORTRAIT 270x480 mock built only from pack files (QA). |
 | scene_test_portrait_4x.png | 1080x1920 | 1 | 1080x1920 |  |  |  | 4x nearest upscale. |
+| scene_test_portrait_lantern_reach.png | 270x480 | 1 | 270x480 |  |  | status=draft_pending_approval | QA composite (not runtime): DRAFT Lantern Reach backdrop + coast monsters Bottlecrab / Kelpback Snapper (LARGE) / Squallgull at the standard monster marks, with the v7 party, table, seat bars + HP numbers and v6 action bar. |
+| scene_test_portrait_lantern_reach_4x.png | 1080x1920 | 1 | 1080x1920 |  |  | status=draft_pending_approval | 4x nearest. |
 | scene_test_portrait_skillcard.png | 270x480 | 1 | 270x480 |  |  |  | PORTRAIT mock: paladin_1 tapped once -> slot armed (pulsing glow), other slots dimmed, skill card open above the seats (clears the seat bars + HP numbers). Placeholder copy. |
 | scene_test_portrait_skillcard_4x.png | 1080x1920 | 1 | 1080x1920 |  |  |  | 4x nearest. |
 | ui/bar_bg.png | 56x7 | 1 | 56x7 |  |  | fill_rect=[1, 1, 54, 5], legacy=true | LEGACY (landscape 480x270): baked into the narrow card. 56x7 under-texture; fill goes at offset [1,1]. |
