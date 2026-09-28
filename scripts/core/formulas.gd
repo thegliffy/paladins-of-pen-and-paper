@@ -275,10 +275,13 @@ static func compose_encounter(pool: Array, target_power: int, rng_picks: Array, 
 	return result
 
 
-static func aggro_weight(body: int, bonus: int, covering: bool) -> int:
+static func aggro_weight(body: int, bonus: int, covering: bool, threat_mult: float = 1.0) -> int:
+	## Body plus temporary threat, then a passive threat multiplier.
+	## Cover still takes the unit out of the bag.
 	if covering:
 		return 0
-	return maxi(1, body) + bonus
+	var base := maxi(1, body) + bonus
+	return maxi(1, int(round(float(base) * threat_mult)))
 
 
 static func spell_flat(skill: Dictionary, mind: int, senses: int, rank: int, spell_bonus: float) -> int:
@@ -333,7 +336,13 @@ static func buildup_amount(buildup: Dictionary, buildup_id: String) -> int:
 	return maxi(0, int(buildup.get(buildup_id, 0)))
 
 
+static func is_passive(skill: Dictionary) -> bool:
+	return str(skill.get("type", "active")) == "passive"
+
+
 static func skill_usable(skill: Dictionary, rank: int, hp: int, mp: int, cooldowns: Dictionary, buildup: Dictionary) -> bool:
+	if is_passive(skill):
+		return false
 	var resource := skill_resource(skill)
 	if resource == "mana":
 		return mp >= skill_mana_cost(skill, rank)
@@ -396,3 +405,103 @@ static func skill_cost_label(skill: Dictionary, rank: int, cooldowns: Dictionary
 	if gain > 0:
 		return "%s  +%d %s" % [name, gain, str(skill.get("buildup_label", "Stack"))]
 	return "%s  Free" % name
+
+
+static func mp_regen_amount(max_mp: int, effects: Array) -> int:
+	return _regen_amount(max_mp, effects, "mp_regen_pct")
+
+
+static func hp_regen_amount(max_hp: int, effects: Array) -> int:
+	return _regen_amount(max_hp, effects, "hp_regen_pct")
+
+
+static func _regen_amount(maximum: int, effects: Array, key: String) -> int:
+	if maximum <= 0:
+		return 0
+	var pct := 0.0
+	for effect in effects:
+		if str(effect.get("hook", "")) != "turn_start":
+			continue
+		pct += float(effect.get(key, 0.0))
+	if pct <= 0.0:
+		return 0
+	return maxi(0, int(round(float(maximum) * pct)))
+
+
+static func threat_multiplier(effects: Array) -> float:
+	var mult := 1.0
+	for effect in effects:
+		if str(effect.get("hook", "")) != "threat":
+			continue
+		mult *= float(effect.get("threat_mult", 1.0))
+	return mult
+
+
+static func on_hit_bonus(effects: Array) -> int:
+	var bonus := 0
+	for effect in effects:
+		if str(effect.get("hook", "")) != "on_hit":
+			continue
+		bonus += int(effect.get("bonus_damage", 0))
+	return bonus
+
+
+static func on_damaged_reflect(effects: Array) -> int:
+	var amount := 0
+	for effect in effects:
+		if str(effect.get("hook", "")) != "on_damaged":
+			continue
+		amount += int(effect.get("reflect", 0))
+	return amount
+
+
+static func crit_flat_bonus(effects: Array) -> float:
+	var bonus := 0.0
+	for effect in effects:
+		if str(effect.get("hook", "")) != "stat":
+			continue
+		bonus += float(effect.get("crit_bonus", 0.0))
+	return bonus
+
+
+static func heal_multiplier(effects: Array) -> float:
+	var mult := 1.0
+	for effect in effects:
+		if str(effect.get("hook", "")) != "stat":
+			continue
+		mult += float(effect.get("heal_bonus", 0.0))
+	return mult
+
+
+static func boost_heal(amount: int, effects: Array) -> int:
+	return maxi(0, int(round(float(amount) * heal_multiplier(effects))))
+
+
+static func initiative_bonus(effects: Array) -> int:
+	var bonus := 0
+	for effect in effects:
+		if str(effect.get("hook", "")) != "stat":
+			continue
+		bonus += int(effect.get("initiative", 0))
+	return bonus
+
+
+static func party_dr_aura(effects: Array) -> int:
+	var extra := 0
+	for effect in effects:
+		if str(effect.get("hook", "")) != "stat":
+			continue
+		extra += int(effect.get("party_dr", 0))
+	return extra
+
+
+static func outgoing_damage_multiplier(hp: int, max_hp: int, effects: Array) -> float:
+	var scale := 0.0
+	for effect in effects:
+		if str(effect.get("hook", "")) != "stat":
+			continue
+		scale += float(effect.get("missing_hp_damage", 0.0))
+	if scale <= 0.0 or max_hp <= 0:
+		return 1.0
+	var missing := clampf(1.0 - float(maxi(0, hp)) / float(max_hp), 0.0, 1.0)
+	return 1.0 + scale * missing

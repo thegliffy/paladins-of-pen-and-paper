@@ -17,6 +17,7 @@ func _init() -> void:
 	_test_route_and_encounter()
 	_test_content_shape()
 	_test_skill_resources()
+	_test_passives()
 	_test_portrait_layout()
 	_test_art_present()
 	print("Tests: %d passed, %d failed" % [passed, failed])
@@ -235,23 +236,33 @@ func _test_content_shape() -> void:
 	for cls in classes:
 		present[str(cls["id"])] = true
 		var ids: Array = cls["skills"]
-		eq(ids.size(), 4, str(cls["name"]) + " has 4 skills")
+		eq(ids.size(), 5, str(cls["name"]) + " has 5 skills")
 		eq(int(cls["body"]) + int(cls["senses"]) + int(cls["mind"]), 6, str(cls["name"]) + " stat budget")
 		var non_mana := false
+		var passives := 0
+		var actives := 0
 		for skill_id in ids:
 			var sid := str(skill_id)
 			check(not seen.has(sid), "skill used once: " + sid)
 			seen[sid] = true
 			var skill: Dictionary = by_id[sid]
 			eq(str(skill["owner"]), str(cls["id"]), sid + " belongs to " + str(cls["name"]))
-			var resource := str(skill.get("resource", ""))
-			check(resource == "mana" or resource == "cooldown" or resource == "free" or resource == "hp" or resource == "buildup", sid + " resource")
-			if resource != "mana":
-				non_mana = true
+			if Formulas.is_passive(skill):
+				passives += 1
+				var effects: Array = skill.get("effects", [])
+				check(not effects.is_empty(), sid + " has passive effects")
+			else:
+				actives += 1
+				var resource := str(skill.get("resource", ""))
+				check(resource == "mana" or resource == "cooldown" or resource == "free" or resource == "hp" or resource == "buildup", sid + " resource")
+				if resource != "mana":
+					non_mana = true
+		check(passives >= 1 and passives <= 2, str(cls["name"]) + " passive count")
+		check(actives >= 3 and actives <= 4, str(cls["name"]) + " active count")
 		check(non_mana, str(cls["name"]) + " has a non-mana skill")
 	for id in expected:
 		check(present.has(id), "class " + id)
-	eq(seen.size(), 32, "32 class skills")
+	eq(seen.size(), 40, "40 class skills")
 	var monster_skills := 0
 	for skill in skills:
 		if str(skill["owner"]) == "monster":
@@ -341,6 +352,60 @@ func _test_skill_resources() -> void:
 	}, 1, 50, 0, {}, {"rage": 5})
 	eq(int(roared["buildup"]["rage"]), 6, "rage clamps at 6")
 	eq(int(roared["mp"]), 0, "free skill does not spend energy")
+
+
+func _test_passives() -> void:
+	var skills: Array = JSON.parse_string(FileAccess.get_file_as_string("res://data/skills.json"))
+	var by_id := {}
+	var hooks := {}
+	for skill in skills:
+		by_id[str(skill["id"])] = skill
+		if not Formulas.is_passive(skill):
+			continue
+		var effects: Array = skill.get("effects", [])
+		for effect in effects:
+			hooks[str(effect.get("hook", ""))] = true
+	for hook in ["turn_start", "on_hit", "on_damaged", "threat", "stat"]:
+		check(hooks.has(hook), "passive hook " + hook)
+	var siphon: Dictionary = by_id["ley_siphon"]
+	var siphon_fx: Array = siphon["effects"]
+	check(Formulas.is_passive(siphon), "ley siphon is passive")
+	check(not Formulas.skill_usable(siphon, 1, 40, 999, {}, {}), "passives are not skill buttons")
+	eq(Formulas.mp_regen_amount(200, siphon_fx), 16, "8% of 200 energy")
+	eq(Formulas.mp_regen_amount(125, siphon_fx), 10, "8% of 125 energy rounds")
+	eq(Formulas.mp_regen_amount(0, siphon_fx), 0, "no regen from an empty pool")
+	eq(Formulas.mp_regen_amount(200, []), 0, "no regen without the passive")
+	var sap: Dictionary = by_id["sap_pulse"]
+	var sap_fx: Array = sap["effects"]
+	eq(Formulas.hp_regen_amount(80, sap_fx), 4, "5% of 80 health")
+	var oath: Dictionary = by_id["oathmagnet"]
+	var oath_fx: Array = oath["effects"]
+	near(Formulas.threat_multiplier(oath_fx), 2.0, 0.001, "paladin threat multiplier")
+	eq(Formulas.aggro_weight(8, 3, false, 2.0), 22, "threat multiplier doubles body plus threat")
+	eq(Formulas.aggro_weight(8, 3, true, 2.0), 0, "cover still zeroes a multiplied weight")
+	eq(Formulas.aggro_weight(8, 0, false, 1.0), 8, "multiplier of 1 leaves body weighting")
+	var price: Dictionary = by_id["blood_price"]
+	var price_fx: Array = price["effects"]
+	near(Formulas.threat_multiplier(price_fx), 1.5, 0.001, "barbarian threat multiplier")
+	eq(Formulas.aggro_weight(10, 0, false, 1.5), 15, "1.5 threat multiplier on body 10")
+	var nick: Dictionary = by_id["keen_nick"]
+	var nick_fx: Array = nick["effects"]
+	eq(Formulas.on_hit_bonus(nick_fx), 6, "on-hit passive adds 6")
+	eq(Formulas.on_hit_bonus([]), 0, "no on-hit bonus without the passive")
+	near(Formulas.crit_flat_bonus(nick_fx), 10.0, 0.001, "rogue crit bonus")
+	eq(Formulas.on_damaged_reflect(oath_fx), 4, "paladin reflect")
+	near(Formulas.outgoing_damage_multiplier(50, 100, price_fx), 1.25, 0.001, "half health adds half the missing-hp scale")
+	near(Formulas.outgoing_damage_multiplier(100, 100, price_fx), 1.0, 0.001, "full health does not add damage")
+	near(Formulas.outgoing_damage_multiplier(0, 100, price_fx), 1.5, 0.001, "empty health reaches +50%")
+	var hands: Dictionary = by_id["open_hands"]
+	var hands_fx: Array = hands["effects"]
+	eq(Formulas.boost_heal(40, hands_fx), 50, "cleric heals gain 25%")
+	var mark: Dictionary = by_id["first_mark"]
+	var mark_fx: Array = mark["effects"]
+	eq(Formulas.initiative_bonus(mark_fx), 5, "ranger initiative")
+	var chorus: Dictionary = by_id["hearth_chorus"]
+	var chorus_fx: Array = chorus["effects"]
+	eq(Formulas.party_dr_aura(chorus_fx), 3, "bard aura")
 
 
 func _test_portrait_layout() -> void:

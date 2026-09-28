@@ -803,6 +803,12 @@ func _open_text_modal(title: String, body: String, extra: Array) -> void:
 		box.add_theme_constant_override("separation", 4)
 		scroll.add_child(box)
 		for entry in extra:
+			if bool(entry.get("info", false)):
+				var info := Widgets.label(str(entry["text"]), Layout.font_tiny())
+				info.custom_minimum_size = Vector2(220, 36)
+				info.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+				box.add_child(info)
+				continue
 			var button := Widgets.make_button(str(entry["text"]), Vector2(220, 32))
 			var skill_id := str(entry["id"])
 			var member_index := int(entry["member"])
@@ -819,12 +825,25 @@ func _party_buttons() -> Array:
 	var buttons: Array = []
 	for index in GameState.party.size():
 		var member: Dictionary = GameState.party[index]
+		var cls: Dictionary = ContentDB.class_def(str(member["class_id"]))
+		for skill_id in cls["skills"]:
+			var skill: Dictionary = ContentDB.skill(str(skill_id))
+			if not Formulas.is_passive(skill):
+				continue
+			buttons.append({
+				"text": "Passive  %s — %s" % [skill["name"], skill.get("description", "")],
+				"info": true,
+				"id": str(skill_id),
+				"member": index,
+			})
 		if GameState.unspent_points(member) <= 0:
 			continue
 		for skill_id in member["skill_ranks"].keys():
-			var skill: Dictionary = ContentDB.skill(str(skill_id))
+			var ranked: Dictionary = ContentDB.skill(str(skill_id))
+			if Formulas.is_passive(ranked):
+				continue
 			buttons.append({
-				"text": "+ %s (%s)" % [skill["name"], ContentDB.persona(str(member["persona"]))["name"]],
+				"text": "+ %s (%s)" % [ranked["name"], ContentDB.persona(str(member["persona"]))["name"]],
 				"id": str(skill_id),
 				"member": index,
 			})

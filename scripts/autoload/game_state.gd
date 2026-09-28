@@ -102,6 +102,8 @@ func unspent_points(member: Dictionary) -> int:
 func spend_point(member: Dictionary, skill_id: String) -> bool:
 	if unspent_points(member) <= 0:
 		return false
+	if Formulas.is_passive(ContentDB.skill(skill_id)):
+		return false
 	var rank := int(member["skill_ranks"].get(skill_id, 1))
 	if rank >= 15:
 		return false

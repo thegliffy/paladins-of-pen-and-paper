@@ -213,6 +213,9 @@ func _shots() -> void:
 	session.show_choices(_paladin_skill_preview(), "back")
 	await _capture("skills")
 	session.hide_choices()
+	session.open_party()
+	await _capture("party")
+	session.hide_choices()
 	var flow := BattleFlow.new()
 	flow.view = session
 	session.add_child(flow)
@@ -227,6 +230,8 @@ func _paladin_skill_preview() -> Array:
 	var cls: Dictionary = ContentDB.class_def("paladin")
 	for skill_id in cls["skills"]:
 		var skill: Dictionary = ContentDB.skill(str(skill_id))
+		if Formulas.is_passive(skill):
+			continue
 		var usable := Formulas.skill_usable(skill, 1, 80, mp, cooldowns, {})
 		entries.append({
 			"id": "skill:%s" % str(skill_id),

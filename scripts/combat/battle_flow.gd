@@ -109,6 +109,7 @@ func _build_units(monster_rows: Array) -> void:
 			"buildup": {},
 			"ward": 0,
 			"ward_turns": 0,
+			"passives": _passive_effects(str(member["class_id"])),
 			"boss": false,
 			"back_row": false,
 		})
@@ -153,7 +154,7 @@ func _roll_initiative() -> void:
 	for unit in units:
 		if int(unit["hp"]) <= 0:
 			continue
-		rolls[str(unit["id"])] = int(unit["senses"]) + int(unit["initiative"]) + rng.randi_range(1, 12)
+		rolls[str(unit["id"])] = _initiative_roll(unit)
 	for _attempt in 5:
 		var groups := {}
 		for id in rolls.keys():
@@ -169,7 +170,7 @@ func _roll_initiative() -> void:
 			break
 		for id in tied:
 			var unit := _unit(str(id))
-			rolls[id] = int(unit["senses"]) + int(unit["initiative"]) + rng.randi_range(1, 12)
+			rolls[id] = _initiative_roll(unit)
 	var ids: Array = rolls.keys()
 	ids.sort_custom(func(a, b): return int(rolls[a]) > int(rolls[b]))
 	order.clear()
@@ -204,6 +205,7 @@ func _take_turn(unit: Dictionary) -> String:
 		_ensure_resources(unit)
 		var cooling: Dictionary = unit["cooldowns"]
 		Formulas.tick_cooldowns(cooling)
+		_apply_regen(unit)
 		unit["covering"] = false
 		unit["threat"] = 0
 		view.set_cover(int(unit["member_index"]), false)
@@ -316,13 +318,16 @@ func _strike(attacker: Dictionary, defender: Dictionary, base: float, variance: 
 	var span := variance * 2.0
 	var mult := (1.0 - variance) + rng.randf() * span
 	var raw := float(int(round(base * mult))) + float(flat_bonus)
+	var attacker_passives: Array = attacker.get("passives", [])
+	raw *= Formulas.outgoing_damage_multiplier(int(attacker.get("hp", 0)), int(attacker.get("max_hp", 1)), attacker_passives)
+	raw += float(Formulas.on_hit_bonus(attacker_passives))
 	var crit := false
 	if can_crit:
-		var chance := Formulas.crit_chance(int(attacker["senses"]))
+		var chance := Formulas.crit_chance(int(attacker["senses"]), Formulas.crit_flat_bonus(attacker_passives))
 		crit = Formulas.is_crit(chance, rng.randi_range(1, 100))
 		if crit:
 			raw *= 2.0
-	var dealt := Formulas.damage_taken(raw, int(defender.get("dr", 0)) + int(defender.get("ward", 0)))
+	var dealt := Formulas.damage_taken(raw, _defender_dr(defender))
 	defender["hp"] = maxi(0, int(defender["hp"]) - dealt)
 	var texts: Array = []
 	if crit:
@@ -335,6 +340,8 @@ func _strike(attacker: Dictionary, defender: Dictionary, base: float, variance: 
 		var stamp := Time.get_ticks_msec()
 		await view.death_blink(str(defender["id"]))
 		defender["death_ms"] = Time.get_ticks_msec() - stamp
+	else:
+		await _reflect(defender, attacker)
 
 
 func _use_skill(user: Dictionary, skill_id: String) -> bool:
@@ -504,7 +511,9 @@ func _cast(user: Dictionary, skill: Dictionary, targets: Array) -> void:
 
 
 func _heal(user: Dictionary, skill: Dictionary, target: Dictionary, rank: int) -> void:
-	var amount := Formulas.heal_amount(skill, int(user["mind"]), rank)
+	var healed := Formulas.heal_amount(skill, int(user["mind"]), rank)
+	var caster_passives: Array = user.get("passives", [])
+	var amount := Formulas.boost_heal(healed, caster_passives)
 	target["hp"] = mini(int(target["max_hp"]), int(target["hp"]) + amount)
 	view.react_hit(str(target["id"]), [{"text": "+%d" % amount, "color": Color("3dba6a")}], _ratio(target, "hp"), _ratio(target, "mp"))
 	Sfx.play("heal")
@@ -653,6 +662,8 @@ func _choose_skill(user: Dictionary) -> String:
 	var stacks: Dictionary = user["buildup"]
 	for skill_id in cls["skills"]:
 		var skill: Dictionary = ContentDB.skill(str(skill_id))
+		if Formulas.is_passive(skill):
+			continue
 		var rank := int(user["skill_ranks"].get(str(skill_id), 1))
 		var usable := Formulas.skill_usable(skill, rank, int(user["hp"]), int(user["mp"]), cds, stacks)
 		entries.append({
@@ -893,13 +904,81 @@ func _side_alive(side: String) -> bool:
 	return false
 
 
+func _passive_effects(class_id: String) -> Array:
+	var effects: Array = []
+	var cls: Dictionary = ContentDB.class_def(class_id)
+	for skill_id in cls["skills"]:
+		var skill: Dictionary = ContentDB.skill(str(skill_id))
+		if not Formulas.is_passive(skill):
+			continue
+		var listed: Array = skill.get("effects", [])
+		for effect in listed:
+			effects.append(effect)
+	return effects
+
+
+func _initiative_roll(unit: Dictionary) -> int:
+	var effects: Array = unit.get("passives", [])
+	return int(unit["senses"]) + int(unit.get("initiative", 0)) + Formulas.initiative_bonus(effects) + rng.randi_range(1, 12)
+
+
+func _apply_regen(unit: Dictionary) -> void:
+	var effects: Array = unit.get("passives", [])
+	var mp_gain := Formulas.mp_regen_amount(int(unit.get("max_mp", 0)), effects)
+	if mp_gain > 0:
+		var room := int(unit["max_mp"]) - int(unit["mp"])
+		var gained := mini(mp_gain, maxi(0, room))
+		if gained > 0:
+			unit["mp"] = int(unit["mp"]) + gained
+			view.react_hit(str(unit["id"]), [{"text": "+%d" % gained, "color": SpriteCatalog.MP}], _ratio(unit, "hp"), _ratio(unit, "mp"))
+	var hp_gain := Formulas.hp_regen_amount(int(unit.get("max_hp", 0)), effects)
+	if hp_gain > 0:
+		var room_hp := int(unit["max_hp"]) - int(unit["hp"])
+		var gained_hp := mini(hp_gain, maxi(0, room_hp))
+		if gained_hp > 0:
+			unit["hp"] = int(unit["hp"]) + gained_hp
+			view.react_hit(str(unit["id"]), [{"text": "+%d" % gained_hp, "color": Color("3dba6a")}], _ratio(unit, "hp"), _ratio(unit, "mp"))
+	view.sync_unit(unit)
+
+
+func _defender_dr(defender: Dictionary) -> int:
+	var dr := int(defender.get("dr", 0)) + int(defender.get("ward", 0))
+	if str(defender.get("side", "")) == "player":
+		dr += _living_party_dr()
+	return dr
+
+
+func _living_party_dr() -> int:
+	var extra := 0
+	for unit in units:
+		if str(unit.get("side", "")) != "player" or int(unit.get("hp", 0)) <= 0:
+			continue
+		var effects: Array = unit.get("passives", [])
+		extra += Formulas.party_dr_aura(effects)
+	return extra
+
+
+func _reflect(defender: Dictionary, attacker: Dictionary) -> void:
+	if str(attacker.get("id", "")) == str(defender.get("id", "")):
+		return
+	var effects: Array = defender.get("passives", [])
+	var reflect := Formulas.on_damaged_reflect(effects)
+	if reflect <= 0 or int(attacker.get("hp", 0)) <= 0:
+		return
+	attacker["hp"] = maxi(0, int(attacker["hp"]) - reflect)
+	view.react_hit(str(attacker["id"]), [{"text": "-%d" % reflect, "color": SpriteCatalog.HP}], _ratio(attacker, "hp"), _ratio(attacker, "mp"))
+	if int(attacker["hp"]) <= 0:
+		await view.death_blink(str(attacker["id"]))
+
+
 func _pick_player() -> Dictionary:
 	var bag: Array = []
 	var total := 0
 	for unit in units:
 		if str(unit["side"]) != "player" or int(unit["hp"]) <= 0:
 			continue
-		var weight := Formulas.aggro_weight(int(unit["body"]), int(unit.get("threat", 0)), bool(unit.get("covering", false)))
+		var effects: Array = unit.get("passives", [])
+		var weight := Formulas.aggro_weight(int(unit["body"]), int(unit.get("threat", 0)), bool(unit.get("covering", false)), Formulas.threat_multiplier(effects))
 		if weight > 0:
 			bag.append({"unit": unit, "weight": weight})
 			total += weight

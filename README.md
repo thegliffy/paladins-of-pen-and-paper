@@ -20,7 +20,7 @@ On a phone the window is portrait. On desktop the window opens at 810×1440, whi
 2. The table hub has Travel, Fight, Rest, Quest, and Party along the bottom.
 3. **Travel** opens the Greenmere map. Drag to scroll. Tap a place, then tap it again or press Travel. Stop ends a multi-hop trip after the hop you are already on.
 4. Roads with monsters roll a d20 around the middle of the hop. 1 is lost, 2 through p is an ambush, p+1 through 19 is safe, 20 is lucky. `p = clamp(destination level − party average + 7, 2, 10)`.
-5. Combat is stacked for one hand: initiative, monsters, the GM behind the table, the party from behind, HP/MP cards, then Attack, Skill, Item, Cover, and Run. Skill opens that class's four skills. Each button shows the cost or the cooldown, and a skill you cannot pay for is grey.
+5. Combat is stacked for one hand: initiative, monsters, the GM behind the table, the party from behind, HP/MP cards, then Attack, Skill, Item, Cover, and Run. Skill opens that class's active skills only. Each button shows the cost or the cooldown, and a skill you cannot pay for is grey. Passives are always on. They show in the creator and on the party panel with a Passive tag.
 
 The save is `user://paladins_save.json`. It is written when the app pauses or closes. A fight in progress reloads from the checkpoint taken when the battle started, so a kill during the fight does not keep half-applied rewards.
 
@@ -30,7 +30,7 @@ The save is `user://paladins_save.json`. It is written when the app pauses or cl
 godot --headless --path . -s res://tests/run_tests.gd
 ```
 
-That covers the stat, HP, energy, damage, crit, XP, gold, travel-table, dice, timing, path, portrait-layout, cooldown, HP-cost, and build-up examples.
+That covers the stat, HP, energy, damage, crit, XP, gold, travel-table, dice, timing, path, portrait-layout, cooldown, HP-cost, build-up, mana regen, threat weighting, and on-hit passive examples.
 
 Placeholder art is generated with `python3 tools/gen_art.py`.
 
@@ -45,6 +45,8 @@ Native 270×480 captures:
 ![Combat](docs/screenshots/combat.png)
 
 ![Skill list](docs/screenshots/skills.png)
+
+![Party panel](docs/screenshots/party.png)
 
 ## Android
 
@@ -86,6 +88,7 @@ A level 1 hero is `class + persona + race + 2` on Body, Senses, and Mind. HP is 
 - You start with **500 gold**, three Hearth Tonics, and two Lamp Vials.
 - Level 1 monsters use the level-1 HP exception (the formula divided by 3), so the pond fight is short.
 - Skill ranks use the energy-cost formula on **mana** skills only. Cooldowns, free actions, HP costs, and build-up tracks (Rogue combo, Bard tempo, Barbarian rage) do not go through that formula. Damage and healing add a small per-rank term. There is no separate power-curve table yet.
+- Each class has one passive besides its actives. Monster targeting is still Body plus threat, then a threat multiplier from the Paladin and the Barbarian. The Wizard regains a share of max energy at the start of each of their turns. Other passives cover crits, healing, initiative, a party damage-reduction aura, health regen, a flat on-hit cut, and damage that rises as health falls.
 - Cleric, Rogue, Barbarian, and Druid outfits are placeholder pixels until production sprites arrive.
 - No terrain effects, so the 1.5 s terrain intro does not play.
 - No counter-attack skills. The counter delays are still in the timing constants and the tests.

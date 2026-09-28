@@ -266,8 +266,16 @@ func _refresh() -> void:
 
 
 func _fill_rows() -> void:
-	for child in _row_bar.get_children():
-		child.queue_free()
+	var stale: Array = _row_bar.get_children()
+	for child in stale:
+		child.free()
+	if _tab == "class":
+		_row_bar.visible = true
+		var passive := Widgets.label(_passive_line(), Layout.font_tiny())
+		passive.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		passive.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		_row_bar.add_child(passive)
+		return
 	if _tab != "look":
 		_row_bar.visible = false
 		return
@@ -279,6 +287,18 @@ func _fill_rows() -> void:
 		if pair[0] == _look_row:
 			button.modulate = SpriteCatalog.HIGHLIGHT
 		_row_bar.add_child(button)
+
+
+func _passive_line() -> String:
+	var cls: Dictionary = ContentDB.class_def(_class)
+	var names: PackedStringArray = PackedStringArray()
+	for skill_id in cls["skills"]:
+		var skill: Dictionary = ContentDB.skill(str(skill_id))
+		if Formulas.is_passive(skill):
+			names.append(str(skill["name"]))
+	if names.is_empty():
+		return ""
+	return "Passive  " + ", ".join(names)
 
 
 func _set_row(row: String) -> void:

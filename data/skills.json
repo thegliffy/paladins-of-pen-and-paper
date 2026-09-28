@@ -639,6 +639,89 @@
     "description": "A free puff. Up to two foes, front or back, may be poisoned."
   },
   {
+    "id": "oathmagnet",
+    "name": "Oathmagnet",
+    "owner": "paladin",
+    "type": "passive",
+    "description": "Foes weigh you twice as heavily. A blow against you shoves 4 damage back.",
+    "effects": [
+      {"hook": "threat", "threat_mult": 2},
+      {"hook": "on_damaged", "reflect": 4}
+    ]
+  },
+  {
+    "id": "ley_siphon",
+    "name": "Ley Siphon",
+    "owner": "wizard",
+    "type": "passive",
+    "description": "At the start of each of your turns, regain 8% of your max energy.",
+    "effects": [
+      {"hook": "turn_start", "mp_regen_pct": 0.08}
+    ]
+  },
+  {
+    "id": "first_mark",
+    "name": "First Mark",
+    "owner": "ranger",
+    "type": "passive",
+    "description": "You read the field early: +5 initiative.",
+    "effects": [
+      {"hook": "stat", "initiative": 5}
+    ]
+  },
+  {
+    "id": "hearth_chorus",
+    "name": "Hearth Chorus",
+    "owner": "bard",
+    "type": "passive",
+    "description": "While you stand, the whole party has +3 damage reduction.",
+    "effects": [
+      {"hook": "stat", "party_dr": 3}
+    ]
+  },
+  {
+    "id": "open_hands",
+    "name": "Open Hands",
+    "owner": "cleric",
+    "type": "passive",
+    "description": "Your healing restores 25% more.",
+    "effects": [
+      {"hook": "stat", "heal_bonus": 0.25}
+    ]
+  },
+  {
+    "id": "keen_nick",
+    "name": "Keen Nick",
+    "owner": "rogue",
+    "type": "passive",
+    "description": "Hits are 10 points more likely to crit, and each hit cuts for 6 extra.",
+    "effects": [
+      {"hook": "stat", "crit_bonus": 10},
+      {"hook": "on_hit", "bonus_damage": 6}
+    ]
+  },
+  {
+    "id": "blood_price",
+    "name": "Blood Price",
+    "owner": "barbarian",
+    "type": "passive",
+    "description": "Foes weigh you half again as heavily. Hits grow as your health falls, up to +50% at empty.",
+    "effects": [
+      {"hook": "threat", "threat_mult": 1.5},
+      {"hook": "stat", "missing_hp_damage": 0.5}
+    ]
+  },
+  {
+    "id": "sap_pulse",
+    "name": "Sap Pulse",
+    "owner": "druid",
+    "type": "passive",
+    "description": "At the start of each of your turns, regain 5% of your max health.",
+    "effects": [
+      {"hook": "turn_start", "hp_regen_pct": 0.05}
+    ]
+  },
+  {
     "id": "cinder_spit",
     "name": "Cinder Spit",
     "owner": "monster",

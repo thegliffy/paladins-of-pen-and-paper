@@ -6,7 +6,7 @@
     "senses": 1,
     "mind": 1,
     "role": "tank",
-    "skills": ["oathstrike", "hearthmend", "shieldwall", "rallying_brand"],
+    "skills": ["oathstrike", "hearthmend", "shieldwall", "rallying_brand", "oathmagnet"],
     "blurb": "Holds the line, mends a little, and makes foes look at them."
   },
   {
@@ -16,7 +16,7 @@
     "senses": 2,
     "mind": 3,
     "role": "burst",
-    "skills": ["emberburst", "frostpin", "cinder_needle", "stillglass"],
+    "skills": ["emberburst", "frostpin", "cinder_needle", "stillglass", "ley_siphon"],
     "blurb": "Splash fire, a freeze, a free poke, and a glass pin on a timer."
   },
   {
@@ -26,7 +26,7 @@
     "senses": 3,
     "mind": 1,
     "role": "striker",
-    "skills": ["marked_shot", "thorn_volley", "snare_trap", "quick_draw"],
+    "skills": ["marked_shot", "thorn_volley", "snare_trap", "quick_draw", "first_mark"],
     "blurb": "Marks a target, scatters thorns, and still has a free shot."
   },
   {
@@ -36,7 +36,7 @@
     "senses": 2,
     "mind": 2,
     "role": "support",
-    "skills": ["mending_verse", "dissonant_chord", "downbeat", "crescendo"],
+    "skills": ["mending_verse", "dissonant_chord", "downbeat", "crescendo", "hearth_chorus"],
     "blurb": "Builds tempo, then spends it on a big verse."
   },
   {
@@ -46,7 +46,7 @@
     "senses": 1,
     "mind": 3,
     "role": "healer",
-    "skills": ["lantern_prayer", "warding_light", "purge_hymn", "spark_of_mercy"],
+    "skills": ["lantern_prayer", "warding_light", "purge_hymn", "spark_of_mercy", "open_hands"],
     "blurb": "The party's lantern: big heals, a ward, and a cleanse."
   },
   {
@@ -56,7 +56,7 @@
     "senses": 4,
     "mind": 1,
     "role": "burst",
-    "skills": ["pocket_cut", "kidney_nick", "venom_needle", "ledger_strike"],
+    "skills": ["pocket_cut", "kidney_nick", "venom_needle", "ledger_strike", "keen_nick"],
     "blurb": "Nicks for combo points, then cashes them in one ledger blow."
   },
   {
@@ -66,7 +66,7 @@
     "senses": 1,
     "mind": 0,
     "role": "bruiser",
-    "skills": ["bloodswing", "roar", "rage_crash", "thick_hide"],
+    "skills": ["bloodswing", "roar", "rage_crash", "thick_hide", "blood_price"],
     "blurb": "Pays in blood and rage instead of energy."
   },
   {
@@ -76,7 +76,7 @@
     "senses": 2,
     "mind": 2,
     "role": "dot",
-    "skills": ["briar_seed", "mossknit", "wildshape_guard", "spore_puff"],
+    "skills": ["briar_seed", "mossknit", "wildshape_guard", "spore_puff", "sap_pulse"],
     "blurb": "Seeds poison, knits with moss, and hides in a wild shape."
   }
 ]
