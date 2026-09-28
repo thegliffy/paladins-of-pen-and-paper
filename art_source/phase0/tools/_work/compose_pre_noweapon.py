@@ -410,7 +410,7 @@ for kind, lid, trio in (('meadow', 'briar_cross', ['bramblet', 'briar_hound', 'g
     save(_ns['P'], f'approval/scene_{lid}.png')
     META[f'approval/scene_{lid}.png'] = dict(status='approved', notes=f'QA composite (not runtime): {lid} backdrop with {", ".join(trio)} and the full portrait UI.')
 
-# ---------- items (APPROVED 2026-09-28, art/phase0-pack @7946500): scene composite with the party wearing gear ----------
+# ---------- items (DRAFT 2026-09-28): scene composite with the party wearing gear ----------
 ITJ = json.load(open(W_ + 'meta_items.json'))['items']
 _ns = dict(globals()); _ns.update(SCENE_SEAT_FILE='approval/gear_seats/seat_{c}_{st}.png', SCENE_BG='combat/bg_gravel_keep_portrait.png',
     SCENE_PMON=[('pebble_squire', 52, 262), ('golem', 135, 222), ('hollow_helm', 220, 266)],
@@ -418,8 +418,8 @@ _ns = dict(globals()); _ns.update(SCENE_SEAT_FILE='approval/gear_seats/seat_{c}_
     SCENE_PCT={'pebble_squire': 1.0, 'golem': 0.6, 'hollow_helm': 0.85})
 exec(compile(_scene, 'scene_block', 'exec'), _ns)
 save(_ns['P'], 'scene_test_portrait_gear.png'); save(upsc(_ns['P'], 4), 'scene_test_portrait_gear_4x.png')
-META['scene_test_portrait_gear.png'] = dict(status='approved', notes='QA composite (not runtime): party wearing the approved gear overlays (paladin keep_plate+oath_blade+kettle_shield, cleric hedge_mail+chapel_mace+hymn_board, rogue travel_coat+night_shard+pocket_knife (mirrored off hand), druid reed_wrap+sap_crook, wizard moon_robe+lamp_staff) at Gravel Keep.')
-META['scene_test_portrait_gear_4x.png'] = dict(status='approved', notes='4x nearest.')
+META['scene_test_portrait_gear.png'] = dict(status='draft_pending_approval', notes='QA composite (not runtime): party wearing DRAFT gear overlays (paladin keep_plate+oath_blade+kettle_shield, cleric hedge_mail+chapel_mace+hymn_board, rogue travel_coat+night_shard+pocket_knife (mirrored off hand), druid reed_wrap+sap_crook, wizard moon_robe+lamp_staff) at Gravel Keep.')
+META['scene_test_portrait_gear_4x.png'] = dict(status='draft_pending_approval', notes='4x nearest.')
 
 # ---------- map_test_portrait ----------
 TL = {k: L(f'map/tile_{k}.png') for k in ['grass', 'grass_flowers', 'road_h', 'road_v', 'road_cross', 'river_h', 'bridge_v']}
@@ -539,7 +539,7 @@ BGc = C['gray']; CW = 796
 secs = [('COMBAT', ['combat/*.png']), ('MONSTERS', ['monsters/*/*_idle.png', 'monsters/*/*_attack.png', 'monsters/*/*_hit.png', 'monsters/*/*_death.png', 'monsters/*/*_still.png', 'monsters/*/*_portrait.png']),
         ('PARTY SEATS', ['party/*.png']), ('PAPERDOLL FRONT LAYERS', ['paperdoll/body_*.png', 'paperdoll/head_*.png', 'paperdoll/hair_*.png', 'paperdoll/outfit_base.png', 'paperdoll/class_*.png']),
         ('PAPERDOLL BACK SEATED LAYERS', ['paperdoll/back/*.png']), ('PAPERDOLL RAMPS + PORTRAITS', ['paperdoll/palettes/*.png', 'paperdoll/portrait_crop_examples.png']),
-        ('MAP', ['map/tile_*.png', 'map/loc_*.png', 'map/pawn_walk.png', 'map/tiles_preview.png']), ('UI', ['ui/*.png']), ('UI PORTRAIT', ['ui/portrait/*.png']), ('SKILL ICONS', ['ui/skills/*_?.png', 'ui/skills/skill_slot*.png', 'ui/skills/skill_cooldown_mask.png', 'ui/skills/skill_sheet.png']), ('ITEM ICONS', ['ui/items/*.png']), ('GEAR OVERLAYS', ['paperdoll/gear/*.png']), ('FX', ['fx/*.png']), ('PALETTE', ['palette/palette48.png'])]
+        ('MAP', ['map/tile_*.png', 'map/loc_*.png', 'map/pawn_walk.png', 'map/tiles_preview.png']), ('UI', ['ui/*.png']), ('UI PORTRAIT', ['ui/portrait/*.png']), ('SKILL ICONS', ['ui/skills/*_?.png', 'ui/skills/skill_slot*.png', 'ui/skills/skill_cooldown_mask.png', 'ui/skills/skill_sheet.png']), ('ITEM ICONS (DRAFT)', ['ui/items/*.png']), ('GEAR OVERLAYS (DRAFT)', ['paperdoll/gear/*.png']), ('FX', ['fx/*.png']), ('PALETTE', ['palette/palette48.png'])]
 items = []
 seen = set()
 for title, pats in secs:
@@ -701,15 +701,7 @@ for _n, _v in RGJ['draft_monsters'].items():
 MAN['regions'] = RGJ
 MAN['items'] = ITJ
 MAN['paperdoll']['seat_recipe']['steps_with_gear'] = ITJ['gear']['layer_order']
-MAN['paperdoll']['seat_recipe']['gear_note'] = 'Gear overlays (paperdoll/gear/<id>.png, 48x78, anchor 24,77) slot into the recipe as steps_with_gear: armor after class_back and before hair/hat; off hand then main hand after the hat; chair_back stays last. When a main-hand weapon is equipped, use class_back_<class>_noweapon instead of class_back_<class> (see class_noweapon). Status: approved (art/phase0-pack @7946500).'
-NW_CLASSES = ['paladin', 'druid', 'wizard', 'barbarian', 'bard', 'ranger']
-CLASS_NOWEAPON = dict(status='draft_pending_approval', rule='When the hero has a main-hand weapon equipped, draw paperdoll/back/class_back_<class>_noweapon.png instead of class_back_<class>.png (the class art has its own baked weapon that would double up with the gear overlay). The prebuilt default seats party/seat_<class>_idle/active_noweapon.png are the same swap applied to seat_recipe. Classes not listed (cleric, rogue) have no baked weapon: always use class_back_<class>. Nothing else changes: same 48x78 canvas, anchor [24,77], layer slot and hat layer.',
-    removed=dict(paladin='sword at the left hip', druid='leaf-topped staff and the hand holding it (left)', wizard='orb staff and the hand holding it (right)', barbarian='axe across the back (haft + head; the crossed harness straps stay)', bard='lute at the right (body, neck, pegs)', ranger='bow and the hand holding it (left; quiver and fletching stay)'),
-    classes={c_: dict(layer=f'paperdoll/back/class_back_{c_}_noweapon.png', replaces=f'paperdoll/back/class_back_{c_}.png', seat_idle=f'party/seat_{c_}_idle_noweapon.png', seat_active=f'party/seat_{c_}_active_noweapon.png') for c_ in NW_CLASSES},
-    build='tools/build_doll.py class_back(c, noweapon=True): the weapon parts are the last parts of each class layer and are skipped, so every other pixel is identical to class_back_<class> (the arm/robe/cape under the weapon is already fully drawn).',
-    approval=['approval/class_noweapon_check.png', 'approval/class_noweapon_check_4x.png'])
-MAN['paperdoll']['class_noweapon'] = CLASS_NOWEAPON
-MAN['paperdoll']['seat_recipe']['noweapon_rule'] = CLASS_NOWEAPON['rule']
+MAN['paperdoll']['seat_recipe']['gear_note'] = 'Gear overlays (paperdoll/gear/<id>.png, 48x78, anchor 24,77) slot into the recipe as steps_with_gear: armor after class_back and before hair/hat; off hand then main hand after the hat; chair_back stays last. Status: draft_pending_approval.'
 MAN['paperdoll']['back_seated']['layer_order_with_gear'] = ITJ['gear']['layer_order']
 MAN['location_backdrops'] = {p_['id']: dict(file=p_['backdrop'], region=p_['region'], status='approved', horizon_y=141, monster_feet_band=[222, 266], calm_below_y=300) for p_ in RGJ['places']}
 json.dump(MAN, open(OUT + 'manifest.json', 'w'), indent=1)
@@ -733,10 +725,8 @@ md = ['# Paladins of Pen and Paper: Phase 0 sprite pack', '', f'Generated {MAN["
       '## Greenmere regions (approved 2026-09-28)', 'Regions = `places[].kind` in data/region.json. Backdrops `combat/bg_<location>_portrait.png` (270x480, horizon y141, monster feet y222-266, calm below y300). New monsters (same 80x70 strips/anchors/anims) are listed in `manifest.json` under `monsters` with `status: approved`, and the full table is in `regions`. Approval sheets: `approval/backdrops_1x.png` / `_2x`, `approval/monster_lineup.png` / `_2x`, composite `scene_test_portrait_lantern_reach(+_4x).png`, extra `approval/scene_*.png`.', '',
       '| location | region | lv | existing monsters | new | backdrop |', '|---|---|---|---|---|---|'] + ['| %s | %s | %d | %s | %s | %s |' % (p_['name'], p_['region'], p_['level'], ', '.join(p_['monsters']) or '(none, town)', ', '.join(p_['suggested_new']) or '-', p_['backdrop']) for p_ in RGJ['places']] + ['',
       '| new monster | region | size | concept |', '|---|---|---|---|'] + ['| %s (`%s`) | %s | %s | %s |' % (v['name'], k, v['region'], v['size'], v['concept']) for k, v in RGJ['draft_monsters'].items()] + ['',
-      '## Items + gear overlays (approved 2026-09-28, art/phase0-pack @7946500)', '40 item icons `ui/items/<id>.png` (16x16, no rarity border, 1px #120c18 outline, pack palette) and 26 back-view gear overlays `paperdoll/gear/<id>.png` (48x78, anchor [24,77], same canvas as the seat doll; pixels under `chair_back` are cleared). Built by `tools/build_items.py` (art in `draft_items.py`, `draft_gear.py`). Approval: `approval/items_1x.png` / `items_4x.png`, `approval/gear_seated.png` / `gear_seated_4x.png` (+ `gear_seated_runtime_on_top.png`), `approval/gear_overlays(_3x).png`, composite `scene_test_portrait_gear(+_4x).png`.', '',
+      '## Items + gear overlays (DRAFT, pending approval)', '40 item icons `ui/items/<id>.png` (16x16, no rarity border, 1px #120c18 outline, pack palette) and 26 back-view gear overlays `paperdoll/gear/<id>.png` (48x78, anchor [24,77], same canvas as the seat doll; pixels under `chair_back` are cleared). Built by `tools/build_items.py` (art in `draft_items.py`, `draft_gear.py`). Approval: `approval/items_1x.png` / `items_4x.png`, `approval/gear_seated.png` / `gear_seated_4x.png` (+ `gear_seated_runtime_on_top.png`), `approval/gear_overlays(_3x).png`, composite `scene_test_portrait_gear(+_4x).png`.', '',
       '**Seat layer order with gear:** ' + ' -> '.join('`%s`' % x for x in ITJ['gear']['layer_order']) + '.', '', '**Placement:** ' + '; '.join('%s: %s' % kv for kv in ITJ['gear']['placement'].items()) + '.', '', '**Runtime note:** ' + ITJ['gear']['runtime_note'], '',
-      '### Weapon-less class layers (class_noweapon, draft pending approval)', '**Rule:** ' + CLASS_NOWEAPON['rule'], '', CLASS_NOWEAPON['build'] + ' Check sheet: `approval/class_noweapon_check.png` / `_4x.png` (shipped seat / noweapon / noweapon + Oath Blade, Sap Crook, Reed Staff, Gravel Axe, Road Lute, Thorn Bow).', '',
-      '| class | removed | noweapon layer | seats |', '|---|---|---|---|'] + ['| %s | %s | %s | %s, %s |' % (c_, CLASS_NOWEAPON['removed'][c_], v_['layer'], v_['seat_idle'], v_['seat_active']) for c_, v_ in CLASS_NOWEAPON['classes'].items()] + ['',
       '| id | name | slot | rarity | icon | doll | visual |', '|---|---|---|---|---|---|---|'] + ['| %s | %s | %s | %s | %s | %s | %s |' % (i['id'], i['name'], i['slot'], i['rarity'], i['icon'], i['doll'] or '-', i['visual']) for i in ITJ['list']] + ['',
       '## Skill FX', '| strip | frame size | frames | fps | anchor | loop / segments | notes |', '|---|---|---|---|---|---|---|'] + ['| fx/%s.png | %s | %s | %s | %s | %s | %s |' % (k, 'x'.join(map(str, v['frame_size'])), v['frames'], v['fps'], fmt(v['anchor']), fmt(v.get('segments', v.get('loop'))), v['notes']) for k, v in FX_BLOCK.items()] + ['',
       'FX style: no black outline (glow effects); bright core stepping to a darker coloured rim, binary alpha, fades via ordered dither. `fx_test_portrait.png` shows one frame of each at native scale.', '',

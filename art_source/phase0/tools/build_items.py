@@ -1,4 +1,4 @@
-"""DRAFT (pending approval): 40 item icons (ui/items/<id>.png, 16x16) + 26 back-view gear overlays (paperdoll/gear/<id>.png, 48x78)
+"""APPROVED 2026-09-28 (art/phase0-pack @7946500): 40 item icons (ui/items/<id>.png, 16x16) + 26 back-view gear overlays (paperdoll/gear/<id>.png, 48x78)
 + approval sheets. Item list: data/items.json on cursor/phase-0-playable-slice-9a5e (40 items). Writes tools/_work/meta_items.json."""
 import json, numpy as np
 from PIL import Image
@@ -6,7 +6,8 @@ import pal
 from pal import C, save, text, text_w
 from draft_items import ICONS
 from draft_gear import GEAR, PLACEMENT
-OUT = pal.OUT; STATUS = 'draft_pending_approval'
+OUT = pal.OUT; STATUS = 'approved'   # APPROVED by Kyle (item icons + gear overlays), art/phase0-pack @7946500
+NW_STATUS = 'draft_pending_approval'   # weapon-less class layers (class_noweapon) - new, not yet approved
 def L(rel): return Image.open(OUT + rel).convert('RGBA')
 def up(im, k): return im.resize((im.width * k, im.height * k), Image.NEAREST)
 ITEMS = [  # id, name, slot, tag/weight, rarity, hands, visual note   (mirrors data/items.json)
@@ -80,7 +81,8 @@ def remap(im, keys, cols):
     for k, c in zip(keys, cols):
         m = (a[..., :3] == k).all(-1) & (a[..., 3] > 0); o[m, :3] = C[c]
     return Image.fromarray(o, 'RGBA')
-def compose_back_gear(cls, gear=(), order='recommended', active=False, flip_off=True):
+NOWEAPON = ['paladin', 'druid', 'wizard', 'barbarian', 'bard', 'ranger']   # classes whose back layer has a baked weapon (see build_doll.NOWEAPON)
+def compose_back_gear(cls, gear=(), order='recommended', active=False, flip_off=True, noweapon=False):
     skin, hair, hcol, ocol = SEATD[cls]
     g = {}
     for x in gear:                                                               # armor / main / off (a second main-hand item goes to the off hand)
@@ -88,7 +90,7 @@ def compose_back_gear(cls, gear=(), order='recommended', active=False, flip_off=
         g['off' if (k == 'main' and 'main' in g) else k] = x
     im = Image.new('RGBA', (48, 78)); im.alpha_composite(L(f'paperdoll/back/body_back_skin_{skin}.png'))
     if ocol: im.alpha_composite(remap(L('paperdoll/back/outfit_back.png'), K[1:], OUTFIT_RAMPS[ocol]))
-    im.alpha_composite(L(f'paperdoll/back/class_back_{cls}.png'))
+    im.alpha_composite(L(f'paperdoll/back/class_back_{cls}_noweapon.png' if (noweapon and cls in NOWEAPON) else f'paperdoll/back/class_back_{cls}.png'))
     if order == 'recommended' and 'armor' in g: im.alpha_composite(GEAR_IM[g['armor']])
     hl = remap(L(f'paperdoll/back/hair_back_{hair}.png'), K, HAIR_RAMPS[hcol]); ha = np.array(hl); ha[:HAT_CLIP_BACK[cls]] = 0
     im.alpha_composite(Image.fromarray(ha, 'RGBA')); im.alpha_composite(L(f'paperdoll/back/class_back_{cls}_hat.png'))
@@ -111,6 +113,9 @@ def compose_back_gear(cls, gear=(), order='recommended', active=False, flip_off=
 # sanity: bare composer == shipped seats
 for c in SEATD:
     assert (np.array(compose_back_gear(c)) == np.array(L(f'party/seat_{c}_idle.png'))).all(), c
+for c in NOWEAPON:
+    for st, act in (('idle', False), ('active', True)):
+        assert (np.array(compose_back_gear(c, noweapon=True, active=act)) == np.array(L(f'party/seat_{c}_{st}_noweapon.png'))).all(), (c, st)
 
 CLASSES = ['paladin', 'cleric', 'rogue', 'druid', 'wizard', 'barbarian', 'bard', 'ranger']
 LOADOUT = {'paladin': ('keep_plate', 'oath_blade', 'kettle_shield'), 'cleric': ('hedge_mail', 'chapel_mace', 'hymn_board'), 'rogue': ('travel_coat', 'night_shard', 'pocket_knife'),
@@ -168,7 +173,24 @@ for i, c in enumerate(PARTY):
         save(compose_back_gear(c, LOADOUT[c], active=act), f'approval/gear_seats/seat_{c}_{st}.png')
         META[f'approval/gear_seats/seat_{c}_{st}.png'] = dict(status=STATUS, anchor=[24, 77], notes=f'QA seat: {c} wearing {", ".join(LOADOUT[c])} (recommended layer order). Used by scene_test_portrait_gear.png.')
 
-GEAR_ORDER = ['back/body_back_skin_<skin>', 'back/outfit_back (tinted)', 'back/class_back_<class>', 'gear ARMOR: paperdoll/gear/<armor id>',
+# class_noweapon check: original / weapon-less / weapon-less + a typical main-hand weapon (recommended seat_recipe order)
+NW_WEAPON = {'paladin': 'oath_blade', 'druid': 'sap_crook', 'wizard': 'reed_staff', 'barbarian': 'gravel_axe', 'bard': 'road_lute', 'ranger': 'thorn_bow'}
+NAME = {i[0]: i[1] for i in ITEMS}
+NW_ROWS = [('ORIGINAL CLASS LAYER (SHIPPED SEAT)', lambda c: compose_back_gear(c)), ('NOWEAPON CLASS LAYER', lambda c: compose_back_gear(c, noweapon=True)),
+           ('NOWEAPON + EQUIPPED MAIN-HAND WEAPON', lambda c: compose_back_gear(c, (NW_WEAPON[c],), noweapon=True))]
+cw, rh = 54, 96; NWS = Image.new('RGBA', (8 + 6 * cw, 14 + 3 * rh + 16), C['slate'] + (255,))
+for i, c in enumerate(NOWEAPON): text(NWS, 8 + i * cw + 24 - text_w(c.upper()) // 2 + 3, 4, c.upper(), C['cream'])
+for r_, (lab, fn) in enumerate(NW_ROWS):
+    y0 = 14 + r_ * rh; NWS.paste(C['ink'] + (255,), (0, y0, NWS.width, y0 + 9)); text(NWS, 4, y0 + 2, lab, C['gold'])
+    for i, c in enumerate(NOWEAPON):
+        NWS.paste(C['gray'] + (255,), (8 + i * cw, y0 + 11, 8 + i * cw + 50, y0 + 11 + 82)); NWS.alpha_composite(fn(c), (8 + i * cw + 1, y0 + 13))
+for i, c in enumerate(NOWEAPON):
+    nm = NAME[NW_WEAPON[c]].upper(); text(NWS, 8 + i * cw + 25 - text_w(nm) // 2, 14 + 3 * rh + 2, nm, C['white'])
+save(NWS, 'approval/class_noweapon_check.png'); save(up(NWS, 4), 'approval/class_noweapon_check_4x.png')
+META['approval/class_noweapon_check.png'] = dict(status=NW_STATUS, notes='APPROVAL SHEET: the 6 classes with a baked weapon (paladin, druid, wizard, barbarian, bard, ranger): shipped seat, the same seat built with class_back_<c>_noweapon, and noweapon + a typical main-hand weapon (' + ', '.join(f'{c} {NAME[w]}' for c, w in NW_WEAPON.items()) + '); all composed in the recommended seat_recipe order (steps_with_gear).')
+META['approval/class_noweapon_check_4x.png'] = dict(status=NW_STATUS, notes='4x nearest of approval/class_noweapon_check.png.')
+
+GEAR_ORDER = ['back/body_back_skin_<skin>', 'back/outfit_back (tinted)', 'back/class_back_<class> (class_back_<class>_noweapon when a main-hand weapon is equipped and the class has one, see class_noweapon)', 'gear ARMOR: paperdoll/gear/<armor id>',
     'back/hair_back_<hair> (tinted, hat-clipped)', 'back/class_back_<class>_hat', 'gear OFF HAND: paperdoll/gear/<off id> (flip horizontally when the off-hand item is a weapon/dagger drawn for the main hand)',
     'gear MAIN HAND: paperdoll/gear/<main id> (a two-hander fills both hands; skip the off-hand)', 'back/chair_back (always last; gear pixels under the chair are already cleared)',
     'ACTIVE: shift up 3px, then 1px #f8d040 outline around the union (includes the gear)']
