@@ -47,6 +47,8 @@ Native 270×480 captures of the production art:
 
 ![Greenmere map](docs/screenshots/map.png)
 
+![Greenmere map from an exported pack](docs/screenshots/map_exported.png)
+
 ![Combat beside the art director render](docs/screenshots/combat_compare.png)
 
 ![Combat](docs/screenshots/combat.png)
