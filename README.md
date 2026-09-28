@@ -2,7 +2,7 @@
 
 A portrait, tabletop-framed pixel RPG. Phase 0 is a playable phone slice: recruit one to five heroes, walk a vertical region map, and fight at the table.
 
-The native viewport is **270×480**, integer-scaled with nearest-neighbor filtering. Screen positions live in [`data/layout.json`](data/layout.json). A `landscape` block is reserved there so a desktop layout can be added later without rewriting the screens. Sprite paths and doll anchors live in [`scripts/core/sprite_catalog.gd`](scripts/core/sprite_catalog.gd).
+The native viewport is **270×480**, integer-scaled with nearest-neighbor filtering. Screen positions live in [`data/layout.json`](data/layout.json). A `landscape` block is reserved there so a desktop layout can be added later without rewriting the screens. Production sprites live in [`art_source/phase0`](art_source/phase0) and are loaded by [`scripts/core/art_pack.gd`](scripts/core/art_pack.gd). The UI font is [m5x7](https://managore.itch.io/m5x7) by Daniel Linssen, CC0, at size 16 so it sits on the native grid.
 
 Names, dialogue, and art in this repository are original. Combat math and the timing table follow the project's design breakdown.
 
@@ -32,11 +32,13 @@ godot --headless --path . -s res://tests/run_tests.gd
 
 That covers the stat, HP, energy, damage, crit, XP, gold, travel-table, dice, timing, path, portrait-layout, party seats, skill-button states, the arm-then-cast inspect card, cooldown, HP-cost, build-up, mana regen, threat raffle, and on-hit passive examples.
 
-Placeholder art is generated with `python3 tools/gen_art.py`.
+The older files under `art/` are still generated with `python3 tools/gen_art.py` and stay in the repo for the title backdrop and the file checks. The creator, map, and combat screens use the production pack.
 
 ## Screenshots
 
-Native 270×480 captures:
+Native 270×480 captures of the production art:
+
+![Combat, skill card open](docs/screenshots/skills.png)
 
 ![Character creator](docs/screenshots/creator.png)
 
@@ -53,12 +55,12 @@ Native 270×480 captures:
 [`export_presets.cfg`](export_presets.cfg) has a debug Android preset locked to portrait (`screen/orientation=1`) and arm64-v8a, plus a Linux preset. The project setting `display/window/handheld/orientation` is portrait.
 
 ```bash
-godot --headless --export-debug Android build/paladins-0.1.0-debug.apk
+godot --headless --export-debug Android build/paladins-0.2.0-debug.apk
 ```
 
 The export needs the Godot 4.7.2 Android templates (installed into `android/build`, which is gitignored), a `.build_version` of `4.7.2.stable`, Android SDK 36, build-tools 36.1.0, NDK 29.0.14206865, and a JDK. The project enables ETC2/ASTC import, which the Android exporter requires.
 
-The published debug APK is [v0.1.0](https://github.com/thegliffy/paladins-of-pen-and-paper/releases/tag/v0.1.0): [paladins-0.1.0-debug.apk](https://github.com/thegliffy/paladins-of-pen-and-paper/releases/download/v0.1.0/paladins-0.1.0-debug.apk). It is arm64-v8a, portrait, package `com.thegliffy.paladinspenpaper`. That build is the portrait slice from before the eight-class list, passives, the threat raffle, the party of five, and the per-hero action bar. Export again with the command above to include those.
+The published debug APK is [v0.2.0](https://github.com/thegliffy/paladins-of-pen-and-paper/releases/tag/v0.2.0): [paladins-0.2.0-debug.apk](https://github.com/thegliffy/paladins-of-pen-and-paper/releases/download/v0.2.0/paladins-0.2.0-debug.apk). It is arm64-v8a, portrait, package `com.thegliffy.paladinspenpaper`, and includes the eight classes, passives, the threat raffle, the party of five, inspect-to-cast, and the production sprites. v0.1.0 is the earlier portrait slice and is left as-is.
 
 ## Where numbers live
 
@@ -90,13 +92,13 @@ A level 1 hero is `class + persona + race + 2` on Body, Senses, and Mind. HP is 
 - Level 1 monsters use the level-1 HP exception (the formula divided by 3), so the pond fight is short.
 - Skill ranks use the energy-cost formula on **mana** skills only. Cooldowns, free actions, HP costs, and build-up tracks (Rogue combo, Bard tempo, Barbarian rage) do not go through that formula. Damage and healing add a small per-rank term. There is no separate power-curve table yet.
 - Each class has one passive besides its actives. Monsters raffle a living member by threat. Threat is class base plus Body and a little of damage reduction, then taunt and a passive multiplier, and it never drops below 1. Cover halves it. The Wizard regains a share of max energy at the start of each of their turns. Other passives cover crits, healing, initiative, a party damage-reduction aura, health regen, a flat on-hit cut, and damage that rises as health falls. Set `debug` in `data/threat.json` to show each member's threat percent on their chair.
-- Cleric, Rogue, Barbarian, and Druid outfits are placeholder pixels until production sprites arrive.
+- Monster pictures use the pack's eight bodies. Puddleblob is the slime, Thicket Imp the imp, Cinder Mite a goblin, Briar Hound the wolf, Lantern Wisp a mushroom, Marshlurker a skeleton, Cave Howler the bat, and Gravel Brute the golem. Map nodes use the village, windmill, tavern, shrine, cave, and castle pictures.
 - No terrain effects, so the 1.5 s terrain intro does not play.
 - No counter-attack skills. The counter delays are still in the timing constants and the tests.
 - The bard's second skill applies **poison**, not weakness.
 - A wild rest that fails every Senses die is interrupted by an ambush and does not heal first.
 - A wipe revives the party to about a quarter of their health and charges the resurrect cost when the purse can pay, so the slice cannot soft-lock.
 - Audio is generated tones. There is no music.
-- Art is placeholder pixel work. Production sprites can replace the files named in `SpriteCatalog` without moving anchors.
+- Combat, the creator, and the map use the production sprite pack. The title screen still uses the meadow backdrop from `art/`.
 
-A basic attack's waits are 0.25 s wind-up, 0.20 s to the hit, and a 0.50 s HP tween (0.95 s). Punch and the red blink run inside that tween. On the machine that captured the screenshots, one measured attack completed in 818 ms, inside the 0.8–1.2 s gate.
+A basic attack's waits are 0.25 s wind-up, 0.20 s to the hit, and a 0.50 s HP tween (0.95 s). Punch and the red blink run inside that tween. On the machine that captured the screenshots, one measured attack completed in 806 ms, inside the 0.8–1.2 s gate.

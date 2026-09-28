@@ -2,7 +2,7 @@
 
 Eight classes. A party seats one to five heroes, and each class once. Every class has five skills that nobody else uses: three or four actives and one or two passives. Body, Senses, and Mind from the class add up to 6, then persona, race, and the +2 base still apply.
 
-Actives are the Skill buttons. Passives are always on. They are tagged Passive in the creator and on the party panel, and they never appear in the Skill list.
+Actives are the Skill buttons. Passives are always on. They are tagged Passive in the creator and on the party panel. The action bar still draws each passive in the octagon frame (`skill_slot_passive`); that slot opens the card and does not cast.
 
 Mana skills use the energy formula `round((base + rank × 20) × (1 + reduction))`. The button shows that rank-1 cost. Cooldown skills arm on use and tick down by 1 at the start of each of your later turns, including a turn you spend stunned. A cooldown of 3 is ready again on the turn it reaches 0. An HP cost is payable only when it would leave at least 1 health. Build-up skills add points up to a cap, and the spender refuses the action until you have the cost.
 
@@ -90,3 +90,50 @@ A Paladin with Body 8, no armor, and Oathmagnet is `round((16 + 16) × 2) = 64`.
 | Druid | Sap Pulse | Passive | Turn start | Always on | Self | Regain 5% of max health at the start of each of your turns. |
 
 Spell and heal amounts above are the rank-1 base before Mind, Senses, and extra ranks. Ranks above 1 add the per-rank term in the skill data. Conditions use the same save, timer, and damage rules as the rest of combat: burn ticks health, poison drains energy first, stun skips the turn.
+
+## Skill icons
+
+Icons are `art_source/phase0/ui/skills/<file>.png`. The number is the Art Director's slot, not the order on the bar. Every passive uses the octagon frame even when the painted icon was an active motif.
+
+| Class | Skill | Icon | Notes |
+| --- | --- | --- | --- |
+| Paladin | Oathstrike | paladin_1 | Sword of light |
+| Paladin | Shieldwall | paladin_2 | Shield |
+| Paladin | Hearthmend | paladin_3 | Holy aura |
+| Paladin | Rallying Brand | paladin_4 | Shout |
+| Paladin | Oathmagnet | paladin_5 | Guardian mark. Passive frame |
+| Wizard | Emberburst | wizard_1 | Fireball |
+| Wizard | Frostpin | wizard_2 | Ice |
+| Wizard | Cinder Needle | wizard_3 | Lightning. No needle was drawn |
+| Wizard | Stillglass | wizard_4 | Arcane ward |
+| Wizard | Ley Siphon | wizard_5 | Mana flow. Passive frame |
+| Ranger | Marked Shot | ranger_1 | Arrow |
+| Ranger | Thorn Volley | ranger_2 | Multi-shot |
+| Ranger | Snare Trap | ranger_3 | Trap |
+| Ranger | Quick Draw | ranger_4 | Paw. No quick-draw icon was drawn |
+| Ranger | First Mark | ranger_5 | Keen eye. Passive frame |
+| Bard | Dissonant Chord | bard_1 | Damage note |
+| Bard | Mending Verse | bard_2 | Song |
+| Bard | Hearth Chorus | bard_3 | Lullaby. Passive frame. Every bard icon was painted as an active |
+| Bard | Downbeat | bard_4 | Lute |
+| Bard | Crescendo | bard_5 | War drum |
+| Cleric | Lantern Prayer | cleric_1 | Green cross |
+| Cleric | Warding Light | cleric_2 | Holy cross |
+| Cleric | Purge Hymn | cleric_3 | Cleanse |
+| Cleric | Spark of Mercy | cleric_4 | Hammer. No small-heal icon was drawn |
+| Cleric | Open Hands | cleric_5 | Haloed heart. Passive frame |
+| Rogue | Pocket Cut | rogue_1 | Dagger |
+| Rogue | Venom Needle | rogue_2 | Poison vial |
+| Rogue | Kidney Nick | rogue_3 | Smoke |
+| Rogue | Ledger Strike | rogue_4 | Backstab |
+| Rogue | Keen Nick | rogue_5 | Pickpocket. Passive frame |
+| Barbarian | Bloodswing | barbarian_1 | Axe |
+| Barbarian | Rage Crash | barbarian_2 | Rage flame |
+| Barbarian | Roar | barbarian_3 | Horn |
+| Barbarian | Thick Hide | barbarian_4 | Stomp. No hide icon was drawn |
+| Barbarian | Blood Price | barbarian_5 | Provoke. Passive frame |
+| Druid | Mossknit | druid_1 | Leaf heal |
+| Druid | Briar Seed | druid_2 | Thorns |
+| Druid | Wildshape Guard | druid_3 | Bear |
+| Druid | Spore Puff | druid_4 | Roots |
+| Druid | Sap Pulse | druid_5 | Sprout. Passive frame |
