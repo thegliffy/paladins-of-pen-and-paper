@@ -5,6 +5,7 @@ class_name SpriteCatalog
 ## Where a doll, monster, or the GM sits on a screen comes from Layout.
 
 
+const Pack := preload("res://scripts/core/packed_file.gd")
 const LAYER_ANCHOR := Vector2.ZERO
 const GM_ANCHOR := Vector2(0.5, 1.0)
 const MONSTER_FRAME := Vector2i(48, 48)
@@ -31,7 +32,11 @@ static var _appearance: Dictionary = {}
 
 static func appearance() -> Dictionary:
 	if _appearance.is_empty():
-		_appearance = JSON.parse_string(FileAccess.get_file_as_string("res://data/appearance.json"))
+		var parsed: Variant = Pack.json("res://data/appearance.json")
+		if parsed is Dictionary:
+			_appearance = parsed
+		else:
+			push_error("appearance.json did not load")
 	return _appearance
 
 
@@ -45,7 +50,7 @@ static func doll_path(facing: String, layer: String) -> String:
 
 
 static func has_doll(facing: String, layer: String) -> bool:
-	return FileAccess.file_exists(doll_path(facing, layer))
+	return Pack.exists(doll_path(facing, layer))
 
 
 static func doll(facing: String, layer: String) -> Texture2D:
@@ -62,9 +67,13 @@ static func ui(name: String) -> Texture2D:
 
 static func background(kind: String) -> Texture2D:
 	var path := "res://art/bg/%s.png" % kind
-	if not FileAccess.file_exists(path):
+	if not Pack.exists(path):
+		push_error("Missing backdrop %s" % path)
 		path = "res://art/bg/meadow.png"
-	return load(path)
+	var loaded: Texture2D = load(path)
+	if loaded == null:
+		push_error("Failed to load backdrop %s" % path)
+	return loaded
 
 
 static func map_texture() -> Texture2D:

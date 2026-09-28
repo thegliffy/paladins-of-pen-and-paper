@@ -4,6 +4,8 @@ class_name Layout
 ## Screens ask Layout for geometry. They do not hardcode portrait coordinates.
 
 
+const Pack := preload("res://scripts/core/packed_file.gd")
+
 static var _root: Dictionary = {}
 static var active_name := "portrait"
 
@@ -11,7 +13,11 @@ static var active_name := "portrait"
 static func setup() -> void:
 	if not _root.is_empty():
 		return
-	var raw = JSON.parse_string(FileAccess.get_file_as_string("res://data/layout.json"))
+	var parsed: Variant = Pack.json("res://data/layout.json")
+	if not parsed is Dictionary:
+		push_error("Layout failed to read res://data/layout.json")
+		return
+	var raw: Dictionary = parsed
 	_root = raw
 	active_name = str(raw.get("active", "portrait"))
 	var block: Dictionary = raw.get(active_name, {})

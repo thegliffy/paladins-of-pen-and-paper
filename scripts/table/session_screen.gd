@@ -2,6 +2,8 @@ extends Control
 class_name SessionScreen
 ## Table scene for the hub and for combat. Positions come from Layout.
 
+const Pack := preload("res://scripts/core/packed_file.gd")
+
 signal action_pressed(action_id: String)
 signal target_pressed(target_id: String)
 signal continue_pressed
@@ -222,7 +224,7 @@ func set_actions(entries: Array) -> void:
 		button.position = Vector2(x, 4)
 		button.size = Vector2(width, bar.size.y - 8.0)
 		var icon_name := str(entry.get("icon", ""))
-		if icon_name != "" and FileAccess.file_exists("res://art/ui/%s.png" % icon_name):
+		if icon_name != "" and Pack.exists("res://art/ui/%s.png" % icon_name):
 			button.icon = SpriteCatalog.ui(icon_name)
 			button.expand_icon = true
 			button.add_theme_constant_override("icon_max_width", 16)

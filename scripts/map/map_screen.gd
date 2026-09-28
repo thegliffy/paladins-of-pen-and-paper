@@ -13,6 +13,8 @@ var _selected := ""
 var _traveling := false
 var _stop := false
 var _content: Control
+var _places: Control
+var _select_mark: ColorRect
 var _pawn: TextureRect
 var _info: Label
 var _travel_button: Button
@@ -61,10 +63,12 @@ func _build() -> void:
 
 	var content_size := Layout.vec("map", "content")
 	_content = Control.new()
+	_content.name = "Content"
 	_content.set_script(load("res://scripts/map/map_canvas.gd"))
 	_content.size = content_size
 	_content.custom_minimum_size = content_size
 	clip.add_child(_content)
+	_spawn_places(content_size)
 	_pawn = TextureRect.new()
 	_pawn.texture = ArtPack.frame_texture("map/pawn_walk.png", 0, Vector2(24, 20))
 	_pawn.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -339,11 +343,6 @@ func paint_route(canvas: Control) -> void:
 				canvas.draw_texture(tile, Vector2(x, y))
 				x += 16.0
 			y += 16.0
-	for place_id in ContentDB.places.keys():
-		var place: Dictionary = ContentDB.place(str(place_id))
-		var loc := ArtPack.texture("map/loc_%s.png" % str(place.get("sprite", "village")))
-		if loc:
-			canvas.draw_texture(loc, _place_pos(str(place_id)) - Vector2(16, 28))
 	var points: PackedVector2Array = _content.get_meta("route", PackedVector2Array())
 	if points.is_empty() and _selected != "" and not _traveling:
 		var path: Array = RouteFinder.fewest_hops(GameState.place_id, _selected, ContentDB.edges)
@@ -359,12 +358,68 @@ func paint_route(canvas: Control) -> void:
 			var point := RouteFinder.point_along(points, dist)
 			canvas.draw_rect(Rect2(point - Vector2(1, 1), Vector2(2, 2)), Color("5a3a18"))
 			dist += 8.0
-	if _selected != "":
-		var pos := _place_pos(_selected)
-		canvas.draw_rect(Rect2(pos + Vector2(-3, -18), Vector2(6, 8)), SpriteCatalog.HIGHLIGHT)
+
+
+func place_node_count() -> int:
+	if _places == null:
+		return 0
+	var count := 0
+	for child in _places.get_children():
+		if child is TextureRect and (child as TextureRect).texture != null:
+			count += 1
+	return count
+
+
+func backdrop_ready() -> bool:
+	var grass := ArtPack.texture("map/tile_grass.png")
+	return grass != null and grass.get_width() > 0
+
+
+func _spawn_places(content_size: Vector2) -> void:
+	_places = Control.new()
+	_places.name = "Places"
+	_places.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_places.position = Vector2.ZERO
+	_places.size = content_size
+	_content.add_child(_places)
+	for place_id in ContentDB.places.keys():
+		var id := str(place_id)
+		var place: Dictionary = ContentDB.place(id)
+		var sprite_name := str(place.get("sprite", "village"))
+		var loc := ArtPack.texture("map/loc_%s.png" % sprite_name)
+		if loc == null:
+			push_error("Map place %s has no sprite map/loc_%s.png" % [id, sprite_name])
+			continue
+		var node := TextureRect.new()
+		node.name = id
+		node.texture = loc
+		node.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		node.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		node.stretch_mode = TextureRect.STRETCH_SCALE
+		node.position = _place_pos(id) - Vector2(16, 28)
+		node.size = loc.get_size()
+		_places.add_child(node)
+	_select_mark = ColorRect.new()
+	_select_mark.name = "SelectMark"
+	_select_mark.color = SpriteCatalog.HIGHLIGHT
+	_select_mark.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_select_mark.size = Vector2(6, 8)
+	_select_mark.visible = false
+	_content.add_child(_select_mark)
+
+
+func _sync_select_mark() -> void:
+	if _select_mark == null:
+		return
+	if _selected == "":
+		_select_mark.visible = false
+		return
+	_select_mark.visible = true
+	_select_mark.position = _place_pos(_selected) + Vector2(-3, -18)
 
 
 func _refresh_hud() -> void:
+	_sync_select_mark()
 	_refresh_gold()
 	if _selected == "":
 		_info.text = "Tap a place.\nTap again to walk."

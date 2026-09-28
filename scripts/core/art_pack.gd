@@ -4,6 +4,7 @@ class_name ArtPack
 
 
 const ROOT := "res://art_source/phase0/"
+const Pack := preload("res://scripts/core/packed_file.gd")
 
 const HAIR_RAMPS: Array = ["black", "brown", "blonde", "ginger", "white", "blue", "pink", "green"]
 const OUTFIT_RAMPS: Array = ["white", "red", "blue", "purple", "green", "yellow", "brown", "dark"]
@@ -13,26 +14,40 @@ const SKIN_KEYS: Array = ["#ec5a44", "#8c5836", "#b27a4e", "#d89c72"]
 
 static var _manifest: Dictionary = {}
 static var _textures: Dictionary = {}
+static var _missing: Dictionary = {}
 static var _baked: Dictionary = {}
 static var _outlined: Dictionary = {}
 
 
 static func manifest() -> Dictionary:
 	if _manifest.is_empty():
-		_manifest = JSON.parse_string(FileAccess.get_file_as_string(ROOT + "manifest.json"))
+		var parsed: Variant = Pack.json(ROOT + "manifest.json")
+		if parsed is Dictionary:
+			_manifest = parsed
+		else:
+			push_error("ArtPack manifest did not load")
 	return _manifest
 
 
 static func has(rel: String) -> bool:
-	return FileAccess.file_exists(ROOT + rel)
+	return Pack.exists(ROOT + rel)
 
 
 static func texture(rel: String) -> Texture2D:
 	if _textures.has(rel):
 		return _textures[rel]
-	if not has(rel):
+	if _missing.has(rel):
 		return null
-	var loaded: Texture2D = load(ROOT + rel)
+	var path := ROOT + rel
+	if not has(rel):
+		_missing[rel] = true
+		push_error("ArtPack missing texture: %s" % path)
+		return null
+	var loaded: Texture2D = load(path)
+	if loaded == null:
+		_missing[rel] = true
+		push_error("ArtPack failed to load texture: %s" % path)
+		return null
 	_textures[rel] = loaded
 	return loaded
 
@@ -62,7 +77,7 @@ static func skill_icon(skill: Dictionary) -> Texture2D:
 
 
 static func monster_sprite(monster_id: String) -> String:
-	var rows: Variant = JSON.parse_string(FileAccess.get_file_as_string("res://data/monsters.json"))
+	var rows: Variant = Pack.json("res://data/monsters.json")
 	if rows is Array:
 		for row in rows:
 			if row is Dictionary and str(row.get("id", "")) == monster_id:

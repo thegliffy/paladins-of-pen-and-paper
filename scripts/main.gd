@@ -5,8 +5,13 @@ var _busy := false
 
 
 func _ready() -> void:
+	# Letterbox outside the 270×480 viewport uses the canvas clear color.
+	RenderingServer.set_default_clear_color(Color(0.12, 0.08, 0.05, 1))
 	Layout.setup()
 	_apply_theme()
+	if OS.get_cmdline_user_args().has("--export-check"):
+		await _export_check()
+		return
 	if OS.get_cmdline_user_args().has("--shots"):
 		await _shots()
 		get_tree().quit()
@@ -194,6 +199,95 @@ func _swap(next: Control) -> void:
 	next.offset_top = 0
 	next.offset_right = 0
 	next.offset_bottom = 0
+
+
+func _export_check() -> void:
+	# Runs inside an exported PCK. The project directory must not be on res://.
+	var failures: Array[String] = []
+	var grass_path := "res://art_source/phase0/map/tile_grass.png"
+	var old_gate := FileAccess.file_exists(grass_path)
+	var resource_gate := ResourceLoader.exists(grass_path)
+	print("EXPORT_GRASS_FILE_EXISTS %s" % old_gate)
+	print("EXPORT_GRASS_RESOURCE_EXISTS %s" % resource_gate)
+	var isolated := not FileAccess.file_exists("res://tools/check_export.sh")
+	print("EXPORT_ISOLATED %s" % isolated)
+	if not isolated:
+		failures.append("not_isolated")
+	if ContentDB.places.is_empty():
+		failures.append("places_json")
+		push_error("Export check: region places did not load")
+	if ArtPack.manifest().is_empty():
+		failures.append("manifest")
+		push_error("Export check: manifest did not load")
+	if not _texture_ok(ArtPack.texture("map/tile_grass.png")):
+		failures.append("tile_grass")
+	if not _texture_ok(ArtPack.texture("ui/portrait/action_bar_v2.png")):
+		failures.append("action_bar")
+	if not _texture_ok(ArtPack.texture("ui/skills/paladin_1.png")):
+		failures.append("skill_icon")
+	if not _texture_ok(ArtPack.texture("combat/bg_forest_portrait.png")):
+		failures.append("combat_bg")
+	if not _texture_ok(ArtPack.texture("party/seat_paladin_idle.png")):
+		failures.append("seat")
+	if not _texture_ok(SpriteCatalog.background("meadow")):
+		failures.append("title_bg")
+	if not _texture_ok(SpriteCatalog.ui("icon_die")):
+		failures.append("ui_icon")
+	var tap: AudioStream = load("res://art/sfx/tap.wav")
+	if tap == null:
+		failures.append("sfx")
+		push_error("Export check: tap sfx did not load")
+	var classes: Dictionary = ArtPack.manifest().get("classes", {})
+	var defaults: Dictionary = classes.get("seat_defaults", {})
+	if defaults.has("paladin"):
+		var doll := ArtPack.compose_doll("front", ArtPack.default_look("paladin"), "paladin")
+		if _opaque_pixels(doll) < 20:
+			failures.append("doll")
+			push_error("Export check: creator doll baked empty")
+	else:
+		failures.append("doll")
+		push_error("Export check: paladin seat defaults missing")
+	var map := MapScreen.new()
+	map.stage_preview()
+	await _swap(map)
+	map.queue_redraw()
+	var content := map.get_node_or_null("Clip/Content")
+	if content is CanvasItem:
+		(content as CanvasItem).queue_redraw()
+	await _capture("map_exported")
+	var nodes := map.place_node_count()
+	print("EXPORT_MAP_NODES %d" % nodes)
+	if nodes <= 0:
+		failures.append("map_nodes")
+		push_error("Export check: map spawned 0 place nodes")
+	if not map.backdrop_ready():
+		failures.append("backdrop")
+		push_error("Export check: map backdrop texture missing")
+	if failures.is_empty():
+		print("EXPORT_CHECK_OK")
+		get_tree().quit(0)
+	else:
+		push_error("EXPORT_CHECK_FAIL %s" % ", ".join(failures))
+		get_tree().quit(1)
+
+
+func _texture_ok(tex: Texture2D) -> bool:
+	return tex != null and tex.get_width() > 0 and tex.get_height() > 0
+
+
+func _opaque_pixels(tex: Texture2D) -> int:
+	if tex == null:
+		return 0
+	var image := tex.get_image()
+	if image == null:
+		push_error("Export check: texture get_image() returned null")
+		return 0
+	var count := 0
+	for y in image.get_height():
+		for x in image.get_width():
+			if image.get_pixel(x, y).a > 0.5:
+				count += 1
+	return count
 
 
 func _shots() -> void:
