@@ -54,5 +54,19 @@
     "initiative": 0,
     "spell_bonus": 0.0,
     "travel_bonus": 1
+  },
+  {
+    "id": "holt",
+    "name": "Holt",
+    "body": 2,
+    "senses": 1,
+    "mind": 0,
+    "passive_id": "braced",
+    "passive_name": "Braced",
+    "passive_desc": "Holt plants his feet: +4 damage reduction.",
+    "dr": 4,
+    "initiative": 0,
+    "spell_bonus": 0.0,
+    "travel_bonus": 0
   }
 ]

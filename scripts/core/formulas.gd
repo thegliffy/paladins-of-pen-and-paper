@@ -463,6 +463,45 @@ static func skill_cost_label(skill: Dictionary, rank: int, cooldowns: Dictionary
 	return "%s  Free" % name
 
 
+static func skill_cost_badge(skill: Dictionary, rank: int, cooldowns: Dictionary, buildup: Dictionary) -> String:
+	## Short cost painted on a 32px skill button. A cooling skill shows the turns left.
+	if is_passive(skill):
+		return ""
+	var resource := skill_resource(skill)
+	if resource == "mana":
+		return str(skill_mana_cost(skill, maxi(1, rank)))
+	if resource == "cooldown":
+		var left := cooldown_remaining(cooldowns, str(skill.get("id", "")))
+		if left > 0:
+			return str(left)
+		return str(int(skill.get("cooldown", 0)))
+	if resource == "hp":
+		return str(int(skill.get("hp_cost", 0)))
+	if resource == "buildup":
+		if int(skill.get("buildup_cost", 0)) > 0:
+			return str(int(skill.get("buildup_cost", 0)))
+		var gained := int(skill.get("buildup_gain", 0))
+		if gained > 0:
+			return "+%d" % gained
+	return ""
+
+
+static func skill_button_state(skill: Dictionary, rank: int, hp: int, mp: int, cooldowns: Dictionary, buildup: Dictionary, selected: bool) -> String:
+	## ready, selected, disabled, cooldown, locked, or passive.
+	## Passive and locked are never clickable. Cooldown wins over selected.
+	if is_passive(skill):
+		return "passive"
+	if rank <= 0:
+		return "locked"
+	if skill_resource(skill) == "cooldown" and cooldown_remaining(cooldowns, str(skill.get("id", ""))) > 0:
+		return "cooldown"
+	if selected:
+		return "selected"
+	if not skill_usable(skill, rank, hp, mp, cooldowns, buildup):
+		return "disabled"
+	return "ready"
+
+
 static func mp_regen_amount(max_mp: int, effects: Array) -> int:
 	return _regen_amount(max_mp, effects, "mp_regen_pct")
 

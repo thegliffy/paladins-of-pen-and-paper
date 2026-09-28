@@ -20,3 +20,9 @@ Per character, from `data/threat.json` and each class's `base_threat`:
 - Cover multiplies by `cover_mult` (0.5). The clamp to 1 still applies, so ducking does not make you untargetable.
 
 Tanks start high because their `base_threat` is high: Paladin 16, Barbarian 12. Rogue is 1, Wizard and Bard are 2.
+
+## Party row and the action bar
+
+The portrait party is 1 to 5 heroes (`party_min` / `party_max` in `data/layout.json`). Combat seats five centres at x 27, 81, 135, 189, and 243. Seats 2 and 4 sit 4px higher. A shorter party uses that spacing and is centred on x 135. HP/MP cards are a row of 52×44 cards at y 386.
+
+The bottom bar is 270×50 at y 430. A name tab above it names the hero whose turn it is. Left to right: Attack, Cover (32px), that hero's five class skills (32px, with a cost badge), then Item and Run (20px). The bar swaps when initiative reaches the next hero. A passive is dimmed and does not click. A skill at rank 0 is locked. A cooling skill shows the turns remaining and does not click. The highlighted button is the action you are aiming.

@@ -20,6 +20,7 @@ func _init() -> void:
 	_test_passives()
 	_test_threat_raffle()
 	_test_portrait_layout()
+	_test_party_bar()
 	_test_art_present()
 	print("Tests: %d passed, %d failed" % [passed, failed])
 	quit(1 if failed else 0)
@@ -219,7 +220,7 @@ func _test_content_shape() -> void:
 	var skills: Array = JSON.parse_string(FileAccess.get_file_as_string("res://data/skills.json"))
 	var monsters: Array = JSON.parse_string(FileAccess.get_file_as_string("res://data/monsters.json"))
 	var region: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/region.json"))
-	eq(personas.size(), 4, "4 personas")
+	eq(personas.size(), 5, "5 personas")
 	eq(races.size(), 3, "3 races")
 	eq(classes.size(), 8, "8 classes")
 	check(monsters.size() >= 6 and monsters.size() <= 8, "6–8 monsters")
@@ -474,8 +475,64 @@ func _test_portrait_layout() -> void:
 	var region: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/region.json"))
 	eq(int(region["map_size"][0]), int(content[0]), "region width matches layout")
 	eq(int(region["map_size"][1]), int(content[1]), "region height matches layout")
-	var actions: Array = layout["portrait"]["combat"]["actions"]
+	var actions: Array = layout["portrait"]["combat"]["action_bar"]
+	eq(int(actions[0]), 0, "action bar x")
+	eq(int(actions[1]), 430, "action bar y")
+	eq(int(actions[2]), 270, "action bar width")
+	eq(int(actions[3]), 50, "action bar height")
 	check(int(actions[1]) + int(actions[3]) >= 460, "action bar sits in the bottom thumb zone")
+	var cards: Array = layout["portrait"]["combat"]["cards"]
+	eq(int(cards[1]), 386, "cards sit at y386")
+	var card_size: Array = layout["portrait"]["combat"]["card_size"]
+	eq(int(card_size[0]), 52, "card width")
+	eq(int(card_size[1]), 44, "card height")
+	eq(int(layout["portrait"]["party_min"]), 1, "party minimum")
+	eq(int(layout["portrait"]["party_max"]), 5, "party maximum")
+	var strip: Array = layout["portrait"]["combat"]["initiative"]
+	var slot_px := int(layout["portrait"]["combat"]["initiative_slot"])
+	var slot_n := int(layout["portrait"]["combat"]["initiative_slots"])
+	eq(slot_n, 8, "initiative holds eight combatants")
+	check(slot_n * slot_px + (slot_n - 1) * 2 <= int(strip[2]), "eight initiative portraits fit the strip")
+	var main_px := int(layout["portrait"]["combat"]["action_main"])
+	var small_px := int(layout["portrait"]["combat"]["action_small"])
+	eq(main_px, 32, "attack, cover, and skills are 32px")
+	eq(small_px, 20, "item and run are 20px")
+	check(7 * main_px + 2 * small_px <= 270, "nine combat buttons fit the bar")
+
+
+func _test_party_bar() -> void:
+	var full: Array = Layout.party_seat_points(5)
+	eq(full.size(), 5, "five seat points")
+	near(float(full[0].x), 27.0, 0.01, "seat 1 x")
+	near(float(full[1].x), 81.0, 0.01, "seat 2 x")
+	near(float(full[2].x), 135.0, 0.01, "seat 3 x")
+	near(float(full[3].x), 189.0, 0.01, "seat 4 x")
+	near(float(full[4].x), 243.0, 0.01, "seat 5 x")
+	near(float(full[1].y), float(full[0].y) - 4.0, 0.01, "seat 2 is 4px higher")
+	near(float(full[3].y), float(full[0].y) - 4.0, 0.01, "seat 4 is 4px higher")
+	near(float(full[2].y), float(full[0].y), 0.01, "seat 3 stays on the base line")
+	near(float(full[4].y), float(full[0].y), 0.01, "seat 5 stays on the base line")
+	var three: Array = Layout.party_seat_points(3)
+	near((float(three[0].x) + float(three[2].x)) * 0.5, 135.0, 0.01, "party of 3 is centred")
+	var one: Array = Layout.party_seat_points(1)
+	near(float(one[0].x), 135.0, 0.01, "party of 1 sits in the middle")
+	var four: Array = Layout.party_seat_points(4)
+	near((float(four[0].x) + float(four[3].x)) * 0.5, 135.0, 0.01, "party of 4 is centred")
+	eq(Layout.party_seat_points(0).size(), 0, "an empty party has no seats")
+	var by_id := {}
+	var skill_rows: Array = JSON.parse_string(FileAccess.get_file_as_string("res://data/skills.json"))
+	for skill in skill_rows:
+		by_id[str(skill["id"])] = skill
+	var shield: Dictionary = by_id["shieldwall"]
+	var strike: Dictionary = by_id["oathstrike"]
+	var oath: Dictionary = by_id["oathmagnet"]
+	eq(Formulas.skill_button_state(oath, 1, 80, 200, {}, {}, false), "passive", "passive is not a button")
+	eq(Formulas.skill_button_state(shield, 0, 80, 200, {}, {}, false), "locked", "rank 0 is locked")
+	eq(Formulas.skill_button_state(shield, 1, 80, 200, {"shieldwall": 2}, {}, true), "cooldown", "cooldown wins over selected")
+	eq(Formulas.skill_cost_badge(shield, 1, {"shieldwall": 2}, {}), "2", "cooldown badge is the turns left")
+	eq(Formulas.skill_button_state(strike, 1, 80, 200, {}, {}, true), "selected", "selected attack skill")
+	eq(Formulas.skill_button_state(strike, 1, 80, 10, {}, {}, false), "disabled", "unaffordable skill is disabled")
+	eq(Formulas.skill_cost_badge(strike, 1, {}, {}), "120", "mana badge is the energy cost")
 
 
 func _test_art_present() -> void:

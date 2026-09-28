@@ -1,6 +1,6 @@
 # Classes
 
-Eight classes. A party of three can seat each class once. Every class has five skills that nobody else uses: three or four actives and one or two passives. Body, Senses, and Mind from the class add up to 6, then persona, race, and the +2 base still apply.
+Eight classes. A party seats one to five heroes, and each class once. Every class has five skills that nobody else uses: three or four actives and one or two passives. Body, Senses, and Mind from the class add up to 6, then persona, race, and the +2 base still apply.
 
 Actives are the Skill buttons. Passives are always on. They are tagged Passive in the creator and on the party panel, and they never appear in the Skill list.
 

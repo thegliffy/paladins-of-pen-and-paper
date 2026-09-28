@@ -200,6 +200,8 @@ func _loop() -> String:
 func _take_turn(unit: Dictionary) -> String:
 	view.set_initiative(_order_entries(), str(unit["id"]))
 	view.set_caption("%s's turn" % unit["name"])
+	if str(unit["side"]) != "player":
+		view.clear_actor_bar()
 	_refresh_threat_debug()
 	_tick_ward(unit)
 	if str(unit["side"]) == "player":
@@ -212,6 +214,8 @@ func _take_turn(unit: Dictionary) -> String:
 		view.set_cover(int(unit["member_index"]), false)
 		view.raise_member(int(unit["member_index"]), true)
 	if _has(unit, "stun"):
+		if str(unit["side"]) == "player":
+			view.clear_actor_bar()
 		await _damage_conditions(unit)
 		_decay_stun(unit)
 		view.sync_unit(unit)
@@ -236,38 +240,30 @@ func _take_turn(unit: Dictionary) -> String:
 
 func _player_turn(unit: Dictionary) -> String:
 	while true:
-		view.set_actions([
-			{"id": "attack", "label": "Attack", "icon": "icon_attack"},
-			{"id": "skill", "label": "Skill", "icon": "icon_skill"},
-			{"id": "item", "label": "Item", "icon": "icon_item"},
-			{"id": "cover", "label": "Cover", "icon": "icon_cover"},
-			{"id": "run", "label": "Run", "icon": "icon_run"},
-		])
+		_show_actor_bar(unit, "", false)
 		var action := await _wait_action()
-		match action:
-			"attack":
-				var target := await _choose_enemy(unit, false)
-				if target.is_empty():
-					continue
-				await _player_basic(unit, target, true)
-				return ""
-			"skill":
-				var skill_id := await _choose_skill(unit)
-				if skill_id == "":
-					continue
-				if not await _use_skill(unit, skill_id):
-					continue
-				return ""
-			"item":
-				if not await _choose_item(unit):
-					continue
-				return ""
-			"cover":
-				await _cover(unit)
-				return ""
-			"run":
-				await _run()
-				return "flee"
+		view.set_actions_enabled(false)
+		if action == "attack":
+			var target := await _choose_enemy(unit, false, "attack")
+			if target.is_empty():
+				continue
+			await _player_basic(unit, target, true)
+			return ""
+		if action.begins_with("skill:"):
+			var skill_id := action.trim_prefix("skill:")
+			if not await _use_skill(unit, skill_id):
+				continue
+			return ""
+		if action == "item":
+			if not await _choose_item(unit):
+				continue
+			return ""
+		if action == "cover":
+			await _cover(unit)
+			return ""
+		if action == "run":
+			await _run()
+			return "flee"
 	return ""
 
 
@@ -375,7 +371,7 @@ func _use_skill(user: Dictionary, skill_id: String) -> bool:
 	if target_mode == "self":
 		await _resolve_skill(user, skill, [user], rank)
 	elif kind == "heal" or kind == "cleanse" or target_mode == "ally":
-		var ally := await _choose_ally()
+		var ally := await _choose_ally(user, "skill:%s" % skill_id)
 		if ally.is_empty():
 			cancelled = true
 		else:
@@ -387,7 +383,7 @@ func _use_skill(user: Dictionary, skill_id: String) -> bool:
 		else:
 			await _resolve_skill(user, skill, crowd, rank)
 	else:
-		var picked := await _choose_enemy(user, bool(skill.get("can_target_back_row", false)))
+		var picked := await _choose_enemy(user, bool(skill.get("can_target_back_row", false)), "skill:%s" % skill_id)
 		if picked.is_empty():
 			cancelled = true
 		else:
@@ -639,7 +635,7 @@ func _choose_item(user: Dictionary) -> bool:
 	if not choice.begins_with("item:"):
 		return false
 	var item_id := choice.trim_prefix("item:")
-	var target := await _choose_ally()
+	var target := await _choose_ally(user, "item")
 	if target.is_empty():
 		return false
 	if not GameState.take_item(item_id):
@@ -682,7 +678,29 @@ func _choose_skill(user: Dictionary) -> String:
 	return ""
 
 
-func _choose_enemy(user: Dictionary, allow_back: bool) -> Dictionary:
+func _show_actor_bar(unit: Dictionary, selected_id: String, cancel_selected: bool) -> void:
+	var cls: Dictionary = ContentDB.class_def(str(unit.get("class_id", "")))
+	var skills: Array = []
+	for skill_id in cls.get("skills", []):
+		skills.append(ContentDB.skill(str(skill_id)))
+	_ensure_resources(unit)
+	var ranks: Dictionary = unit.get("skill_ranks", {})
+	var cds: Dictionary = unit.get("cooldowns", {})
+	var stacks: Dictionary = unit.get("buildup", {})
+	view.show_actor_bar(
+		str(unit.get("name", "")),
+		skills,
+		ranks,
+		int(unit.get("hp", 0)),
+		int(unit.get("mp", 0)),
+		cds,
+		stacks,
+		selected_id,
+		cancel_selected
+	)
+
+
+func _choose_enemy(user: Dictionary, allow_back: bool, selected_id: String) -> Dictionary:
 	var valid: Array = []
 	var front := false
 	for unit in units:
@@ -701,8 +719,8 @@ func _choose_enemy(user: Dictionary, allow_back: bool) -> Dictionary:
 	var ids: Array = []
 	for unit in valid:
 		ids.append(str(unit["id"]))
+	_show_actor_bar(user, selected_id, true)
 	view.set_target_mode(ids, "Choose a foe")
-	view.set_actions([{"id": "back", "label": "Back", "icon": ""}])
 	var picked := await _wait_target()
 	view.clear_target_mode()
 	if picked == "":
@@ -710,13 +728,13 @@ func _choose_enemy(user: Dictionary, allow_back: bool) -> Dictionary:
 	return _unit(picked)
 
 
-func _choose_ally() -> Dictionary:
+func _choose_ally(user: Dictionary, selected_id: String) -> Dictionary:
 	var ids: Array = []
 	for unit in units:
 		if str(unit["side"]) == "player":
 			ids.append(str(unit["id"]))
+	_show_actor_bar(user, selected_id, true)
 	view.set_target_mode(ids, "Choose an ally")
-	view.set_actions([{"id": "back", "label": "Back", "icon": ""}])
 	var picked := await _wait_target()
 	view.clear_target_mode()
 	if picked == "":

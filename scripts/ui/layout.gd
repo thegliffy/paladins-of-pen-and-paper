@@ -56,10 +56,39 @@ static func viewport_size() -> Vector2i:
 	return Vector2i(int(raw[0]), int(raw[1]))
 
 
-static func seat_points() -> Array:
+static func party_min() -> int:
+	return int(cfg().get("party_min", 1))
+
+
+static func party_max() -> int:
+	return int(cfg().get("party_max", 5))
+
+
+static func party_seat_points(count: int) -> Array:
+	## Centers of up to five seats. x comes from seat_xs. A shorter party
+	## uses the same spacing and is centred on the middle seat. Seats listed
+	## in seat_lifted (1-based) sit seat_lift pixels higher.
+	var combat: Dictionary = cfg()["combat"]
+	var xs: Array = combat["seat_xs"]
+	var base_y := float(combat["seat_y"])
+	var lift := float(combat.get("seat_lift", 0))
+	var lifted := {}
+	for raw in combat.get("seat_lifted", []):
+		lifted[int(raw)] = true
+	if xs.is_empty() or count <= 0:
+		return []
+	var spacing := 0.0
+	if xs.size() >= 2:
+		spacing = float(xs[1]) - float(xs[0])
+	var center := float(xs[int(xs.size() / 2)])
+	var n := mini(count, xs.size())
+	var start := center - spacing * float(n - 1) * 0.5
 	var points: Array = []
-	for pair in cfg()["combat"]["seats"]:
-		points.append(Vector2(float(pair[0]), float(pair[1])))
+	for i in n:
+		var y := base_y
+		if lifted.has(i + 1):
+			y -= lift
+		points.append(Vector2(start + spacing * float(i), y))
 	return points
 
 

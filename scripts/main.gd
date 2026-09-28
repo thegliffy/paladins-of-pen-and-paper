@@ -213,9 +213,11 @@ func _shots() -> void:
 	session.set_threat_debug(_threat_preview())
 	await _capture("threat")
 	session.set_threat_debug([])
-	session.show_choices(_paladin_skill_preview(), "back")
+	var ranks: Dictionary = (GameState.party[0]["skill_ranks"] as Dictionary).duplicate(true)
+	ranks["rallying_brand"] = 0
+	session.show_member_bar(0, {"shieldwall": 2}, "attack", ranks, 130)
 	await _capture("skills")
-	session.hide_choices()
+	session.show_member_bar(0, {}, "", {})
 	session.open_party()
 	await _capture("party")
 	session.hide_choices()
@@ -306,5 +308,7 @@ func _seed_party() -> void:
 		GameState.make_member("mason", "delver", "paladin", {"skin": 4, "head": 2, "hair": 1, "hair_color": 0, "outfit_color": 0}),
 		GameState.make_member("nim", "glenfolk", "wizard", {"skin": 1, "head": 5, "hair": 3, "hair_color": 6, "outfit_color": 1}),
 		GameState.make_member("pip", "hearthborn", "ranger", {"skin": 2, "head": 0, "hair": 6, "hair_color": 2, "outfit_color": 2}),
+		GameState.make_member("sable", "hearthborn", "cleric", {"skin": 3, "head": 4, "hair": 2, "hair_color": 4, "outfit_color": 1}),
+		GameState.make_member("holt", "glenfolk", "bard", {"skin": 0, "head": 6, "hair": 5, "hair_color": 5, "outfit_color": 2}),
 	]
 	GameState.new_campaign(members)

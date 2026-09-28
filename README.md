@@ -1,6 +1,6 @@
 # Paladins of Pen and Paper
 
-A portrait, tabletop-framed pixel RPG. Phase 0 is a playable phone slice: recruit three heroes, walk a vertical region map, and fight at the table.
+A portrait, tabletop-framed pixel RPG. Phase 0 is a playable phone slice: recruit one to five heroes, walk a vertical region map, and fight at the table.
 
 The native viewport is **270×480**, integer-scaled with nearest-neighbor filtering. Screen positions live in [`data/layout.json`](data/layout.json). A `landscape` block is reserved there so a desktop layout can be added later without rewriting the screens. Sprite paths and doll anchors live in [`scripts/core/sprite_catalog.gd`](scripts/core/sprite_catalog.gd).
 
@@ -16,11 +16,11 @@ godot --path .
 
 On a phone the window is portrait. On desktop the window opens at 810×1440, which is exactly three times the native grid.
 
-1. **New game** seats three heroes. Eight classes are on the Class tab: Paladin, Wizard, Ranger, Bard, Cleric, Rogue, Barbarian, and Druid. Each persona and each class can be used only once. Random fills the paper doll; the arrows and the rows under it edit the current tab. Confirm is in the bottom thumb row.
+1. **New game** seats one to five heroes. Eight classes are on the Class tab: Paladin, Wizard, Ranger, Bard, Cleric, Rogue, Barbarian, and Druid. Each persona and each class can be used only once. There are five personas, so a full party can still keep them unique. Random fills the paper doll; the arrows and the rows under it edit the current tab. Next seats this hero and opens another slot. Begin starts the campaign with the heroes seated so far, including the one on screen.
 2. The table hub has Travel, Fight, Rest, Quest, and Party along the bottom.
 3. **Travel** opens the Greenmere map. Drag to scroll. Tap a place, then tap it again or press Travel. Stop ends a multi-hop trip after the hop you are already on.
 4. Roads with monsters roll a d20 around the middle of the hop. 1 is lost, 2 through p is an ambush, p+1 through 19 is safe, 20 is lucky. `p = clamp(destination level − party average + 7, 2, 10)`.
-5. Combat is stacked for one hand: initiative, monsters, the GM behind the table, the party from behind, HP/MP cards, then Attack, Skill, Item, Cover, and Run. Skill opens that class's active skills only. Each button shows the cost or the cooldown, and a skill you cannot pay for is grey. Passives are always on. They show in the creator and on the party panel with a Passive tag.
+5. Combat is stacked for one hand: an initiative strip for up to eight combatants, monsters, the GM behind the table, up to five heroes from behind, a row of compact HP/MP cards, then the acting hero's bar. That bar is Attack, Cover, the class's five skills, Item, and Run. Each skill shows a cost badge. A skill you cannot pay for is grey, a cooling skill shows the turns left, a skill you have not learned is locked, and a passive is dimmed and does not click. The name tab above the bar is whose turn it is. Passives also show in the creator and on the party panel with a Passive tag.
 
 The save is `user://paladins_save.json`. It is written when the app pauses or closes. A fight in progress reloads from the checkpoint taken when the battle started, so a kill during the fight does not keep half-applied rewards.
 
@@ -30,7 +30,7 @@ The save is `user://paladins_save.json`. It is written when the app pauses or cl
 godot --headless --path . -s res://tests/run_tests.gd
 ```
 
-That covers the stat, HP, energy, damage, crit, XP, gold, travel-table, dice, timing, path, portrait-layout, cooldown, HP-cost, build-up, mana regen, threat raffle, and on-hit passive examples.
+That covers the stat, HP, energy, damage, crit, XP, gold, travel-table, dice, timing, path, portrait-layout, party seats, skill-button states, cooldown, HP-cost, build-up, mana regen, threat raffle, and on-hit passive examples.
 
 Placeholder art is generated with `python3 tools/gen_art.py`.
 
@@ -58,7 +58,7 @@ godot --headless --export-debug Android build/paladins-0.1.0-debug.apk
 
 The export needs the Godot 4.7.2 Android templates (installed into `android/build`, which is gitignored), a `.build_version` of `4.7.2.stable`, Android SDK 36, build-tools 36.1.0, NDK 29.0.14206865, and a JDK. The project enables ETC2/ASTC import, which the Android exporter requires.
 
-The published debug APK is [v0.1.0](https://github.com/thegliffy/paladins-of-pen-and-paper/releases/tag/v0.1.0): [paladins-0.1.0-debug.apk](https://github.com/thegliffy/paladins-of-pen-and-paper/releases/download/v0.1.0/paladins-0.1.0-debug.apk). It is arm64-v8a, portrait, package `com.thegliffy.paladinspenpaper`. That build is the portrait slice from before the eight-class skill list. Export again with the command above to include Cleric, Rogue, Barbarian, Druid, and the mixed skill costs.
+The published debug APK is [v0.1.0](https://github.com/thegliffy/paladins-of-pen-and-paper/releases/tag/v0.1.0): [paladins-0.1.0-debug.apk](https://github.com/thegliffy/paladins-of-pen-and-paper/releases/download/v0.1.0/paladins-0.1.0-debug.apk). It is arm64-v8a, portrait, package `com.thegliffy.paladinspenpaper`. That build is the portrait slice from before the eight-class list, passives, the threat raffle, the party of five, and the per-hero action bar. Export again with the command above to include those.
 
 ## Where numbers live
 
@@ -78,7 +78,7 @@ A level 1 hero is `class + persona + race + 2` on Body, Senses, and Mind. HP is 
 
 ## Deviations from the breakdown
 
-- **Portrait.** The playable slice is 270×480, not a landscape 480×270 table. The same staging is stacked: monsters on top, GM and table in the middle, party below, cards, then the five actions in thumb reach.
+- **Portrait.** The playable slice is 270×480, not a landscape 480×270 table. The same staging is stacked: monsters on top, GM and table in the middle, up to five heroes below, compact cards, then the acting hero's bar in thumb reach.
 - **Lost** on the road starts an ambush. There is no secret-list yet, so a lost result cannot award one.
 - A **natural 20** awards free travel or a Hearth Tonic. It does not pull from a secret list.
 - Sable's travel bonus is added to the d20 and the total is clamped to 1–20 before the table is read. A raw 1 with that bonus becomes 2.

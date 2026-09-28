@@ -19,6 +19,8 @@ var _name_label: Label
 var _stats: Label
 var _options: GridContainer
 var _row_bar: HBoxContainer
+var _next_button: Button
+var _begin_button: Button
 var _rng := RandomNumberGenerator.new()
 
 
@@ -74,7 +76,7 @@ func _build() -> void:
 	var back := Widgets.make_button("Back", Vector2(52, header.size.y))
 	back.pressed.connect(_on_back)
 	header_row.add_child(back)
-	_name_label = Widgets.label("Recruit 1/3", Layout.font_small())
+	_name_label = Widgets.label("Recruit 1/%d" % Layout.party_max(), Layout.font_small())
 	_name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	header_row.add_child(_name_label)
@@ -131,16 +133,20 @@ func _build() -> void:
 	Layout.place(actions, Layout.rect("creator", "actions"))
 	actions.add_theme_constant_override("separation", 6)
 	add_child(actions)
-	var randomize := Widgets.make_button("Random", Vector2(120, 56))
+	var randomize := Widgets.make_button("Random", Vector2(80, 56))
 	randomize.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	randomize.icon = SpriteCatalog.ui("icon_die")
 	randomize.pressed.connect(_randomize_and_refresh)
 	actions.add_child(randomize)
-	var confirm := Widgets.make_button("Confirm", Vector2(120, 56))
-	confirm.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	confirm.icon = SpriteCatalog.ui("icon_check")
-	confirm.pressed.connect(_confirm)
-	actions.add_child(confirm)
+	_next_button = Widgets.make_button("Next", Vector2(80, 56))
+	_next_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_next_button.pressed.connect(_confirm)
+	actions.add_child(_next_button)
+	_begin_button = Widgets.make_button("Begin", Vector2(80, 56))
+	_begin_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_begin_button.icon = SpriteCatalog.ui("icon_check")
+	_begin_button.pressed.connect(_begin)
+	actions.add_child(_begin_button)
 
 
 func _set_tab(tab: String) -> void:
@@ -219,15 +225,30 @@ func _available(kind: String) -> Array:
 
 func _confirm() -> void:
 	Sfx.play("tap")
-	if _available("persona").find(_persona) < 0 or _available("class").find(_class) < 0:
+	if not _seat_current():
 		return
-	_members.append(GameState.make_member(_persona, _race, _class, _look))
-	_index += 1
-	if _index >= 3:
+	if _members.size() >= Layout.party_max():
 		finished.emit(_members)
 		return
+	_index = _members.size()
 	_randomize()
 	_refresh()
+
+
+func _begin() -> void:
+	Sfx.play("tap")
+	if not _seat_current():
+		return
+	if _members.size() < Layout.party_min():
+		return
+	finished.emit(_members)
+
+
+func _seat_current() -> bool:
+	if _available("persona").find(_persona) < 0 or _available("class").find(_class) < 0:
+		return false
+	_members.append(GameState.make_member(_persona, _race, _class, _look))
+	return true
 
 
 func _on_back() -> void:
@@ -247,7 +268,10 @@ func _refresh() -> void:
 	var persona := ContentDB.persona(_persona)
 	var race := ContentDB.race(_race)
 	var cls := ContentDB.class_def(_class)
-	_name_label.text = "Recruit %d/3" % (_index + 1)
+	_name_label.text = "Recruit %d/%d" % [_index + 1, Layout.party_max()]
+	var last_slot := _index + 1 >= Layout.party_max()
+	if _next_button:
+		_next_button.visible = not last_slot
 	var stats := Formulas.compose_stats(
 		int(cls["body"]), int(cls["senses"]), int(cls["mind"]),
 		int(persona["body"]), int(persona["senses"]), int(persona["mind"]),
