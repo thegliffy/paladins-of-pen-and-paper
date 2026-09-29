@@ -11,6 +11,7 @@ var skills := {}
 var monsters := {}
 var items := {}
 var quest_book := {}
+var craft_book := {}
 var region := {}
 var places := {}
 var edges: Array = []
@@ -32,6 +33,12 @@ func _ready() -> void:
 	else:
 		push_error("ContentDB quests.json did not load")
 		quest_book = {}
+	var craft_raw: Variant = _read("res://data/craft.json")
+	if craft_raw is Dictionary:
+		craft_book = craft_raw
+	else:
+		push_error("ContentDB craft.json did not load")
+		craft_book = {}
 	var region_raw: Variant = _read("res://data/region.json")
 	if region_raw is Dictionary:
 		region = Formulas.active_region(region_raw)
@@ -93,6 +100,37 @@ func monster(id: String) -> Dictionary:
 
 func item(id: String) -> Dictionary:
 	return items[id]
+
+
+func has_item(key: String) -> bool:
+	return items.has(CraftRules.base_id(key))
+
+
+func resolve(key: String) -> Dictionary:
+	## Catalog row for a bag or gear key, with +N folded into the name, id, and stats.
+	var base := CraftRules.base_id(key)
+	if not items.has(base):
+		return {}
+	var plus := mini(CraftRules.UPGRADE_MAX, CraftRules.plus_of(key))
+	var row: Dictionary = (items[base] as Dictionary).duplicate(true)
+	row["id"] = CraftRules.stack_key(base, plus)
+	row["base_id"] = base
+	row["plus"] = plus
+	row["name"] = CraftRules.display_name(str(row.get("name", base)), plus)
+	row["stats"] = CraftRules.scaled_stats(row.get("stats", {}), plus)
+	return row
+
+
+func recipes() -> Array:
+	return craft_book.get("recipes", [])
+
+
+func recipe(id: String) -> Dictionary:
+	return CraftRules.find_recipe(recipes(), id)
+
+
+func tier_mats() -> Dictionary:
+	return craft_book.get("tiers", {})
 
 
 func item_opt(id: String) -> Dictionary:

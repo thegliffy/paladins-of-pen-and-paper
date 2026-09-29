@@ -25,6 +25,7 @@ static func run(host: Node) -> int:
 	await _builder_space(host, tree, failures)
 	await _row_fit(host, tree, failures)
 	await _quest_panel(host, tree, failures)
+	await _town_services(host, tree, failures)
 	if failures.is_empty():
 		print("TOUCH_CHECK_OK")
 		return 0
@@ -1231,6 +1232,179 @@ static func _assert_quest_sheet(root: Node, tree: SceneTree, failures: Array[Str
 	if wants_board and not posted:
 		failures.append("quest_board_%s" % tag)
 		push_error("Touch check: notice board copy missing on %s" % tag)
+
+
+static func _town_services(host: Node, tree: SceneTree, failures: Array[String]) -> void:
+	GameState.new_campaign([_hero("mason", "delver", "paladin")])
+	GameState.story_done.append("wolf_in_the_hedge")
+	GameState.place_id = "brinewick"
+	var session := SessionScreen.new()
+	await _mount(host, tree, session)
+	session.show_hub()
+	host.set("screen", session)
+	host.set("_busy", false)
+	var hub_action := Callable(host, "_on_hub_action")
+	if not session.action_pressed.is_connected(hub_action):
+		session.action_pressed.connect(hub_action)
+	await tree.process_frame
+	var fight := _find_button(session, "Fight")
+	if fight == null or not fight.disabled:
+		failures.append("town_fight")
+		push_error("Touch check: Brinewick still offers a fight")
+	var gear_button := _find_button(session, "Gear")
+	if gear_button == null:
+		failures.append("town_gear")
+		session.queue_free()
+		return
+	await _tap(tree, gear_button.get_global_rect().get_center())
+	var opened: bool = await _until(tree, func() -> bool: return session.find_child("Tab_shop", true, false) != null)
+	if not opened:
+		failures.append("town_shop_tab")
+		session.queue_free()
+		return
+	var shop := session.find_child("Tab_shop", true, false) as Button
+	await _tap(tree, shop.get_global_rect().get_center())
+	var tier_ready: bool = await _until(tree, func() -> bool:
+		return session.find_child("Item_salt_mace", true, false) != null and session.find_child("Item_travel_coat", true, false) == null
+	)
+	if not tier_ready:
+		failures.append("town_shop_tier")
+		push_error("Touch check: Brinewick shop did not keep tier 2 stock")
+		session.queue_free()
+		return
+	var mace := session.find_child("Item_salt_mace", true, false) as Button
+	var scroller := mace.get_parent()
+	while scroller and not scroller is ScrollContainer:
+		scroller = scroller.get_parent()
+	if scroller is ScrollContainer:
+		(scroller as ScrollContainer).scroll_vertical = int(mace.position.y)
+		await tree.process_frame
+		await tree.process_frame
+	await _tap(tree, mace.get_global_rect().get_center())
+	var compared: bool = await _until(tree, func() -> bool:
+		var line := session.find_child("Compare", true, false) as Label
+		return line != null and line.text.contains(" to ")
+	)
+	if not compared:
+		failures.append("town_shop_compare")
+		session.queue_free()
+		return
+	var smith := session.find_child("Tab_smith", true, false) as Button
+	if smith == null:
+		failures.append("town_smith_tab")
+		session.queue_free()
+		return
+	await _tap(tree, smith.get_global_rect().get_center())
+	var smith_open: bool = await _until(tree, func() -> bool: return session.find_child("SmithScreen", true, false) != null)
+	if not smith_open:
+		failures.append("town_smith")
+		session.queue_free()
+		return
+	await _assert_smith(session, tree, failures, "craft")
+	var upgrade := session.find_child("Tab_upgrade", true, false) as Button
+	if upgrade == null:
+		failures.append("town_upgrade_tab")
+		session.queue_free()
+		return
+	await _tap(tree, upgrade.get_global_rect().get_center())
+	var upgrade_ready: bool = await _until(tree, func() -> bool:
+		var labels: Array[Label] = []
+		var screen := session.find_child("SmithScreen", true, false)
+		if screen == null:
+			return false
+		_collect_labels(screen, labels)
+		for label in labels:
+			if label.text.contains("Atk") and label.text.contains(" to "):
+				return true
+		return false
+	)
+	if not upgrade_ready:
+		failures.append("town_upgrade_preview")
+		session.queue_free()
+		return
+	await _assert_smith(session, tree, failures, "upgrade")
+	session.queue_free()
+
+
+static func _assert_smith(root: Node, tree: SceneTree, failures: Array[String], tag: String) -> void:
+	await tree.process_frame
+	await RenderingServer.frame_post_draw
+	var screen := root.find_child("SmithScreen", true, false) as Control
+	if screen == null or not screen.visible:
+		failures.append("smith_screen_%s" % tag)
+		return
+	var view := Vector2(Layout.viewport_size())
+	if screen.size.x < view.x - 1.0 or screen.size.y < view.y - 1.0:
+		failures.append("smith_cover_%s" % tag)
+		push_error("Touch check: smith size %s on %s" % [screen.size, tag])
+	var sheet := screen.get_node_or_null("Sheet") as Panel
+	if sheet == null or not sheet.visible or sheet.size.x < 250.0 or sheet.size.y < 400.0:
+		failures.append("smith_sheet_%s" % tag)
+		return
+	var style := sheet.get_theme_stylebox("panel") as StyleBoxFlat
+	if style == null or style.bg_color.a < 0.99:
+		failures.append("smith_backing_%s" % tag)
+		return
+	var image := tree.root.get_viewport().get_texture().get_image()
+	var origin := sheet.get_global_rect().position
+	var sample_at := Vector2i(int(origin.x + 12), int(origin.y + 12))
+	if sample_at.x < 0 or sample_at.y < 0 or sample_at.x >= image.get_width() or sample_at.y >= image.get_height():
+		failures.append("smith_pixel_%s" % tag)
+	else:
+		var pixel := image.get_pixelv(sample_at)
+		if not _parchment(pixel):
+			failures.append("smith_parchment_%s" % tag)
+			push_error("Touch check: smith pixel %s on %s" % [pixel, tag])
+	var labels: Array[Label] = []
+	_collect_labels(sheet, labels)
+	var seen: Array[Rect2] = []
+	var wanted := false
+	for label in labels:
+		if not _parented_to(label, sheet):
+			failures.append("smith_parent_%s" % tag)
+			return
+		var fg := label.get_theme_color("font_color")
+		var bg := _label_back(label, style.bg_color)
+		if bg.a < 0.99 or Widgets.contrast_ratio(fg, bg) < 4.5:
+			failures.append("smith_contrast_%s" % tag)
+			push_error("Touch check: '%s' contrast on %s" % [label.text, tag])
+		if tag == "craft" and label.text == "Gel Edge":
+			wanted = true
+		if tag == "upgrade" and label.text.contains("Oath Blade"):
+			wanted = true
+		var rect := _clipped_rect(label)
+		if rect.size.x <= 0.5 or rect.size.y <= 0.5:
+			continue
+		var sheet_rect := sheet.get_global_rect().grow(1.0)
+		if not sheet_rect.encloses(rect):
+			failures.append("smith_overflow_%s" % tag)
+			push_error("Touch check: '%s' outside the smith sheet on %s" % [label.text, tag])
+		var raw := label.get_global_rect()
+		var bounds := sheet.get_global_rect()
+		if raw.position.x < bounds.position.x - 1.0 or raw.end.x > bounds.end.x + 1.0:
+			failures.append("smith_wide_%s" % tag)
+			push_error("Touch check: '%s' wider than the smith sheet on %s" % [label.text, tag])
+		for other in seen:
+			var hit := rect.intersection(other)
+			if hit.size.x > 1.0 and hit.size.y > 1.0:
+				failures.append("smith_overlap_%s" % tag)
+				push_error("Touch check: '%s' overlaps another line on %s" % [label.text, tag])
+				break
+		seen.append(rect)
+	if not wanted:
+		failures.append("smith_copy_%s" % tag)
+		push_error("Touch check: smith %s copy missing" % tag)
+
+
+static func _label_back(label: Label, fallback: Color) -> Color:
+	var cursor: Node = label
+	while cursor:
+		if cursor is Panel:
+			var box := (cursor as Panel).get_theme_stylebox("panel") as StyleBoxFlat
+			if box != null:
+				return box.bg_color
+		cursor = cursor.get_parent()
+	return fallback
 
 
 static func _parchment(color: Color) -> bool:

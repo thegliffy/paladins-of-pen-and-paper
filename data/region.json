@@ -19,6 +19,7 @@
           "y": 310,
           "kind": "town",
           "has_inn": true,
+          "shop_tier": 1,
           "description": "A hamlet of smoke and bread. The inn keeps a kettle on.",
           "monsters": [],
           "sprite": "village",
@@ -129,6 +130,51 @@
           ],
           "sprite": "castle",
           "backdrop": "combat/bg_gravel_keep_portrait.png"
+        },
+        {
+          "id": "brinewick",
+          "name": "Brinewick",
+          "level": 2,
+          "shop_tier": 2,
+          "icon": "house",
+          "x": 48,
+          "y": 620,
+          "kind": "town",
+          "has_inn": true,
+          "description": "Nets, salt bread, and a forge that never quite dries.",
+          "monsters": [],
+          "sprite": "village",
+          "backdrop": "combat/bg_brinewick_portrait.png"
+        },
+        {
+          "id": "ashgate",
+          "name": "Ashgate",
+          "level": 3,
+          "shop_tier": 3,
+          "icon": "house",
+          "x": 36,
+          "y": 260,
+          "kind": "town",
+          "has_inn": true,
+          "description": "A lean-to under the cliff. The kettle boils on cave wind.",
+          "monsters": [],
+          "sprite": "village",
+          "backdrop": "combat/bg_ashgate_portrait.png"
+        },
+        {
+          "id": "pebblegate",
+          "name": "Pebblegate",
+          "level": 4,
+          "shop_tier": 4,
+          "icon": "house",
+          "x": 220,
+          "y": 140,
+          "kind": "town",
+          "has_inn": true,
+          "description": "Tent stalls before the keep. The smith buys stone-drops.",
+          "monsters": [],
+          "sprite": "village",
+          "backdrop": "combat/bg_pebblegate_portrait.png"
         }
       ],
       "edges": [
@@ -274,6 +320,60 @@
               150,
               70
             ]
+          ]
+        },
+        {
+          "a": "briar_cross",
+          "b": "brinewick",
+          "points": [
+            [180, 430],
+            [110, 530],
+            [48, 620]
+          ]
+        },
+        {
+          "a": "brinewick",
+          "b": "lantern_reach",
+          "points": [
+            [48, 620],
+            [100, 660],
+            [168, 680]
+          ]
+        },
+        {
+          "a": "briar_cross",
+          "b": "ashgate",
+          "points": [
+            [180, 430],
+            [100, 340],
+            [36, 260]
+          ]
+        },
+        {
+          "a": "ashgate",
+          "b": "howling_cleft",
+          "points": [
+            [36, 260],
+            [50, 220],
+            [70, 180]
+          ]
+        },
+        {
+          "a": "howling_cleft",
+          "b": "pebblegate",
+          "points": [
+            [70, 180],
+            [150, 160],
+            [220, 140]
+          ]
+        },
+        {
+          "a": "pebblegate",
+          "b": "gravel_keep",
+          "points": [
+            [220, 140],
+            [190, 100],
+            [150, 70]
           ]
         },
         {

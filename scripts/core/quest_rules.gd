@@ -6,6 +6,7 @@ extends RefCounted
 const ACTIVE_CAP := 3
 const BOARD_SLOTS := 3
 const DROP_CHANCE := 0.65
+const BASE_DROP := 0.2
 
 
 static func steps(data: Dictionary) -> Array:
@@ -218,9 +219,22 @@ static func note_kill(active: Array, rows: Array, monster_id: String) -> PackedS
 	return lines
 
 
-static func collect_drop(active: Array, rows: Array, monster_id: String, roll: float, chance: float = DROP_CHANCE) -> String:
-	if roll >= chance:
-		return ""
+static func material_for(rows: Array, monster_id: String) -> String:
+	for row in rows:
+		if str(row.get("kind", "")) != "collect":
+			continue
+		if str(row.get("monster", "")) != monster_id:
+			continue
+		var item_id := str(row.get("item", ""))
+		if item_id != "":
+			return item_id
+	return ""
+
+
+static func collect_result(active: Array, rows: Array, monster_id: String, roll: float, chance: float = DROP_CHANCE, base_chance: float = BASE_DROP) -> Dictionary:
+	## An unfinished collect quest drops at the quest rate and counts.
+	## Otherwise the same material can be farmed at the lower base rate, and it does not count.
+	var quest_item := ""
 	for row in active:
 		var quest := find_row(rows, str(row.get("id", "")))
 		if str(quest.get("kind", "")) != "collect":
@@ -229,8 +243,20 @@ static func collect_drop(active: Array, rows: Array, monster_id: String, roll: f
 			continue
 		if int(row.get("progress", 0)) >= int(quest.get("count", 1)):
 			continue
-		return str(quest.get("item", ""))
-	return ""
+		quest_item = str(quest.get("item", ""))
+		break
+	if quest_item != "":
+		if roll < chance:
+			return {"item": quest_item, "counts": true}
+		return {"item": "", "counts": false}
+	var base_item := material_for(rows, monster_id)
+	if base_item != "" and roll < base_chance:
+		return {"item": base_item, "counts": false}
+	return {"item": "", "counts": false}
+
+
+static func collect_drop(active: Array, rows: Array, monster_id: String, roll: float, chance: float = DROP_CHANCE) -> String:
+	return str(collect_result(active, rows, monster_id, roll, chance)["item"])
 
 
 static func bump_collect(active: Array, item_id: String, rows: Array) -> String:

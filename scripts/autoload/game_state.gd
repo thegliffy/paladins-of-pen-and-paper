@@ -179,7 +179,7 @@ func travel_bonus() -> int:
 
 
 func give_item(item_id: String, count: int = 1) -> bool:
-	if not ContentDB.items.has(item_id) or count <= 0:
+	if not ContentDB.has_item(item_id) or count <= 0:
 		return false
 	var bag := inventory.duplicate()
 	if not _bag_give(bag, item_id, count):
@@ -191,10 +191,10 @@ func give_item(item_id: String, count: int = 1) -> bool:
 func equip_item(member_index: int, item_id: String, slot: String = "") -> String:
 	if member_index < 0 or member_index >= party.size():
 		return "hero"
-	if not ContentDB.items.has(item_id) or int(inventory.get(item_id, 0)) <= 0:
+	if not ContentDB.has_item(item_id) or int(inventory.get(item_id, 0)) <= 0:
 		return "bag"
 	var member: Dictionary = party[member_index]
-	var item: Dictionary = ContentDB.item(item_id)
+	var item: Dictionary = ContentDB.resolve(item_id)
 	var block := Formulas.wear_block(item, ContentDB.class_def(str(member["class_id"])))
 	if block != "":
 		return block
@@ -238,9 +238,9 @@ func unequip_slot(member_index: int, slot: String) -> String:
 
 
 func buy_item(item_id: String) -> String:
-	if not ContentDB.items.has(item_id):
+	if not ContentDB.has_item(item_id):
 		return "item"
-	var item: Dictionary = ContentDB.item(item_id)
+	var item: Dictionary = ContentDB.resolve(item_id)
 	if not bool(item.get("shop", false)):
 		return "shop"
 	var price := int(item.get("price", 0))
@@ -256,9 +256,9 @@ func buy_item(item_id: String) -> String:
 func use_on(member_index: int, item_id: String) -> String:
 	if member_index < 0 or member_index >= party.size():
 		return "hero"
-	if not ContentDB.items.has(item_id):
+	if not ContentDB.has_item(item_id):
 		return "item"
-	var item: Dictionary = ContentDB.item(item_id)
+	var item: Dictionary = ContentDB.resolve(item_id)
 	if str(item.get("slot", "")) != "usable":
 		return "slot"
 	var member: Dictionary = party[member_index]
@@ -279,13 +279,14 @@ func use_on(member_index: int, item_id: String) -> String:
 
 
 func sell_item(item_id: String) -> String:
-	if not ContentDB.items.has(item_id):
+	if not ContentDB.has_item(item_id):
 		return "item"
 	if int(inventory.get(item_id, 0)) <= 0:
 		return "bag"
+	var item: Dictionary = ContentDB.resolve(item_id)
 	if not take_item(item_id):
 		return "bag"
-	gold += Formulas.sell_value(int(ContentDB.item(item_id).get("price", 0)))
+	gold += CraftRules.sell_price(int(item.get("price", 0)), int(item.get("plus", 0)))
 	save_game()
 	return ""
 
@@ -432,11 +433,14 @@ func settle_quests(won: bool, killed: Array) -> PackedStringArray:
 		var kind := str(monster_id)
 		for line in QuestRules.note_kill(board_active, rows, kind):
 			notes.append(line)
-		var item_id := QuestRules.collect_drop(board_active, rows, kind, randf())
+		var drop_roll := QuestRules.collect_result(board_active, rows, kind, randf())
+		var item_id := str(drop_roll.get("item", ""))
 		if item_id == "":
 			continue
 		if not give_item(item_id, 1):
 			notes.append("The bag is full.")
+			continue
+		if not bool(drop_roll.get("counts", false)):
 			continue
 		var line := QuestRules.bump_collect(board_active, item_id, rows)
 		if line != "":
@@ -454,6 +458,65 @@ func settle_quests(won: bool, killed: Array) -> PackedStringArray:
 	if campaign_started:
 		save_game()
 	return notes
+
+
+func revealed_places() -> Array:
+	return QuestRules.revealed_places(ContentDB.story_steps(), story_done)
+
+
+func craft_recipe(recipe_id: String) -> String:
+	var recipe := ContentDB.recipe(recipe_id)
+	if recipe.is_empty():
+		return "recipe"
+	var result_id := str(recipe.get("result", ""))
+	if not ContentDB.has_item(result_id):
+		return "item"
+	var cap := Formulas.stack_cap(ContentDB.item(result_id))
+	var paid := CraftRules.apply_craft(recipe, inventory, gold, cap)
+	if not bool(paid.get("ok", false)):
+		return str(paid.get("reason", "recipe"))
+	inventory = paid["inventory"]
+	gold = int(paid["gold"])
+	save_game()
+	return ""
+
+
+func upgrade_item(key: String) -> String:
+	if not ContentDB.has_item(key):
+		return "item"
+	var item := ContentDB.resolve(key)
+	var cap := Formulas.stack_cap(ContentDB.item(CraftRules.base_id(key)))
+	var paid := CraftRules.apply_upgrade(key, item, inventory, gold, ContentDB.tier_mats(), cap)
+	if not bool(paid.get("ok", false)):
+		return str(paid.get("reason", "bag"))
+	inventory = paid["inventory"]
+	gold = int(paid["gold"])
+	save_game()
+	return ""
+
+
+func upgrade_worn(member_index: int, slot: String) -> String:
+	if member_index < 0 or member_index >= party.size():
+		return "hero"
+	var member: Dictionary = party[member_index]
+	var gear := Formulas.normalize_gear(member.get("gear", {}))
+	var key := _slot_item(gear, slot)
+	if key == "" or not ContentDB.has_item(key):
+		return "empty"
+	if slot.begins_with("trinket:"):
+		return "slot"
+	var item := ContentDB.resolve(key)
+	var paid := CraftRules.apply_worn_upgrade(key, item, inventory, gold, ContentDB.tier_mats())
+	if not bool(paid.get("ok", false)):
+		return str(paid.get("reason", "material"))
+	inventory = paid["inventory"]
+	gold = int(paid["gold"])
+	var before := combat_stats(member)
+	gear[slot] = str(paid["key"])
+	member["gear"] = gear
+	_fit_pools(member, before, combat_stats(member))
+	save_game()
+	return ""
 
 
 func _quest_regions() -> Array:
@@ -560,9 +623,10 @@ func load_game() -> bool:
 	else:
 		_apply_quest_state(QuestRules.unpack_state(data.get("quest_state", {})))
 	inventory = {}
-	var raw_items: Dictionary = data.get("inventory", {})
-	for item_id in raw_items.keys():
-		inventory[str(item_id)] = int(raw_items[item_id])
+	var packed_bag := CraftRules.pack_bag(data.get("inventory", {}))
+	for item_id in packed_bag.keys():
+		if ContentDB.has_item(str(item_id)):
+			inventory[str(item_id)] = int(packed_bag[item_id])
 	party = []
 	for raw in data.get("party", []):
 		party.append(_normalize_member(raw))
@@ -593,7 +657,7 @@ func _normalize_member(raw: Dictionary) -> Dictionary:
 		"mp": int(raw.get("mp", 1)),
 		"skill_ranks": {},
 		"skill_points_spent": int(raw.get("skill_points_spent", 0)),
-		"gear": Formulas.normalize_gear(raw.get("gear", {})),
+		"gear": _pack_gear(Formulas.normalize_gear(raw.get("gear", {}))),
 	}
 	var ranks: Dictionary = raw.get("skill_ranks", {})
 	for skill_id in ranks.keys():
@@ -607,7 +671,7 @@ func _capture() -> Dictionary:
 		"gold": gold,
 		"place_id": place_id,
 		"party": party.duplicate(true),
-		"inventory": inventory.duplicate(true),
+		"inventory": CraftRules.pack_bag(inventory),
 		"quests_done": story_done.duplicate(),
 		"quest_state": _quest_state(),
 		"hops": hops,
@@ -618,15 +682,29 @@ func _capture() -> Dictionary:
 func _worn_items(member: Dictionary) -> Array:
 	var worn: Array = []
 	for item_id in Formulas.gear_ids(Formulas.normalize_gear(member.get("gear", {}))):
-		if ContentDB.items.has(str(item_id)):
-			worn.append(ContentDB.item(str(item_id)))
+		var worn_item := ContentDB.resolve(str(item_id))
+		if not worn_item.is_empty():
+			worn.append(worn_item)
 	return worn
 
 
+func _pack_gear(gear: Dictionary) -> Dictionary:
+	var packed := Formulas.normalize_gear(gear)
+	packed["main"] = CraftRules.pack_key(str(packed["main"]))
+	packed["off"] = CraftRules.pack_key(str(packed["off"]))
+	packed["armor"] = CraftRules.pack_key(str(packed["armor"]))
+	var trinkets: Array = []
+	for trinket_id in packed["trinkets"]:
+		trinkets.append(CraftRules.pack_key(str(trinket_id)))
+	packed["trinkets"] = trinkets
+	return packed
+
+
 func _hands_of(item_id: String) -> int:
-	if item_id == "" or not ContentDB.items.has(item_id):
+	var worn := ContentDB.resolve(item_id)
+	if worn.is_empty():
 		return 1
-	return int(ContentDB.item(item_id).get("hands", 1))
+	return int(worn.get("hands", 1))
 
 
 func _slot_item(gear: Dictionary, slot: String) -> String:
@@ -660,12 +738,12 @@ func _bag_take(bag: Dictionary, item_id: String) -> bool:
 
 
 func _bag_give(bag: Dictionary, item_id: String, count: int = 1) -> bool:
-	if not ContentDB.items.has(item_id) or count <= 0:
+	if not ContentDB.has_item(item_id) or count <= 0:
 		return false
 	var have := int(bag.get(item_id, 0))
 	if have <= 0 and bag.size() >= Formulas.BAG_SLOTS:
 		return false
-	var room := Formulas.stack_cap(ContentDB.item(item_id)) - have
+	var room := Formulas.stack_cap(ContentDB.resolve(item_id)) - have
 	var add := mini(count, room)
 	if add <= 0:
 		return false

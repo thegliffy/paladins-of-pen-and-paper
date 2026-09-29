@@ -492,6 +492,7 @@ func _shots() -> void:
 		{"id": "m2", "side": "monster", "kind": "cave_howler", "hp": 22, "max_hp": 22, "mp": 0, "max_mp": 1, "back_row": true},
 	])
 	await _capture("cave")
+	await _capture_towns(session)
 	GameState.place_id = "millpond"
 	session.stage_battle_preview()
 	var flow := BattleFlow.new()
@@ -499,6 +500,41 @@ func _shots() -> void:
 	session.add_child(flow)
 	var elapsed := await flow.measure_visible_attack()
 	print("BASIC_ATTACK_MS %d" % elapsed)
+
+
+func _capture_towns(session: SessionScreen) -> void:
+	var done: Array = []
+	for step in ContentDB.story_steps():
+		done.append(str(step.get("id", "")))
+		if str(step.get("id", "")) == "wolf_in_the_hedge":
+			break
+	GameState.story_done = done
+	GameState.place_id = "brinewick"
+	GameState.gold = 800
+	var gear := GearScreen.new()
+	gear.setup("shop")
+	session.add_child(gear)
+	gear.set_anchors_preset(Control.PRESET_FULL_RECT)
+	gear.offset_left = 0
+	gear.offset_top = 0
+	gear.offset_right = 0
+	gear.offset_bottom = 0
+	gear._filter = "weapon"
+	gear._selected = "salt_mace"
+	gear._from_shop = true
+	gear._rebuild()
+	await _capture("shop_tier")
+	gear.queue_free()
+	GameState.place_id = "candlewick"
+	GameState.give_item("slime_gel", 2)
+	GameState.give_item("toad_wart", 1)
+	var smith := SmithScreen.new()
+	session.add_child(smith)
+	await _capture("smith_craft")
+	smith._tab = "upgrade"
+	smith._refresh()
+	await _capture("smith_upgrade")
+	smith.queue_free()
 
 
 func _threat_preview() -> Array:

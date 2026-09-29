@@ -78,8 +78,8 @@ func show_gear(member: Dictionary) -> void:
 	var gear := Formulas.normalize_gear(member.get("gear", {}))
 	var main_id := str(gear["main"])
 	var two := false
-	if main_id != "" and ContentDB.items.has(main_id):
-		two = int(ContentDB.item(main_id).get("hands", 1)) >= 2
+	if main_id != "" and ContentDB.has_item(main_id):
+		two = int(ContentDB.resolve(main_id).get("hands", 1)) >= 2
 	_mark(host, main_id, Vector2(maxi(0.0, size.x - 14.0), maxi(0.0, size.y - 16.0)))
 	if not two:
 		_mark(host, str(gear["off"]), Vector2(0, maxi(0.0, size.y - 16.0)))
@@ -91,15 +91,15 @@ static func seat_spec(member: Dictionary) -> Dictionary:
 	var gear := Formulas.normalize_gear(member.get("gear", {}))
 	var spec := {}
 	var armor_id := str(gear["armor"])
-	if armor_id != "" and ContentDB.items.has(armor_id):
-		var armor: Dictionary = ContentDB.item(armor_id)
+	if armor_id != "" and ContentDB.has_item(armor_id):
+		var armor: Dictionary = ContentDB.resolve(armor_id)
 		var armor_path := str(armor.get("doll", ""))
 		if armor_path != "" and ArtPack.has(armor_path):
 			spec["armor"] = armor_path
 	var main_id := str(gear["main"])
 	var two := false
-	if main_id != "" and ContentDB.items.has(main_id):
-		var main: Dictionary = ContentDB.item(main_id)
+	if main_id != "" and ContentDB.has_item(main_id):
+		var main: Dictionary = ContentDB.resolve(main_id)
 		var main_path := str(main.get("doll", ""))
 		if main_path != "" and ArtPack.has(main_path):
 			spec["main"] = main_path
@@ -108,8 +108,8 @@ static func seat_spec(member: Dictionary) -> Dictionary:
 			spec["two_hand"] = two
 	if not two:
 		var off_id := str(gear["off"])
-		if off_id != "" and ContentDB.items.has(off_id):
-			var off: Dictionary = ContentDB.item(off_id)
+		if off_id != "" and ContentDB.has_item(off_id):
+			var off: Dictionary = ContentDB.resolve(off_id)
 			var off_path := str(off.get("doll", ""))
 			if off_path != "" and ArtPack.has(off_path):
 				spec["off"] = off_path
@@ -118,9 +118,9 @@ static func seat_spec(member: Dictionary) -> Dictionary:
 
 
 func _mark(host: Control, item_id: String, at: Vector2) -> void:
-	if item_id == "" or not ContentDB.items.has(item_id):
+	if item_id == "" or not ContentDB.has_item(item_id):
 		return
-	var item: Dictionary = ContentDB.item(item_id)
+	var item: Dictionary = ContentDB.resolve(item_id)
 	var icon_path := str(item.get("icon", ""))
 	if icon_path != "" and ArtPack.has(icon_path):
 		var icon := TextureRect.new()

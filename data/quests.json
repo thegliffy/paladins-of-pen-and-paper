@@ -74,7 +74,7 @@
       "type": "boss",
       "place": "briar_cross",
       "monster": "briar_hound",
-      "reveal": ["lantern_reach"],
+      "reveal": ["lantern_reach", "brinewick"],
       "xp": 70,
       "gold": 80,
       "reward": "reed_wrap"
@@ -109,7 +109,7 @@
       "type": "boss",
       "place": "lantern_reach",
       "monster": "kelpback",
-      "reveal": ["howling_cleft"],
+      "reveal": ["howling_cleft", "ashgate"],
       "xp": 90,
       "gold": 100,
       "reward": "wick_ring"
@@ -133,7 +133,7 @@
       "type": "boss",
       "place": "howling_cleft",
       "monster": "marshlurker",
-      "reveal": ["gravel_keep"],
+      "reveal": ["gravel_keep", "pebblegate"],
       "xp": 100,
       "gold": 110,
       "reward": "field_salve"

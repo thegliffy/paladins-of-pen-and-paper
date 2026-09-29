@@ -59,7 +59,10 @@ func _rebuild() -> void:
 	var title := PixelFont.label("PARTY GEAR", Color("120c18"), 2)
 	title.position = Vector2(12, 10)
 	add_child(title)
-	var gold := Widgets.label("Gold %d" % GameState.gold, Layout.font_tiny(), SpriteCatalog.INK)
+	var gold_text := "Gold %d" % GameState.gold
+	if _town() and ContentDB.places.has(GameState.place_id):
+		gold_text += "   Tier %d" % CraftRules.shop_tier(ContentDB.place(GameState.place_id))
+	var gold := Widgets.label(gold_text, Layout.font_tiny(), SpriteCatalog.INK)
 	gold.position = Vector2(12, 24)
 	gold.size = Vector2(140, 14)
 	add_child(gold)
@@ -72,6 +75,7 @@ func _rebuild() -> void:
 	_tab("Hero", "hero", Vector2(70, 40))
 	if _town():
 		_tab("Shop", "shop", Vector2(128, 40))
+		_tab("Smith", "smith", Vector2(186, 40))
 	if _mode == "hero":
 		_build_hero()
 	else:
@@ -90,10 +94,25 @@ func _tab(label: String, mode: String, at: Vector2) -> void:
 
 
 func _set_mode(mode: String) -> void:
+	if mode == "smith":
+		_open_smith()
+		return
 	_mode = mode
 	if mode != "shop":
 		_from_shop = false
 	_refresh()
+
+
+func _open_smith() -> void:
+	if get_node_or_null("SmithScreen") != null:
+		return
+	var smith := SmithScreen.new()
+	add_child(smith)
+	smith.move_to_front()
+	smith.closed.connect(func():
+		if is_instance_valid(smith):
+			smith.queue_free()
+	)
 
 
 func _filters() -> void:
@@ -127,7 +146,10 @@ func _build_list() -> void:
 	scroll.add_child(box)
 	var rows: Array = _rows()
 	if rows.is_empty():
-		var empty := Widgets.label("Nothing in this tab.", Layout.font_tiny(), SpriteCatalog.INK)
+		var empty_text := "Nothing in this tab."
+		if _mode == "shop" and not _shop_open():
+			empty_text = "The stall is still barred."
+		var empty := Widgets.label(empty_text, Layout.font_tiny(), SpriteCatalog.INK)
 		empty.custom_minimum_size = Vector2(230, 24)
 		box.add_child(empty)
 		return
@@ -152,22 +174,27 @@ func _build_list() -> void:
 func _rows() -> Array:
 	var rows: Array = []
 	if _mode == "shop":
-		for item_id in ContentDB.items.keys():
+		if not _shop_open():
+			return rows
+		var place: Dictionary = ContentDB.place(GameState.place_id)
+		for item_id in CraftRules.shop_ids(ContentDB.item_rows(), place, GameState.revealed_places()):
 			var item: Dictionary = ContentDB.item(str(item_id))
-			if not bool(item.get("shop", false)):
-				continue
 			if not _matches(item):
 				continue
 			rows.append({"item": item, "count": 1, "shop": true})
 		return rows
 	for item_id in GameState.inventory.keys():
-		if not ContentDB.items.has(str(item_id)):
-			continue
-		var item: Dictionary = ContentDB.item(str(item_id))
-		if not _matches(item):
+		var item: Dictionary = ContentDB.resolve(str(item_id))
+		if item.is_empty() or not _matches(item):
 			continue
 		rows.append({"item": item, "count": int(GameState.inventory[item_id]), "shop": false})
 	return rows
+
+
+func _shop_open() -> bool:
+	if not _town() or not ContentDB.places.has(GameState.place_id):
+		return false
+	return CraftRules.town_unlocked(GameState.place_id, GameState.revealed_places())
 
 
 func _matches(item: Dictionary) -> bool:
@@ -235,8 +262,8 @@ func _pick_hero(index: int) -> void:
 
 func _slot_button(label: String, slot: String, item_id: String, at: Vector2) -> void:
 	var worn := "Empty"
-	if item_id != "" and ContentDB.items.has(item_id):
-		worn = str(ContentDB.item(item_id)["name"])
+	if item_id != "" and ContentDB.has_item(item_id):
+		worn = str(ContentDB.resolve(item_id)["name"])
 	var button := Widgets.make_button("%s: %s" % [label, worn], Vector2(176, 22))
 	button.position = at
 	button.name = "Slot_%s" % slot.replace(":", "_")
@@ -266,12 +293,12 @@ func _build_detail() -> void:
 	panel.size = Vector2(254, 150)
 	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(panel)
-	if _selected == "" or not ContentDB.items.has(_selected):
+	if _selected == "" or not ContentDB.has_item(_selected):
 		var hint := Widgets.label("Tap an item.", Layout.font_tiny(), SpriteCatalog.LIGHT)
 		hint.position = Vector2(16, 330)
 		add_child(hint)
 		return
-	var item: Dictionary = ContentDB.item(_selected)
+	var item: Dictionary = ContentDB.resolve(_selected) if not _from_shop else ContentDB.item(_selected)
 	var icon_path := str(item.get("icon", ""))
 	if icon_path != "" and ArtPack.has(icon_path):
 		var icon := TextureRect.new()
@@ -391,8 +418,8 @@ func _compare_line(item: Dictionary) -> String:
 	var trial: Dictionary = member.duplicate(true)
 	var gear := Formulas.normalize_gear(member.get("gear", {}))
 	var main_hands := 1
-	if str(gear["main"]) != "" and ContentDB.items.has(str(gear["main"])):
-		main_hands = int(ContentDB.item(str(gear["main"])).get("hands", 1))
+	if str(gear["main"]) != "" and ContentDB.has_item(str(gear["main"])):
+		main_hands = int(ContentDB.resolve(str(gear["main"])).get("hands", 1))
 	var plan: Dictionary = Formulas.equip_plan(gear, item, "", main_hands)
 	if not bool(plan.get("ok", false)):
 		return ""

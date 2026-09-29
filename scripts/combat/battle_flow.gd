@@ -728,8 +728,8 @@ func _keep_drop(item_id: String, found: PackedStringArray) -> void:
 func _choose_item(user: Dictionary) -> bool:
 	var entries: Array = []
 	for item_id in GameState.inventory.keys():
-		var item: Dictionary = ContentDB.item(str(item_id))
-		if str(item.get("slot", "")) != "usable":
+		var item: Dictionary = ContentDB.resolve(str(item_id))
+		if item.is_empty() or str(item.get("slot", "")) != "usable":
 			continue
 		entries.append({
 			"id": "item:%s" % item_id,
@@ -750,7 +750,9 @@ func _choose_item(user: Dictionary) -> bool:
 		return false
 	if not GameState.take_item(item_id):
 		return false
-	var item := ContentDB.item(item_id)
+	var item := ContentDB.resolve(item_id)
+	if item.is_empty():
+		return false
 	var amount := int(item.get("amount", 0))
 	var kind := str(item.get("kind", ""))
 	if kind == "heal_mp":

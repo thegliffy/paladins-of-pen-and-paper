@@ -29,6 +29,7 @@ func _init() -> void:
 	_test_gear()
 	_test_seat_gear()
 	_test_quests()
+	_test_towns_and_craft()
 	print("Tests: %d passed, %d failed" % [passed, failed])
 	quit(1 if failed else 0)
 
@@ -236,7 +237,7 @@ func _test_content_shape() -> void:
 	eq(classes.size(), 8, "8 classes")
 	eq(monsters.size(), 18, "eight originals plus ten region monsters")
 	var places: Array = region["places"]
-	check(places.size() >= 5 and places.size() <= 6, "5–6 places")
+	eq(places.size(), 9, "9 places")
 	var by_id := {}
 	for skill in skills:
 		by_id[str(skill["id"])] = skill
@@ -984,6 +985,9 @@ func _test_place_rosters() -> void:
 		"lantern_reach": coast,
 		"howling_cleft": cave,
 		"gravel_keep": keep_table,
+		"brinewick": [],
+		"ashgate": [],
+		"pebblegate": [],
 	}
 	for place in region["places"]:
 		var place_id := str(place["id"])
@@ -994,8 +998,8 @@ func _test_place_rosters() -> void:
 		eq(backdrop, "combat/bg_%s_portrait.png" % place_id, place_id + " names its portrait backdrop")
 		var tex: Texture2D = ArtPack.texture(backdrop)
 		check(tex != null and tex.get_width() == 270 and tex.get_height() == 480, place_id + " backdrop is 270x480")
-		if place_id == "candlewick":
-			check(roster.is_empty(), "the town has no fights")
+		if str(place.get("kind", "")) == "town":
+			check(roster.is_empty(), place_id + " has no fights")
 			continue
 		var large := 0
 		var regular := 0
@@ -1096,12 +1100,12 @@ func _test_gear() -> void:
 		rarities[str(row["rarity"])] = int(rarities.get(str(row["rarity"]), 0)) + 1
 		if slot_name != "quest":
 			gear_items += 1
-	check(gear_items >= 36 and gear_items <= 42, "about 30 to 40 gear items")
+	check(gear_items >= 70 and gear_items <= 90, "tiered shop and craft gear")
 	check(int(slots["quest"]) >= 8, "quest tokens for the board")
 	check(int(slots["weapon"]) >= 8, "weapons for the classes")
 	check(int(slots["armor"]) >= 4, "armor tiers")
 	check(int(slots["trinket"]) >= 4, "trinkets")
-	check(int(slots["usable"]) >= 4 and int(slots["usable"]) <= 6, "four to six consumables")
+	check(int(slots["usable"]) >= 6 and int(slots["usable"]) <= 10, "consumables through tier 4")
 	check(int(rarities["legendary"]) >= 1 and int(rarities["unique"]) >= 1, "legendary and unique tiers")
 	var classes: Array = JSON.parse_string(FileAccess.get_file_as_string("res://data/classes.json"))
 	for cls in classes:
@@ -1373,7 +1377,10 @@ func _test_quests() -> void:
 	eq(QuestRules.note_kill(grind, rows, "cobble_rat").size(), 0, "another monster does not tick the quest")
 	eq(QuestRules.collect_drop(grind, rows, str(collect_quest["monster"]), 0.0), str(collect_quest["item"]), "an active quest can drop its token")
 	eq(QuestRules.collect_drop(grind, rows, str(collect_quest["monster"]), QuestRules.DROP_CHANCE), "", "the drop rate is strict")
-	eq(QuestRules.collect_drop([], rows, str(collect_quest["monster"]), 0.0), "", "tokens do not drop while the quest is inactive")
+	eq(QuestRules.collect_drop([], rows, str(collect_quest["monster"]), 0.0), str(collect_quest["item"]), "materials still drop at the base rate")
+	eq(QuestRules.collect_drop([], rows, str(collect_quest["monster"]), QuestRules.BASE_DROP), "", "the base drop rate is strict")
+	var farm := QuestRules.collect_result([], rows, str(collect_quest["monster"]), 0.0)
+	check(not bool(farm["counts"]), "a farmed drop does not count toward a quest")
 	var toast := QuestRules.bump_collect(grind, str(collect_quest["item"]), rows)
 	eq(toast, "%s 1/%d" % [str(collect_quest["item_name"]), int(collect_quest["count"])], "a drop toasts the counter")
 	eq(int(grind[1]["progress"]), 1, "the drop advances the collect quest")
@@ -1389,3 +1396,155 @@ func _test_quests() -> void:
 	var packed := QuestRules.pack_state({"story_done": done, "offers": offers, "active": grind, "salt": salt})
 	var restored := QuestRules.unpack_state(packed)
 	eq(JSON.stringify(QuestRules.pack_state(restored)), JSON.stringify(packed), "quest state survives a save round trip")
+
+
+func _test_towns_and_craft() -> void:
+	var region := _region()
+	var places := {}
+	for place in region["places"]:
+		places[str(place["id"])] = place
+	var items: Array = JSON.parse_string(FileAccess.get_file_as_string("res://data/items.json"))
+	var by_id := {}
+	for row in items:
+		by_id[str(row["id"])] = row
+	var quests: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/quests.json"))
+	var story: Array = QuestRules.steps(quests)
+	var craft: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/craft.json"))
+	var classes: Array = JSON.parse_string(FileAccess.get_file_as_string("res://data/classes.json"))
+	var towns := {
+		1: "candlewick",
+		2: "brinewick",
+		3: "ashgate",
+		4: "pebblegate",
+	}
+	for tier in towns.keys():
+		var place: Dictionary = places[towns[tier]]
+		eq(str(place["kind"]), "town", str(place["name"]) + " is a town")
+		eq(int(place["shop_tier"]), int(tier), str(place["name"]) + " sells its tier")
+		check((place["monsters"] as Array).is_empty(), str(place["name"]) + " has no fight table")
+	var early := QuestRules.revealed_places(story, ["kettle_errand"])
+	check(not early.has("brinewick") and not early.has("ashgate") and not early.has("pebblegate"), "later towns stay shut at the kettle")
+	var coast := QuestRules.revealed_places(story, ["wolf_in_the_hedge"])
+	check(coast.has("brinewick") and coast.has("lantern_reach"), "the coast step opens Brinewick")
+	check(not coast.has("ashgate"), "Ashgate waits for the cave")
+	var cave := QuestRules.revealed_places(story, ["snapper_tide"])
+	check(cave.has("ashgate") and cave.has("howling_cleft"), "the cave step opens Ashgate")
+	var keep := QuestRules.revealed_places(story, ["bones_in_the_drip"])
+	check(keep.has("pebblegate") and keep.has("gravel_keep"), "the keep step opens Pebblegate")
+	var starter := CraftRules.shop_ids(items, places["candlewick"], early)
+	check(starter.has("oath_blade") and not starter.has("kiln_sword") and not starter.has("salt_mace"), "Candlewick sells tier 1 only")
+	var barred := CraftRules.shop_ids(items, places["brinewick"], early)
+	eq(barred.size(), 0, "a locked town sells nothing")
+	var coast_stock := CraftRules.shop_ids(items, places["brinewick"], coast)
+	check(coast_stock.has("salt_mace") and coast_stock.has("kiln_sword") and not coast_stock.has("oath_blade"), "Brinewick sells tier 2")
+	for tier in [1, 2, 3, 4]:
+		var stock := CraftRules.shop_ids(items, places[towns[tier]], keep if tier == 4 else (cave if tier == 3 else (coast if tier == 2 else early)))
+		var rows: Array = []
+		for item_id in stock:
+			rows.append(by_id[str(item_id)])
+		var trinket := false
+		var usable := false
+		for row in rows:
+			if str(row["slot"]) == "trinket":
+				trinket = true
+			if str(row["slot"]) == "usable":
+				usable = true
+		check(trinket and usable, "tier %d sells a trinket and a usable" % tier)
+		for cls in classes:
+			var tags: Array = cls["tags"]
+			var weights: Array = cls["weights"]
+			var weapon := false
+			var armor := false
+			var off := false
+			var wants_off := tags.has("shield") or tags.has("orb")
+			for row in rows:
+				var slot := str(row["slot"])
+				var tag := str(row.get("tag", ""))
+				if slot == "weapon" and tags.has(tag):
+					weapon = true
+				if slot == "armor" and weights.has(str(row.get("weight", ""))):
+					armor = true
+				if slot == "off" and tags.has(tag):
+					off = true
+				if slot == "weapon" and tag == "dagger" and bool(row.get("offhand", false)) and tags.has("dagger"):
+					off = true
+			check(weapon, str(cls["id"]) + " can buy a weapon at tier %d" % tier)
+			check(armor, str(cls["id"]) + " can buy armor at tier %d" % tier)
+			if wants_off or tags.has("dagger"):
+				check(off, str(cls["id"]) + " can buy an off-hand at tier %d" % tier)
+	var recipe := CraftRules.find_recipe(craft["recipes"], "gel_edge")
+	var bag := {"slime_gel": 4, "toad_wart": 1, "tonic": 1}
+	var short := CraftRules.apply_craft(recipe, {"slime_gel": 3, "toad_wart": 1}, 40, 9)
+	check(not bool(short["ok"]) and str(short["reason"]) == "material", "crafting refuses a short pile")
+	eq(int(short["inventory"]["slime_gel"]), 3, "a refused craft keeps the materials")
+	var broke := CraftRules.apply_craft(recipe, bag, 10, 9)
+	check(not bool(broke["ok"]) and str(broke["reason"]) == "gold", "crafting refuses short gold")
+	var made := CraftRules.apply_craft(recipe, bag, 40, 9)
+	check(bool(made["ok"]), "gel edge crafts")
+	eq(int(made["inventory"].get("slime_gel", 0)), 0, "crafting consumes the gel")
+	eq(int(made["inventory"].get("toad_wart", 0)), 0, "crafting consumes the wart")
+	eq(int(made["inventory"]["gel_edge"]), 1, "crafting adds the blade")
+	eq(int(made["inventory"]["tonic"]), 1, "crafting leaves the rest of the bag")
+	eq(int(made["gold"]), 0, "crafting spends the gold")
+	var peer: Dictionary = by_id["pocket_knife"]
+	var crafted: Dictionary = by_id["gel_edge"]
+	check(int(crafted["stats"]["attack"]) > int(peer["stats"]["attack"]), "crafted gel edge hits harder than the stall knife")
+	for row in craft["recipes"]:
+		var result: Dictionary = by_id[str(row["result"])]
+		var shop_peer: Dictionary = by_id[str(row["peer"])]
+		eq(int(result["tier"]), int(row["tier"]), str(row["id"]) + " matches its tier")
+		check(not bool(result["shop"]), str(row["id"]) + " is forge work, not stall stock")
+		check(_craft_beats(result, shop_peer), str(row["id"]) + " beats the stall piece")
+	eq(CraftRules.scale_int(3, 1), 4, "+1 lifts an attack of 3 to 4")
+	eq(CraftRules.scale_int(5, 1), 6, "+1 lifts an attack of 5 by a quarter")
+	eq(CraftRules.scale_int(5, 3), 9, "+3 keeps scaling")
+	near(CraftRules.scale_float(0.05, 1), 0.06, 0.001, "+1 scales a spell bonus")
+	eq(CraftRules.display_name("Oath Blade", 2), "Oath Blade +2", "the plus shows in the name")
+	eq(CraftRules.can_upgrade(by_id["oath_blade"], 3), "max", "a weapon stops at +3")
+	eq(CraftRules.can_upgrade(by_id["bread_charm"], 0), "slot", "a trinket cannot be tempered")
+	var tiers: Dictionary = craft["tiers"]
+	var cost := CraftRules.upgrade_cost(1, 0, tiers)
+	eq(int(cost["gold"]), 30, "+1 at tier 1 costs 30 gold")
+	eq(int(cost["materials"]["slime_gel"]), 2, "+1 asks for two gels")
+	var cost3 := CraftRules.upgrade_cost(2, 2, tiers)
+	eq(int(cost3["gold"]), 180, "+3 at tier 2 costs 180 gold")
+	eq(int(cost3["materials"]["crab_shell"]), 4, "+3 asks for four shells")
+	eq(int(cost3["materials"]["gull_feather"]), 2, "+3 also asks for feathers")
+	var sword := {"oath_blade": 1, "slime_gel": 2}
+	var lifted := CraftRules.apply_upgrade("oath_blade", by_id["oath_blade"], sword, 30, tiers, 9)
+	check(bool(lifted["ok"]), "a bag weapon can be tempered")
+	eq(int(lifted["inventory"].get("oath_blade", 0)), 0, "the plain blade leaves the bag")
+	eq(int(lifted["inventory"]["oath_blade@1"]), 1, "the bag keeps the +1")
+	eq(int(lifted["inventory"].get("slime_gel", 0)), 0, "tempering spends the gel")
+	eq(int(lifted["gold"]), 0, "tempering spends the gold")
+	var worn := CraftRules.apply_worn_upgrade("oath_blade", by_id["oath_blade"], {"slime_gel": 2}, 30, tiers)
+	check(bool(worn["ok"]), "a worn blade can be tempered")
+	eq(str(worn["key"]), "oath_blade@1", "the worn key gains +1")
+	eq(int(worn["inventory"].get("slime_gel", 0)), 0, "a worn temper still spends materials")
+	var capped := CraftRules.apply_upgrade("oath_blade@3", by_id["oath_blade"], {"oath_blade@3": 1, "slime_gel": 9}, 500, tiers, 9)
+	check(not bool(capped["ok"]) and str(capped["reason"]) == "max", "plus three is the limit")
+	eq(CraftRules.sell_price(40, 0), 20, "a plain item still sells at half")
+	eq(CraftRules.sell_price(40, 2), 60, "each plus raises the sell price")
+	var preview := CraftRules.stat_preview({"attack": 3}, CraftRules.scaled_stats({"attack": 3}, 1))
+	eq(preview, "Atk 3 to 4", "the temper preview shows the next swing")
+	var packed := CraftRules.pack_bag({"oath_blade@2": 1, "gel_edge": 1, "oath_blade@4": 1, "empty": 0})
+	eq(int(packed["oath_blade@2"]), 1, "a plus survives the save")
+	eq(int(packed["gel_edge"]), 1, "a crafted item survives the save")
+	eq(int(packed["oath_blade@3"]), 1, "a plus above the cap clamps")
+	check(not packed.has("empty"), "an empty stack is dropped")
+	var again := CraftRules.pack_bag(packed)
+	eq(JSON.stringify(again), JSON.stringify(packed), "the bag save round-trips")
+	var active: Array = [{"id": str(quests["board"][0]["id"]), "progress": int(quests["board"][0]["count"])}]
+	var full := QuestRules.collect_result(active, quests["board"], str(quests["board"][0]["monster"]), 0.0)
+	check(not bool(full["counts"]), "a finished quest does not count another drop")
+	eq(str(full["item"]), str(quests["board"][0]["item"]), "a finished quest still farms at the base rate")
+	eq(QuestRules.turn_in_takes(quests["board"][0]), int(quests["board"][0]["count"]), "turn-in still takes the posted count")
+
+
+func _craft_beats(result: Dictionary, peer: Dictionary) -> bool:
+	var left: Dictionary = result.get("stats", {})
+	var right: Dictionary = peer.get("stats", {})
+	for key in ["attack", "dr", "crit", "max_hp", "senses", "mind", "spell_bonus"]:
+		if float(left.get(key, 0.0)) > float(right.get(key, 0.0)):
+			return true
+	return false
