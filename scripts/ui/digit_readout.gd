@@ -29,11 +29,19 @@ func _draw() -> void:
 		var drawn := _draw_glyph(sheet, glyph_order, ch, x)
 		if not drawn and letters_sheet != "":
 			drawn = _draw_glyph(letters_sheet, letters_order, ch, x)
+		if not drawn and ch == "/":
+			_draw_slash(x)
+			drawn = true
 		if drawn:
 			x += float(advance)
 		elif ch == " ":
 			x += float(advance)
 		i += 1
+
+
+func _draw_slash(x: float) -> void:
+	var ink := Color("f4efe4")
+	draw_line(Vector2(x + 2.0, 1.0), Vector2(x + 0.0, float(cell.y - 2)), ink, 1.0)
 
 
 func _draw_glyph(rel: String, order: String, ch: String, x: float) -> bool:

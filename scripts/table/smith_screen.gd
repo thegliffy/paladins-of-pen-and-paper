@@ -204,6 +204,11 @@ func _build_upgrades() -> void:
 				GameState.upgrade_item(key)
 			else:
 				GameState.upgrade_worn(member_index, slot)
+				var host := get_parent()
+				if host is GearScreen:
+					host = host.get_parent()
+				if host is SessionScreen:
+					(host as SessionScreen).push_vitals(member_index)
 			_schedule_refresh()
 		)
 		_body.add_child(_card(lines, button))

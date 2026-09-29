@@ -37,6 +37,8 @@ func start(monster_rows: Array, kind: String) -> String:
 		await get_tree().create_timer(0.6).timeout
 	GameState.disarm_battle()
 	_listen(false)
+	if view.has_method("resolve_level_ups"):
+		await view.resolve_level_ups()
 	return result
 
 
@@ -107,6 +109,13 @@ func _build_units(monster_rows: Array) -> void:
 			"covering": false,
 			"conditions": [],
 			"skill_ranks": member["skill_ranks"].duplicate(true),
+			"choice_ranks": LevelRules.read(member)["skills"].duplicate(),
+			"pool_hp": int(stats["max_hp"]),
+			"pool_mp": int(stats["max_mp"]),
+			"body_shift": 0,
+			"mind_shift": 0,
+			"hp_pct": 0.0,
+			"mp_pct": 0.0,
 			"class_id": str(member["class_id"]),
 			"cooldowns": {},
 			"buildup": {},
@@ -342,7 +351,7 @@ func _inspect_card(unit: Dictionary, action_id: String) -> Dictionary:
 	_ensure_resources(unit)
 	if action_id.begins_with("skill:"):
 		var skill_id := action_id.trim_prefix("skill:")
-		var skill: Dictionary = ContentDB.skill(skill_id)
+		var skill: Dictionary = _tuned_skill(unit, ContentDB.skill(skill_id))
 		var ranks: Dictionary = unit.get("skill_ranks", {})
 		var cds: Dictionary = unit.get("cooldowns", {})
 		var stacks: Dictionary = unit.get("buildup", {})
@@ -425,8 +434,9 @@ func _strike(attacker: Dictionary, defender: Dictionary, base: float, variance: 
 
 
 func _use_skill(user: Dictionary, skill_id: String, preset_id: String = "") -> bool:
-	var skill: Dictionary = ContentDB.skill(skill_id)
+	var skill: Dictionary = _tuned_skill(user, ContentDB.skill(skill_id))
 	var rank := int(user.get("skill_ranks", {}).get(skill_id, 1))
+	var power_rank := rank + int(skill.get("power_extra", 0))
 	_ensure_resources(user)
 	var cds: Dictionary = user["cooldowns"]
 	var stacks: Dictionary = user["buildup"]
@@ -459,27 +469,27 @@ func _use_skill(user: Dictionary, skill_id: String, preset_id: String = "") -> b
 	var kind := str(skill.get("kind", "spell"))
 	var target_mode := str(skill.get("target", "enemy"))
 	if not preset.is_empty():
-		await _resolve_skill(user, skill, [preset], rank)
+		await _resolve_skill(user, skill, [preset], power_rank)
 	elif target_mode == "self":
-		await _resolve_skill(user, skill, [user], rank)
+		await _resolve_skill(user, skill, [user], power_rank)
 	elif kind == "heal" or kind == "cleanse" or target_mode == "ally":
 		var ally := await _choose_ally(user, "skill:%s" % skill_id)
 		if ally.is_empty():
 			cancelled = true
 		else:
-			await _resolve_skill(user, skill, [ally], rank)
+			await _resolve_skill(user, skill, [ally], power_rank)
 	elif target_mode == "enemies":
 		var crowd: Array = _random_enemies(int(skill.get("max_targets", 1)), bool(skill.get("can_target_back_row", false)))
 		if crowd.is_empty():
 			cancelled = true
 		else:
-			await _resolve_skill(user, skill, crowd, rank)
+			await _resolve_skill(user, skill, crowd, power_rank)
 	else:
 		var picked := await _choose_enemy(user, bool(skill.get("can_target_back_row", false)), "skill:%s" % skill_id)
 		if picked.is_empty():
 			cancelled = true
 		else:
-			await _resolve_skill(user, skill, [picked], rank)
+			await _resolve_skill(user, skill, [picked], power_rank)
 	if cancelled:
 		user["hp"] = int(before["hp"])
 		user["mp"] = int(before["mp"])
@@ -536,7 +546,7 @@ func _buff(user: Dictionary, skill: Dictionary, target: Dictionary, rank: int) -
 
 func _cleanse(user: Dictionary, skill: Dictionary, target: Dictionary, rank: int) -> void:
 	target["conditions"] = []
-	view.sync_unit(target)
+	_apply_condition_shifts(target)
 	view.set_caption("%s clears %s" % [user["name"], target["name"]])
 	if int(skill.get("heal", 0)) > 0:
 		await _heal(user, skill, target, rank)
@@ -564,7 +574,7 @@ func _cast(user: Dictionary, skill: Dictionary, targets: Array) -> void:
 	var lead := float(skill.get("time_before_damage", 0.0))
 	if lead > 0.0:
 		await _wait(lead)
-	var rank := int(user.get("skill_ranks", {}).get(str(skill["id"]), 1))
+	var rank := int(user.get("skill_ranks", {}).get(str(skill["id"]), 1)) + int(skill.get("power_extra", 0))
 	for i in targets.size():
 		if i > 0:
 			await _wait(Timing.MULTI_TARGET_GAP)
@@ -577,6 +587,7 @@ func _cast(user: Dictionary, skill: Dictionary, targets: Array) -> void:
 			if int(skill.get("later_init_bonus", 0)) > 0 and _later(user, target):
 				bonus = int(skill["later_init_bonus"])
 			var weapon_power := float(user["attack"]) * float(skill.get("attack_mult", 1.0))
+			weapon_power *= 1.0 + LevelRules.POWER_STEP * float(skill.get("power_extra", 0))
 			await _strike(user, target, weapon_power, float(skill.get("variance", 0.25)), true, bonus)
 			var weapon_splash := float(skill.get("splash", 0.0))
 			if weapon_splash > 0.0:
@@ -643,9 +654,13 @@ func _try_condition(skill: Dictionary, target: Dictionary) -> void:
 		"timer": int(skill.get("condition_timer", 2)),
 		"damage": int(skill.get("condition_damage", 0)),
 		"save": save,
+		"body": int(skill.get("grant_body", 0)),
+		"mind": int(skill.get("grant_mind", 0)),
+		"hp_pct": float(skill.get("grant_hp_pct", 0.0)),
+		"mp_pct": float(skill.get("grant_mp_pct", 0.0)),
 	})
 	target["conditions"] = kept
-	view.sync_unit(target)
+	_apply_condition_shifts(target)
 
 
 func _damage_conditions(unit: Dictionary) -> void:
@@ -664,7 +679,7 @@ func _decay_stun(unit: Dictionary) -> void:
 		else:
 			kept.append(cond)
 	unit["conditions"] = kept
-	view.sync_unit(unit)
+	_apply_condition_shifts(unit)
 
 
 func _tick_conditions(unit: Dictionary) -> void:
@@ -688,7 +703,49 @@ func _tick_conditions(unit: Dictionary) -> void:
 		if int(unit["hp"]) <= 0:
 			break
 	unit["conditions"] = kept
+	_apply_condition_shifts(unit)
+
+
+func retune_unit(unit: Dictionary) -> void:
+	if str(unit.get("side", "")) != "player" or not unit.has("pool_hp"):
+		view.sync_unit(unit)
+		return
+	var before_hp := int(unit.get("max_hp", 1))
+	var before_mp := int(unit.get("max_mp", 1))
+	unit["max_hp"] = Formulas.tuned_max(
+		int(unit["pool_hp"]), int(unit.get("level", 1)), int(unit.get("body", 1)), int(unit.get("mind", 1)),
+		int(unit.get("body_shift", 0)), int(unit.get("mind_shift", 0)), float(unit.get("hp_pct", 0.0)), true
+	)
+	unit["max_mp"] = Formulas.tuned_max(
+		int(unit["pool_mp"]), int(unit.get("level", 1)), int(unit.get("body", 1)), int(unit.get("mind", 1)),
+		int(unit.get("body_shift", 0)), int(unit.get("mind_shift", 0)), float(unit.get("mp_pct", 0.0)), false
+	)
+	if int(unit.get("hp", 0)) > 0:
+		unit["hp"] = Formulas.fit_pool(int(unit["hp"]), before_hp, int(unit["max_hp"]), false)
+	unit["mp"] = Formulas.fit_pool(int(unit.get("mp", 0)), before_mp, int(unit["max_mp"]), true)
 	view.sync_unit(unit)
+
+
+func _apply_condition_shifts(unit: Dictionary) -> void:
+	var body := 0
+	var mind := 0
+	var hp_pct := 0.0
+	var mp_pct := 0.0
+	for cond in unit.get("conditions", []):
+		body += int(cond.get("body", 0))
+		mind += int(cond.get("mind", 0))
+		hp_pct += float(cond.get("hp_pct", 0.0))
+		mp_pct += float(cond.get("mp_pct", 0.0))
+	unit["body_shift"] = body
+	unit["mind_shift"] = mind
+	unit["hp_pct"] = hp_pct
+	unit["mp_pct"] = mp_pct
+	retune_unit(unit)
+
+
+func _tuned_skill(user: Dictionary, skill: Dictionary) -> Dictionary:
+	var extra := int(user.get("choice_ranks", {}).get(str(skill.get("id", "")), 0))
+	return LevelRules.tune_skill(skill, extra)
 
 
 func _apply_condition_damage(unit: Dictionary, cond: Dictionary) -> void:

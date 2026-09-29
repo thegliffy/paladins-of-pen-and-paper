@@ -249,6 +249,14 @@ func _build_hero() -> void:
 	line.position = Vector2(10, 246)
 	line.size = Vector2(160, 28)
 	add_child(line)
+	var names := {}
+	for skill_id in ContentDB.class_def(str(member["class_id"])).get("skills", []):
+		names[str(skill_id)] = str(ContentDB.skill(str(skill_id)).get("name", skill_id))
+	var grown := LevelRules.sheet_line(member, names)
+	if grown != "":
+		var growth := Widgets.wrapped_label(grown, 160.0, Layout.font_tiny(), SpriteCatalog.INK)
+		growth.position = Vector2(10, 276)
+		add_child(growth)
 	var skills := Widgets.make_button("Skills", Vector2(70, 24))
 	skills.position = Vector2(184, 248)
 	skills.pressed.connect(_open_skills)
@@ -276,10 +284,18 @@ func _tap_slot(slot: String) -> void:
 		var reason := GameState.equip_item(_hero, _selected, slot)
 		if reason == "":
 			_selected = ""
+			_push_chair()
 		_refresh()
 		return
 	GameState.unequip_slot(_hero, slot)
+	_push_chair()
 	_refresh()
+
+
+func _push_chair() -> void:
+	var parent := get_parent()
+	if parent is SessionScreen:
+		(parent as SessionScreen).push_vitals(_hero)
 
 
 func _open_skills() -> void:

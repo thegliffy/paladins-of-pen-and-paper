@@ -30,6 +30,7 @@ func _init() -> void:
 	_test_seat_gear()
 	_test_quests()
 	_test_towns_and_craft()
+	_test_levels_and_pools()
 	print("Tests: %d passed, %d failed" % [passed, failed])
 	quit(1 if failed else 0)
 
@@ -494,11 +495,20 @@ func _test_portrait_layout() -> void:
 	eq(int(actions[3]), 50, "action bar height")
 	check(int(actions[1]) + int(actions[3]) >= 460, "action bar sits in the bottom thumb zone")
 	var chair: Dictionary = layout["portrait"]["combat"]["chair_bars"]
-	check(chair.has("hp") and chair.has("mp") and chair.has("hp_text"), "chair bars are data")
+	check(chair.has("hp") and chair.has("mp") and chair.has("hp_text") and chair.has("mp_text"), "chair bars are data")
 	var hp_text: Array = chair["hp_text"]
-	var mp_bar: Array = chair["mp"]
-	check(int(hp_text[2]) >= 13 and int(hp_text[3]) >= 7, "hp number box fits three outlined digits")
-	check(int(hp_text[1]) + int(hp_text[3]) <= int(mp_bar[1]), "hp number sits above the mp bar")
+	var mp_text: Array = chair["mp_text"]
+	var threat: Array = chair["threat"]
+	check(int(hp_text[2]) >= 28 and int(hp_text[3]) >= 7, "hp number box fits a cur/max readout")
+	check(int(mp_text[2]) >= 28 and int(mp_text[3]) >= 7, "mp number box fits a cur/max readout")
+	check(int(hp_text[1]) + int(hp_text[3]) <= int(mp_text[1]), "hp number sits above the energy number")
+	check(int(mp_text[1]) + int(mp_text[3]) <= 0, "energy number sits above the chair bars")
+	check(int(threat[1]) + int(threat[3]) <= int(hp_text[1]), "threat sits above the health number")
+	var name_tab: Array = layout["portrait"]["combat"]["name_tab"]
+	var anchor: Array = layout["portrait"]["combat"]["seat_anchor"]
+	var offset: Array = chair["offset"]
+	var mp_bottom := int(layout["portrait"]["combat"]["seat_y"]) - int(anchor[1]) + int(offset[1]) + int(mp_text[1]) + int(mp_text[3])
+	check(mp_bottom <= int(name_tab[1]), "chair numbers clear the turn tab")
 	var skill_card: Array = layout["portrait"]["combat"]["skill_card"]
 	eq(skill_card.size(), 4, "skill card rect")
 	check(int(skill_card[2]) > 0 and int(skill_card[3]) > 0, "skill card has a size")
@@ -1539,6 +1549,98 @@ func _test_towns_and_craft() -> void:
 	check(not bool(full["counts"]), "a finished quest does not count another drop")
 	eq(str(full["item"]), str(quests["board"][0]["item"]), "a finished quest still farms at the base rate")
 	eq(QuestRules.turn_in_takes(quests["board"][0]), int(quests["board"][0]["count"]), "turn-in still takes the posted count")
+
+
+func _test_levels_and_pools() -> void:
+	eq(Formulas.vital_text(40, 80), "40/80", "the chair reads current and max")
+	check(Formulas.max_hp(2, 9, 4) > Formulas.max_hp(2, 8, 4), "a body point raises max health")
+	check(Formulas.max_energy(2, 8, 5) > Formulas.max_energy(2, 8, 4), "a mind point raises max energy")
+	var perked := int(round(float(Formulas.max_hp(2, 8, 4)) * (1.0 + LevelRules.HP_PCT)))
+	check(perked > Formulas.max_hp(2, 8, 4), "a health perk raises max health")
+	eq(Formulas.fit_pool(40, 100, 130, false), 70, "a higher max adds the difference to current health")
+	eq(Formulas.fit_pool(40, 100, 30, false), 30, "a lower max clamps current health")
+	eq(Formulas.fit_pool(0, 100, 130, false), 0, "a downed hero stays down when max health rises")
+	eq(Formulas.fit_pool(0, 20, 40, true), 20, "empty energy fills when the max rises")
+	eq(Formulas.fit_pool(12, 20, 8, true), 8, "energy clamps when the max drops")
+	var base := Formulas.max_hp(1, 8, 4)
+	eq(Formulas.tuned_max(base, 1, 8, 4, 0, 0, 0.0, true), base, "an unshifted pool keeps its max")
+	var body_up := Formulas.tuned_max(base, 1, 8, 4, 1, 0, 0.0, true)
+	check(body_up > base, "a body buff raises max health")
+	var wilted := Formulas.tuned_max(base, 1, 8, 4, -2, 0, 0.0, true)
+	check(wilted < base, "a body debuff lowers max health")
+	eq(Formulas.fit_pool(base, base, wilted, false), wilted, "health clamps to the debuffed max")
+	var energy := Formulas.max_energy(1, 8, 4)
+	var mind_up := Formulas.tuned_max(energy, 1, 8, 4, 0, 1, 0.0, false)
+	check(mind_up > energy, "a mind buff raises max energy")
+	var gear_hp := base + 10
+	var tempered := base + CraftRules.scale_int(10, 1)
+	check(tempered > gear_hp, "tempering a health trinket raises the pool")
+	eq(Formulas.fit_pool(gear_hp, gear_hp, tempered, false), tempered, "the temper fills the new health")
+	var hero := {
+		"level": 2,
+		"growth": LevelRules.blank(),
+		"class_id": "paladin",
+	}
+	var skills: Array = []
+	var rows: Array = JSON.parse_string(FileAccess.get_file_as_string("res://data/skills.json"))
+	var classes: Array = JSON.parse_string(FileAccess.get_file_as_string("res://data/classes.json"))
+	var wanted: Array = []
+	for cls in classes:
+		if str(cls["id"]) == "paladin":
+			wanted = cls["skills"]
+	for skill_id in wanted:
+		for row in rows:
+			if str(row["id"]) == str(skill_id):
+				skills.append(row)
+	var options := LevelRules.offers(hero, skills)
+	eq(options.size(), 3, "a level offers three choices")
+	var kinds := {}
+	for option in options:
+		kinds[str(option["kind"])] = true
+		check(str(option["title"]) != "" and str(option["detail"]) != "", "each choice has a title and a line")
+	check(bool(kinds.get("skill", false)), "a rankable hero is offered a skill")
+	check(bool(kinds.get("stat", false)), "a level offers a stat")
+	check(bool(kinds.get("perk", false)), "a level offers a perk")
+	var refused := LevelRules.commit([], hero, skills, "stat_body")
+	check(not bool(refused["ok"]), "there is no choice when nobody leveled")
+	var queued := LevelRules.enqueue([], 0, 1)
+	queued = LevelRules.enqueue(queued, 1, 2)
+	eq(queued.size(), 3, "two heroes queue one panel per level")
+	var skipped := LevelRules.commit(queued, hero, skills, "nope")
+	check(not bool(skipped["ok"]) and skipped["queue"].size() == 3, "a bad pick does not leave the queue")
+	var taken := LevelRules.commit(queued, hero, skills, "stat_mind")
+	check(bool(taken["ok"]), "mind is one of the level 2 offers")
+	eq(int(hero["growth"]["mind"]), 1, "the stat choice sticks")
+	eq(taken["queue"].size(), 2, "the next hero is still waiting")
+	var skill_id := ""
+	for option in options:
+		if str(option["kind"]) == "skill":
+			skill_id = str(option["skill"])
+	var ranked := LevelRules.commit(taken["queue"], hero, skills, "skill_%s" % skill_id)
+	check(bool(ranked["ok"]), "the skill rank is accepted")
+	eq(LevelRules.choice_rank(hero, skill_id), 1, "the skill rank is stored")
+	var skill: Dictionary = {}
+	for row in skills:
+		if str(row["id"]) == skill_id:
+			skill = row
+	var tuned := LevelRules.tune_skill(skill, 1)
+	check(Formulas.skill_mana_cost(tuned, 1) < Formulas.skill_mana_cost(skill, 1) or Formulas.skill_cooldown_length(tuned) < int(skill.get("cooldown", 0)) or Formulas.skill_hp_cost(tuned) <= int(skill.get("hp_cost", 0)), "a rank lowers a cost or a cooldown")
+	var perked := LevelRules.commit(ranked["queue"], hero, skills, "perk_hp")
+	if not bool(perked["ok"]):
+		perked = LevelRules.commit(ranked["queue"], hero, skills, str(options[2]["id"]))
+	check(bool(perked["ok"]), "the third offer is taken")
+	check(LevelRules.sheet_line(hero, {skill_id: "Named"}) != "", "the sheet lists the growth")
+	var saved := LevelRules.normalize(hero["growth"])
+	eq(JSON.stringify(saved), JSON.stringify(LevelRules.normalize(saved)), "growth survives a save")
+	for _i in LevelRules.SKILL_CAP:
+		LevelRules.apply(hero, {"kind": "skill", "skill": skill_id})
+	var full := LevelRules.offers(hero, skills)
+	var still := false
+	for option in full:
+		if str(option.get("skill", "")) == skill_id:
+			still = true
+	check(not still, "a capped skill leaves the offer list")
+	check(full.size() == 3, "a capped hero still gets three choices")
 
 
 func _craft_beats(result: Dictionary, peer: Dictionary) -> bool:

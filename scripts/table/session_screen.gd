@@ -35,6 +35,7 @@ var _table: TextureRect
 var _gm: TextureRect
 var _table_props: Array = []
 var _action_back: ColorRect
+var _level_open := false
 var _freeze_bars := false
 var _idle := 0.0
 var _idle_frame := 0
@@ -81,6 +82,8 @@ func show_hub() -> void:
 		{"id": "party", "label": "Gear", "icon": "icon_item"},
 	])
 	_close_modal()
+	if not _level_open and GameState.peek_level() >= 0:
+		resolve_level_ups()
 
 
 func location_banner(text: String) -> void:
@@ -259,7 +262,8 @@ func show_member_bar(member_index: int, cooldowns: Dictionary, selected_id: Stri
 	var skills: Array = []
 	var cls: Dictionary = ContentDB.class_def(str(member["class_id"]))
 	for skill_id in cls["skills"]:
-		skills.append(ContentDB.skill(str(skill_id)))
+		var skill_key := str(skill_id)
+		skills.append(LevelRules.tune_skill(ContentDB.skill(skill_key), LevelRules.choice_rank(member, skill_key)))
 	var mp := int(member["mp"])
 	if mp_override >= 0:
 		mp = mp_override
@@ -413,7 +417,6 @@ func show_actor_bar(actor_name: String, skills: Array, ranks: Dictionary, hp: in
 			emit_id = "back"
 		button.pressed.connect(_emit_action.bind(emit_id))
 		_actions.add_child(button)
-	_paint_bar_words()
 
 
 func clear_actor_bar() -> void:
@@ -434,7 +437,7 @@ func present_inspect(member_index: int, action_id: String, cooldowns: Dictionary
 	var mp := int(member["mp"])
 	if mp_override >= 0:
 		mp = mp_override
-	show_inspect(_inspect_card(action_id, ranks, int(member["hp"]), mp, cooldowns, {}), action_id)
+	show_inspect(_inspect_card(action_id, ranks, int(member["hp"]), mp, cooldowns, {}, member_index), action_id)
 
 
 func show_inspect(card: Dictionary, action_id: String) -> void:
@@ -470,12 +473,15 @@ func hide_inspect() -> void:
 	_clear_arm_glow()
 
 
-func _inspect_card(action_id: String, ranks: Dictionary, hp: int, mp: int, cooldowns: Dictionary, buildup: Dictionary) -> Dictionary:
+func _inspect_card(action_id: String, ranks: Dictionary, hp: int, mp: int, cooldowns: Dictionary, buildup: Dictionary, member_index: int = -1) -> Dictionary:
 	if action_id.begins_with("skill:"):
 		var skill_id := action_id.trim_prefix("skill:")
 		var skill: Dictionary = ContentDB.skill(skill_id)
 		var rank := int(ranks.get(skill_id, 0))
-		return Formulas.skill_inspect(skill, rank, hp, mp, cooldowns, buildup)
+		var extra := 0
+		if member_index >= 0 and member_index < GameState.party.size():
+			extra = LevelRules.choice_rank(GameState.party[member_index], skill_id)
+		return Formulas.skill_inspect(LevelRules.tune_skill(skill, extra), rank, hp, mp, cooldowns, buildup)
 	return Formulas.basic_inspect(ContentDB.action_def(action_id))
 
 
@@ -1002,7 +1008,10 @@ func sync_unit(unit: Dictionary) -> void:
 		_set_clip_ratio(info["mp_fill"], mp_ratio)
 	if info.has("hp_text"):
 		var digits: DigitReadout = info["hp_text"]
-		digits.set_text(str(maxi(0, int(unit["hp"]))))
+		digits.set_text(Formulas.vital_text(int(unit["hp"]), int(unit["max_hp"])))
+	if info.has("mp_text"):
+		var mp_digits: DigitReadout = info["mp_text"]
+		mp_digits.set_text(Formulas.vital_text(int(unit.get("mp", 0)), int(unit.get("max_mp", 0))))
 	if int(unit.get("threat", 0)) > 0:
 		_ensure_taunt(id)
 	var node := _node_for(id)
@@ -1237,8 +1246,18 @@ func _attach_chair_bars(seat: Control, member: Dictionary, stats: Dictionary, pi
 	hp_label.position = Vector2(float(text_rect[0]), float(text_rect[1]))
 	hp_label.size = Vector2(float(text_rect[2]), float(text_rect[3]))
 	hp_label.name = "HpDigits"
-	hp_label.set_text(str(int(member["hp"])))
+	hp_label.set_text(Formulas.vital_text(int(member["hp"]), int(stats["max_hp"])))
 	host.add_child(hp_label)
+	var mp_text: Array = spec.get("mp_text", [0, 11, 44, 7])
+	var mp_label := DigitReadout.new()
+	mp_label.sheet = "ui/portrait/digits_3x5_outlined.png"
+	mp_label.cell = Vector2i(5, 7)
+	mp_label.advance = 4
+	mp_label.position = Vector2(float(mp_text[0]), float(mp_text[1]))
+	mp_label.size = Vector2(float(mp_text[2]), float(mp_text[3]))
+	mp_label.name = "MpDigits"
+	mp_label.set_text(Formulas.vital_text(int(member["mp"]), int(stats["max_mp"])))
+	host.add_child(mp_label)
 	var threat_rect: Array = spec["threat"]
 	var threat_label := Widgets.label("", Layout.font_tiny(), SpriteCatalog.GOLD)
 	threat_label.name = "Threat"
@@ -1248,7 +1267,14 @@ func _attach_chair_bars(seat: Control, member: Dictionary, stats: Dictionary, pi
 	threat_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	threat_label.visible = false
 	seat.add_child(threat_label)
-	_bars[pid] = {"hp_fill": hp_fill, "mp_fill": mp_fill, "hp_text": hp_label, "hp_ratio": float(member["hp"]) / float(maxi(1, int(stats["max_hp"]))), "frame": frame}
+	_bars[pid] = {
+		"hp_fill": hp_fill,
+		"mp_fill": mp_fill,
+		"hp_text": hp_label,
+		"mp_text": mp_label,
+		"hp_ratio": float(member["hp"]) / float(maxi(1, int(stats["max_hp"]))),
+		"frame": frame,
+	}
 
 
 func _sync_from_units(units: Array) -> void:
@@ -1363,9 +1389,15 @@ func _raise(index: int, up: bool) -> void:
 			host.texture = ArtPack.texture("ui/portrait/seat_bars_frame_active.png" if raised else "ui/portrait/seat_bars_frame.png")
 			host.position = Vector2(-1, -1) if raised else Vector2.ZERO
 			host.size = Vector2(46, 12) if raised else Vector2(44, 10)
+		var bars: Dictionary = Layout.cfg()["combat"]["chair_bars"]
+		var hp_home := float(bars["hp_text"][1])
+		var mp_home := float(bars["mp_text"][1])
 		var digits: DigitReadout = seat.get_node_or_null("BarHost/HpDigits") as DigitReadout
 		if digits:
-			digits.position.y = -7.0 if raised else -6.0
+			digits.position.y = hp_home - (1.0 if raised else 0.0)
+		var mp_digits: DigitReadout = seat.get_node_or_null("BarHost/MpDigits") as DigitReadout
+		if mp_digits:
+			mp_digits.position.y = mp_home - (1.0 if raised else 0.0)
 		var doll := seat.get_node_or_null("Doll") as PaperDoll
 		if doll:
 			doll.set_raised(raised)
@@ -1741,7 +1773,10 @@ func _paint_reference_bars() -> void:
 		var seat: Control = _seats[i]
 		var digits := seat.get_node_or_null("BarHost/HpDigits") as DigitReadout
 		if digits:
-			digits.set_text(str(numbers[i]))
+			digits.set_text(Formulas.vital_text(int(numbers[i]), int(numbers[i])))
+		var mp_digits := seat.get_node_or_null("BarHost/MpDigits") as DigitReadout
+		if mp_digits:
+			mp_digits.set_text(Formulas.vital_text(int(round(float(mp_ratios[i]) * 20.0)), 20))
 		var info: Dictionary = _bars.get("p%d" % i, {})
 		if info.has("hp_fill"):
 			var hp_px := maxi(1, int(round(42.0 * float(ratios[i]))))
@@ -1830,29 +1865,152 @@ func _set_turn_name(text: String) -> void:
 	_turn_name.size = Vector2(PixelFont.width(label), 5)
 
 
-func _paint_bar_words() -> void:
-	var attack := PixelFont.label("ATTACK", Color("cfd0d4"))
-	attack.position = Vector2(4.0 + 16.0 - float(PixelFont.width("ATTACK")) * 0.5, 38)
-	_actions.add_child(attack)
-	var cover := PixelFont.label("COVER", Color("cfd0d4"))
-	cover.position = Vector2(37.0 + 16.0 - float(PixelFont.width("COVER")) * 0.5, 38)
-	_actions.add_child(cover)
-	var passive_buttons: Array = []
-	for child in _actions.get_children():
-		if child is Button and _button_is_passive(child):
-			passive_buttons.append(child)
-	for child in passive_buttons:
-		var button := child as Button
-		var pas := PixelFont.label("PAS", Color("f8d040"))
-		pas.position = button.position + Vector2(4, 34)
-		_actions.add_child(pas)
+func push_vitals(index: int) -> void:
+	if index < 0 or index >= GameState.party.size():
+		return
+	var member: Dictionary = GameState.party[index]
+	var stats := GameState.combat_stats(member)
+	sync_unit({
+		"id": "p%d" % index,
+		"hp": int(member["hp"]),
+		"max_hp": int(stats["max_hp"]),
+		"mp": int(member["mp"]),
+		"max_mp": int(stats["max_mp"]),
+	})
 
 
-func _button_is_passive(button: Button) -> bool:
-	for child in button.get_children():
-		if child is ColorRect and (child as ColorRect).color.is_equal_approx(Color("52288a")):
-			return true
-	return false
+func push_party_vitals() -> void:
+	for index in GameState.party.size():
+		push_vitals(index)
+
+
+func bar_fill_width(unit_id: String) -> float:
+	return _pool_fill_width(unit_id, "hp_fill")
+
+
+func mp_bar_fill_width(unit_id: String) -> float:
+	return _pool_fill_width(unit_id, "mp_fill")
+
+
+func _pool_fill_width(unit_id: String, key: String) -> float:
+	if not _bars.has(unit_id):
+		return -1.0
+	var info: Dictionary = _bars[unit_id]
+	if not info.has(key):
+		return -1.0
+	var clip: Control = info[key]["clip"]
+	return clip.size.x
+
+
+func show_level_panel(member_index: int) -> void:
+	close_level_panel()
+	if member_index < 0 or member_index >= GameState.party.size():
+		return
+	var member: Dictionary = GameState.party[member_index]
+	var skills: Array = []
+	for skill_id in ContentDB.class_def(str(member["class_id"])).get("skills", []):
+		skills.append(ContentDB.skill(str(skill_id)))
+	var options := LevelRules.offers(member, skills)
+	var root := Control.new()
+	root.name = "LevelPanel"
+	root.mouse_filter = Control.MOUSE_FILTER_STOP
+	root.position = Vector2.ZERO
+	root.size = Layout.viewport_size()
+	add_child(root)
+	var veil := ColorRect.new()
+	veil.color = Color(0.08, 0.05, 0.03, 0.72)
+	veil.mouse_filter = Control.MOUSE_FILTER_STOP
+	veil.position = Vector2.ZERO
+	veil.size = root.size
+	root.add_child(veil)
+	var sheet := Panel.new()
+	sheet.name = "Sheet"
+	var plate := StyleBoxFlat.new()
+	plate.bg_color = Color("e8d6b0")
+	plate.border_color = Color("5a4028")
+	plate.set_border_width_all(2)
+	plate.set_content_margin_all(6)
+	sheet.add_theme_stylebox_override("panel", plate)
+	sheet.position = Vector2(8, 78)
+	sheet.size = Vector2(254, 360)
+	sheet.mouse_filter = Control.MOUSE_FILTER_STOP
+	root.add_child(sheet)
+	var text_w := 222.0
+	var persona := ContentDB.persona(str(member["persona"]))["name"]
+	var title := Widgets.wrapped_label("%s reaches level %d" % [persona, int(member["level"])], text_w, Layout.font_size(), SpriteCatalog.INK)
+	var hint := Widgets.wrapped_label("Choose one. The road waits.", text_w, Layout.font_tiny(), SpriteCatalog.INK)
+	var y := 8.0
+	_place_block(sheet, title, Vector2(12, y), text_w)
+	y += title.size.y + 4.0
+	_place_block(sheet, hint, Vector2(12, y), text_w)
+	y += hint.size.y + 8.0
+	for option in options:
+		var card := Panel.new()
+		var card_box := StyleBoxFlat.new()
+		card_box.bg_color = Color("f3e6c8")
+		card_box.border_color = Color("5a4028")
+		card_box.set_border_width_all(1)
+		card.add_theme_stylebox_override("panel", card_box)
+		card.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var heading := Widgets.wrapped_label(str(option.get("title", "")), text_w, Layout.font_size(), SpriteCatalog.INK)
+		var detail := Widgets.wrapped_label(str(option.get("detail", "")), text_w, Layout.font_tiny(), SpriteCatalog.INK)
+		var inner_y := 6.0
+		_place_block(card, heading, Vector2(8, inner_y), text_w)
+		inner_y += heading.size.y + 4.0
+		_place_block(card, detail, Vector2(8, inner_y), text_w)
+		inner_y += detail.size.y + 6.0
+		var button := Widgets.make_button("Take", Vector2(text_w, 44))
+		button.name = "Level_%s" % str(option.get("id", ""))
+		button.position = Vector2(8, inner_y)
+		button.size = Vector2(text_w, 44)
+		var option_id := str(option.get("id", ""))
+		button.pressed.connect(_emit_action.bind("level:%s" % option_id))
+		card.add_child(button)
+		inner_y += 44.0 + 6.0
+		card.position = Vector2(8, y)
+		card.size = Vector2(238, inner_y)
+		sheet.add_child(card)
+		y += inner_y + 6.0
+	var sheet_h := minf(y + 8.0, 464.0)
+	sheet.position = Vector2(8, maxf(8.0, (480.0 - sheet_h) * 0.5))
+	sheet.size = Vector2(254, sheet_h)
+	move_child(root, get_child_count() - 1)
+
+
+func _place_block(parent: Control, node: Control, at: Vector2, width: float) -> void:
+	var height := maxf(node.custom_minimum_size.y, node.size.y)
+	node.position = at
+	node.size = Vector2(width, height)
+	node.size_flags_horizontal = Control.SIZE_FILL
+	parent.add_child(node)
+
+
+func close_level_panel() -> void:
+	var panel := get_node_or_null("LevelPanel")
+	if panel and is_instance_valid(panel):
+		panel.queue_free()
+
+
+func resolve_level_ups() -> void:
+	if _level_open:
+		return
+	if GameState.peek_level() < 0:
+		return
+	_level_open = true
+	while GameState.peek_level() >= 0:
+		var index := GameState.peek_level()
+		show_level_panel(index)
+		var picked := ""
+		while picked == "":
+			var action := await action_pressed
+			if not str(action).begins_with("level:"):
+				continue
+			if GameState.commit_level(str(action).trim_prefix("level:")) == "":
+				picked = str(action)
+				push_vitals(index)
+		close_level_panel()
+		await get_tree().process_frame
+	_level_open = false
 
 
 func _scroll_chevron() -> TextureRect:

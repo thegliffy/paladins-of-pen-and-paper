@@ -17,6 +17,7 @@ var board_salt := 1
 var hops := 0
 var campaign_started := false
 var in_battle := false
+var level_queue: Array = []
 var battle_lock: Dictionary = {}
 
 
@@ -40,6 +41,7 @@ func new_campaign(members: Array) -> void:
 	lineups = {}
 	in_battle = false
 	battle_lock = {}
+	level_queue = []
 	campaign_started = true
 	reset_quests()
 	settle_quests(false, [])
@@ -58,6 +60,7 @@ func make_member(persona_id: String, race_id: String, class_id: String, look: Di
 		"mp": 1,
 		"skill_ranks": {},
 		"skill_points_spent": 0,
+		"growth": LevelRules.blank(),
 	}
 	for skill_id in ContentDB.class_def(class_id)["skills"]:
 		member["skill_ranks"][str(skill_id)] = 1
@@ -78,12 +81,15 @@ func combat_stats(member: Dictionary) -> Dictionary:
 		int(race["body"]), int(race["senses"]), int(race["mind"])
 	)
 	var bonus := Formulas.sum_bonus(_worn_items(member))
-	stats["body"] += int(bonus["body"])
-	stats["senses"] += int(bonus["senses"])
-	stats["mind"] += int(bonus["mind"])
+	var growth := LevelRules.read(member)
+	stats["body"] += int(bonus["body"]) + int(growth["body"])
+	stats["senses"] += int(bonus["senses"]) + int(growth["senses"])
+	stats["mind"] += int(bonus["mind"]) + int(growth["mind"])
 	var level := int(member["level"])
 	var max_hp := Formulas.max_hp(level, stats["body"], stats["mind"]) + int(bonus["max_hp"])
 	var max_mp := Formulas.max_energy(level, stats["body"], stats["mind"]) + int(race.get("energy", 0)) + int(bonus["max_mp"])
+	max_hp = maxi(1, int(round(float(max_hp) * (1.0 + float(growth["hp_pct"])))))
+	max_mp = maxi(1, int(round(float(max_mp) * (1.0 + float(growth["mp_pct"])))))
 	return {
 		"body": stats["body"],
 		"senses": stats["senses"],
@@ -96,8 +102,8 @@ func combat_stats(member: Dictionary) -> Dictionary:
 		"spell_bonus": float(persona.get("spell_bonus", 0.0)) + float(bonus["spell_bonus"]),
 		"travel_bonus": int(persona.get("travel_bonus", 0)),
 		"skill_points": int(race.get("skill_points", 0)),
-		"crit": float(bonus["crit"]),
-		"gear_threat": int(bonus["threat"]),
+		"crit": float(bonus["crit"]) + float(growth["crit"]),
+		"gear_threat": int(bonus["threat"]) + int(growth["threat"]),
 	}
 
 
@@ -131,15 +137,51 @@ func spend_point(member: Dictionary, skill_id: String) -> bool:
 func apply_xp(member: Dictionary, amount: int) -> bool:
 	var before := combat_stats(member)
 	member["xp"] = int(member["xp"]) + amount
-	var leveled := false
+	var gained := 0
 	while int(member["xp"]) >= Formulas.xp_to_next(int(member["level"])):
 		member["xp"] = int(member["xp"]) - Formulas.xp_to_next(int(member["level"]))
 		member["level"] = int(member["level"]) + 1
-		leveled = true
+		gained += 1
 	var after := combat_stats(member)
-	member["hp"] = mini(after["max_hp"], int(member["hp"]) + maxi(0, after["max_hp"] - before["max_hp"]))
-	member["mp"] = mini(after["max_mp"], int(member["mp"]) + maxi(0, after["max_mp"] - before["max_mp"]))
-	return leveled
+	_fit_pools(member, before, after)
+	if gained > 0:
+		level_queue = LevelRules.enqueue(level_queue, _member_index(member), gained)
+	return gained > 0
+
+
+func peek_level() -> int:
+	if level_queue.is_empty():
+		return -1
+	var index := int(level_queue[0])
+	if index < 0 or index >= party.size():
+		level_queue.pop_front()
+		return peek_level()
+	return index
+
+
+func commit_level(option_id: String) -> String:
+	var index := peek_level()
+	if index < 0:
+		return "none"
+	var member: Dictionary = party[index]
+	var skills: Array = []
+	for skill_id in ContentDB.class_def(str(member["class_id"])).get("skills", []):
+		skills.append(ContentDB.skill(str(skill_id)))
+	var before := combat_stats(member)
+	var result := LevelRules.commit(level_queue, member, skills, option_id)
+	if not bool(result.get("ok", false)):
+		return str(result.get("reason", "choice"))
+	level_queue = result["queue"]
+	_fit_pools(member, before, combat_stats(member))
+	save_game()
+	return ""
+
+
+func _member_index(member: Dictionary) -> int:
+	for index in party.size():
+		if str(party[index].get("persona", "")) == str(member.get("persona", "")):
+			return index
+	return 0
 
 
 func party_levels() -> Array:
@@ -630,6 +672,9 @@ func load_game() -> bool:
 	party = []
 	for raw in data.get("party", []):
 		party.append(_normalize_member(raw))
+	level_queue = []
+	for pending in data.get("level_queue", []):
+		level_queue.append(int(pending))
 	campaign_started = not party.is_empty()
 	in_battle = false
 	battle_lock = {}
@@ -658,6 +703,7 @@ func _normalize_member(raw: Dictionary) -> Dictionary:
 		"skill_ranks": {},
 		"skill_points_spent": int(raw.get("skill_points_spent", 0)),
 		"gear": _pack_gear(Formulas.normalize_gear(raw.get("gear", {}))),
+		"growth": LevelRules.normalize(raw.get("growth", {})),
 	}
 	var ranks: Dictionary = raw.get("skill_ranks", {})
 	for skill_id in ranks.keys():
@@ -676,6 +722,7 @@ func _capture() -> Dictionary:
 		"quest_state": _quest_state(),
 		"hops": hops,
 		"lineups": lineups.duplicate(true),
+		"level_queue": level_queue.duplicate(),
 	}
 
 
@@ -752,12 +799,8 @@ func _bag_give(bag: Dictionary, item_id: String, count: int = 1) -> bool:
 
 
 func _fit_pools(member: Dictionary, before: Dictionary, after: Dictionary) -> void:
-	if int(member.get("hp", 0)) > 0:
-		var hp := int(member["hp"]) + maxi(0, int(after["max_hp"]) - int(before["max_hp"]))
-		member["hp"] = clampi(hp, 1, int(after["max_hp"]))
-	if int(after["max_mp"]) >= 0:
-		var mp := int(member.get("mp", 0)) + maxi(0, int(after["max_mp"]) - int(before["max_mp"]))
-		member["mp"] = clampi(mp, 0, int(after["max_mp"]))
+	member["hp"] = Formulas.fit_pool(int(member.get("hp", 0)), int(before.get("max_hp", 0)), int(after.get("max_hp", 0)), false)
+	member["mp"] = Formulas.fit_pool(int(member.get("mp", 0)), int(before.get("max_mp", 0)), int(after.get("max_mp", 0)), true)
 
 
 func _write(data: Dictionary) -> void:

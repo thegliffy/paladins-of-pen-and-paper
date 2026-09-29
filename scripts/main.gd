@@ -22,6 +22,10 @@ func _ready() -> void:
 		await _shots()
 		get_tree().quit()
 		return
+	if OS.get_cmdline_user_args().has("--v036-shots"):
+		await _v036_shots()
+		get_tree().quit()
+		return
 	_show_title()
 
 
@@ -493,6 +497,7 @@ func _shots() -> void:
 	])
 	await _capture("cave")
 	await _capture_towns(session)
+	await _capture_v036(session)
 	GameState.place_id = "millpond"
 	session.stage_battle_preview()
 	var flow := BattleFlow.new()
@@ -500,6 +505,52 @@ func _shots() -> void:
 	session.add_child(flow)
 	var elapsed := await flow.measure_visible_attack()
 	print("BASIC_ATTACK_MS %d" % elapsed)
+
+
+func _v036_shots() -> void:
+	_seed_party()
+	var session := SessionScreen.new()
+	await _swap(session)
+	await _capture_v036(session)
+
+
+func _capture_v036(session: SessionScreen) -> void:
+	var party: Array = GameState.party.duplicate(true)
+	var queue: Array = GameState.level_queue.duplicate()
+	var gold := GameState.gold
+	var bag: Dictionary = GameState.inventory.duplicate()
+	var place := GameState.place_id
+	GameState.level_queue.clear()
+	GameState.place_id = "candlewick"
+	session.show_hub()
+	await _capture("hub_bar_v036")
+	var member: Dictionary = GameState.party[0]
+	member["xp"] = 0
+	GameState.apply_xp(member, Formulas.xp_to_next(int(member["level"])))
+	session.show_level_panel(0)
+	await _capture("level_choice_v036")
+	session.close_level_panel()
+	GameState.party = party.duplicate(true)
+	GameState.level_queue.clear()
+	GameState.inventory = bag.duplicate()
+	GameState.gold = gold
+	GameState.place_id = "millpond"
+	GameState.give_item("bread_charm", 1)
+	GameState.equip_item(0, "bread_charm", "trinket")
+	session._sync_party()
+	session.present_units([
+		{"id": "m0", "side": "monster", "kind": "puddleblob", "hp": 20, "max_hp": 20, "mp": 0, "max_mp": 1, "back_row": false},
+	])
+	session.show_member_bar(0, {}, "", {})
+	session.push_party_vitals()
+	await _capture("combat_hp_v036")
+	GameState.party = party
+	GameState.level_queue = queue
+	GameState.inventory = bag
+	GameState.gold = gold
+	GameState.place_id = place
+	session._sync_party()
+	session.show_hub()
 
 
 func _capture_towns(session: SessionScreen) -> void:
