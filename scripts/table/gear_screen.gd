@@ -323,7 +323,8 @@ func _build_detail() -> void:
 	var equip := Widgets.make_button("Equip", Vector2(70, 28))
 	equip.name = "Equip"
 	equip.position = Vector2(16, 430)
-	equip.disabled = str(item.get("slot", "")) == "usable"
+	var quest_item := str(item.get("slot", "")) == "quest"
+	equip.disabled = quest_item or str(item.get("slot", "")) == "usable"
 	equip.pressed.connect(_equip)
 	add_child(equip)
 	var use := Widgets.make_button("Use", Vector2(60, 28))
@@ -335,6 +336,7 @@ func _build_detail() -> void:
 	var sell := Widgets.make_button("Sell", Vector2(60, 28))
 	sell.name = "Sell"
 	sell.position = Vector2(158, 430)
+	sell.disabled = quest_item
 	sell.pressed.connect(_sell)
 	add_child(sell)
 

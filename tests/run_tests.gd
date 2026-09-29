@@ -28,6 +28,7 @@ func _init() -> void:
 	_test_place_rosters()
 	_test_gear()
 	_test_seat_gear()
+	_test_quests()
 	print("Tests: %d passed, %d failed" % [passed, failed])
 	quit(1 if failed else 0)
 
@@ -986,16 +987,21 @@ func _test_gear() -> void:
 	eq(Formulas.pick_loot(catalog, "trinket", 1, 0), "ring", "uniques stay out of the trinket table")
 	eq(Formulas.pick_loot(catalog, "usable", 1, 0), "potion", "usables come from the usable table")
 	var rows: Array = JSON.parse_string(FileAccess.get_file_as_string("res://data/items.json"))
-	check(rows.size() >= 36 and rows.size() <= 42, "about 30 to 40 items")
 	var by_id := {}
-	var slots := {"weapon": 0, "off": 0, "armor": 0, "trinket": 0, "usable": 0}
+	var slots := {"weapon": 0, "off": 0, "armor": 0, "trinket": 0, "usable": 0, "quest": 0}
 	var rarities := {"common": 0, "rare": 0, "legendary": 0, "unique": 0}
+	var gear_items := 0
 	for row in rows:
 		by_id[str(row["id"])] = row
 		check(str(row.get("name", "")) != "", str(row["id"]) + " has a name")
 		check(str(row.get("icon", "")) != "", str(row["id"]) + " names an icon")
-		slots[str(row["slot"])] = int(slots.get(str(row["slot"]), 0)) + 1
+		var slot_name := str(row["slot"])
+		slots[slot_name] = int(slots.get(slot_name, 0)) + 1
 		rarities[str(row["rarity"])] = int(rarities.get(str(row["rarity"]), 0)) + 1
+		if slot_name != "quest":
+			gear_items += 1
+	check(gear_items >= 36 and gear_items <= 42, "about 30 to 40 gear items")
+	check(int(slots["quest"]) >= 8, "quest tokens for the board")
 	check(int(slots["weapon"]) >= 8, "weapons for the classes")
 	check(int(slots["armor"]) >= 4, "armor tiers")
 	check(int(slots["trinket"]) >= 4, "trinkets")
@@ -1182,3 +1188,108 @@ func _gear_pixel_matches(base: Image, seated: Image, want: Image, other: Image) 
 			if seated.get_pixel(x, y) != painted:
 				return false
 	return found
+
+
+func _test_quests() -> void:
+	var data: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/quests.json"))
+	var story: Array = QuestRules.steps(data)
+	var rows: Array = QuestRules.board(data)
+	check(story.size() >= 8 and story.size() <= 12, "story is 8 to 12 steps")
+	eq(str(data["rules"]["refresh"]).find("Accepting"), 0, "the board rerolls a slot when a quest is accepted")
+	var first := {}
+	for i in story.size():
+		var place := str(story[i].get("place", ""))
+		if not first.has(place):
+			first[place] = i
+	check(int(first["candlewick"]) < int(first["millpond"]), "Candlewick comes before the meadow")
+	check(int(first["millpond"]) < int(first["briar_cross"]), "the meadow comes before Briar Cross")
+	check(int(first["briar_cross"]) < int(first["lantern_reach"]), "Briar Cross comes before the coast")
+	check(int(first["lantern_reach"]) < int(first["howling_cleft"]), "the coast comes before the cave")
+	check(int(first["howling_cleft"]) < int(first["gravel_keep"]), "the cave comes before the keep")
+	eq(str(story[story.size() - 1].get("place", "")), "gravel_keep", "the chain ends at Gravel Keep")
+	var toad := QuestRules.find_row(story, "the_wide_toad")
+	eq(QuestRules.story_drop_item(toad, "millpond", ["grinmud_toad"]), "reed_tongue", "the toad leaves its tongue")
+	eq(QuestRules.story_drop_item(toad, "millpond", ["puddleblob"]), "", "a different monster does not leave the tongue")
+	var done: Array = []
+	var inventory := {}
+	for _guard in story.size() + 2:
+		var step := QuestRules.current_step(story, done)
+		if step.is_empty():
+			break
+		var place := str(step.get("place", ""))
+		var kind := str(step.get("type", ""))
+		var won := kind == "fight" or kind == "boss"
+		var killed: Array = []
+		if kind == "boss":
+			killed = [str(step.get("monster", ""))]
+		var drop := QuestRules.story_drop_item(step, place, killed)
+		if drop != "":
+			inventory[drop] = int(inventory.get(drop, 0)) + 1
+		if kind == "deliver":
+			inventory[str(step.get("item", ""))] = int(inventory.get(str(step.get("item", "")), 0)) + 1
+		check(not QuestRules.step_ready(step, "gravel_keep" if place != "gravel_keep" else "candlewick", won, killed, inventory), str(step["id"]) + " ignores the wrong place")
+		var before := done.size()
+		var result: Dictionary = QuestRules.advance(story, done, place, won, killed, inventory)
+		done = result["done"]
+		eq(done.size(), before + 1, str(step["id"]) + " unlocks the next step")
+		for taken in QuestRules.reward_takes(result["completed"]):
+			inventory[str(taken)] = int(inventory.get(str(taken), 1)) - 1
+	eq(done.size(), story.size(), "the story chain finishes")
+	var early: Array = QuestRules.revealed_places(story, [str(story[0]["id"])])
+	check(early.has("millpond"), "the first step reveals Millpond")
+	check(not early.has("gravel_keep"), "the keep stays unrevealed at the start")
+	var regions: Array = QuestRules.unlocked_regions(early)
+	check(regions.has("meadow") and not regions.has("coast") and not regions.has("keep"), "only the meadow board is open")
+	check(not QuestRules.blocks_travel("gravel_keep", []), "story does not hard-lock a road")
+	var meadow := QuestRules.fill_offers(rows, ["meadow"], [], 1)
+	eq(meadow.size(), 3, "the board posts three notices")
+	for offer in meadow:
+		var quest := QuestRules.find_row(rows, str(offer))
+		eq(str(quest.get("region", "")), "meadow", "early notices stay in the meadow")
+	var quiet := QuestRules.fill_offers(rows, [], [], 1)
+	eq(quiet, ["", "", ""], "a locked board posts nothing")
+	var active: Array = []
+	var salt := 1
+	var offers: Array = meadow.duplicate()
+	for _slot in 3:
+		var taken: Dictionary = QuestRules.accept(offers, 0, active, rows, ["meadow"], salt)
+		check(bool(taken["ok"]), "a board notice can be accepted")
+		offers = taken["offers"]
+		active = taken["active"]
+		salt = int(taken["salt"])
+	eq(active.size(), 3, "three grind quests can be active")
+	var blocked: Dictionary = QuestRules.accept(offers, 0, active, rows, ["meadow", "coast", "cave", "keep"], salt)
+	check(not bool(blocked["ok"]), "a fourth grind quest is refused")
+	eq(str(blocked["reason"]), "cap", "the cap is three active quests")
+	var kill_quest: Dictionary = {}
+	var collect_quest: Dictionary = {}
+	for row in rows:
+		if str(row.get("region", "")) != "meadow":
+			continue
+		if str(row.get("kind", "")) == "kill" and kill_quest.is_empty():
+			kill_quest = row
+		if str(row.get("kind", "")) == "collect" and collect_quest.is_empty():
+			collect_quest = row
+	var grind: Array = [{"id": str(kill_quest["id"]), "progress": 0}, {"id": str(collect_quest["id"]), "progress": 0}]
+	var kill_lines := QuestRules.note_kill(grind, rows, str(kill_quest["monster"]))
+	eq(int(grind[0]["progress"]), 1, "a kill advances that monster's quest")
+	eq(str(kill_lines[0]), QuestRules.progress_line(kill_quest, 1), "kill progress reads as a counter")
+	eq(QuestRules.note_kill(grind, rows, "cobble_rat").size(), 0, "another monster does not tick the quest")
+	eq(QuestRules.collect_drop(grind, rows, str(collect_quest["monster"]), 0.0), str(collect_quest["item"]), "an active quest can drop its token")
+	eq(QuestRules.collect_drop(grind, rows, str(collect_quest["monster"]), QuestRules.DROP_CHANCE), "", "the drop rate is strict")
+	eq(QuestRules.collect_drop([], rows, str(collect_quest["monster"]), 0.0), "", "tokens do not drop while the quest is inactive")
+	var toast := QuestRules.bump_collect(grind, str(collect_quest["item"]), rows)
+	eq(toast, "%s 1/%d" % [str(collect_quest["item_name"]), int(collect_quest["count"])], "a drop toasts the counter")
+	eq(int(grind[1]["progress"]), 1, "the drop advances the collect quest")
+	var early_turn: Dictionary = QuestRules.turn_in(grind, rows, str(collect_quest["id"]))
+	check(not bool(early_turn["ok"]), "a short collect quest cannot be turned in")
+	grind[1]["progress"] = int(collect_quest["count"])
+	var paid: Dictionary = QuestRules.turn_in(grind, rows, str(collect_quest["id"]))
+	check(bool(paid["ok"]), "a finished collect quest turns in")
+	eq(int(paid["quest"]["gold"]), int(collect_quest["gold"]), "turn-in pays the posted gold")
+	eq(int(paid["quest"]["xp"]), int(collect_quest["xp"]), "turn-in pays the posted xp")
+	eq(QuestRules.turn_in_takes(paid["quest"]), int(collect_quest["count"]), "turn-in consumes the tokens")
+	check(paid["active"].size() == 1, "turn-in clears that quest")
+	var packed := QuestRules.pack_state({"story_done": done, "offers": offers, "active": grind, "salt": salt})
+	var restored := QuestRules.unpack_state(packed)
+	eq(JSON.stringify(QuestRules.pack_state(restored)), JSON.stringify(packed), "quest state survives a save round trip")

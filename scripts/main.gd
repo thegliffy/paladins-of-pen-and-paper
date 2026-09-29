@@ -63,6 +63,7 @@ func _continue() -> void:
 
 
 func _open_hub(banner: bool) -> void:
+	GameState.settle_quests(false, [])
 	var session := SessionScreen.new()
 	await _swap(session)
 	session.action_pressed.connect(_on_hub_action)
@@ -122,6 +123,7 @@ func _open_map() -> void:
 
 
 func _on_arrived(place_id: String, ambush: bool) -> void:
+	GameState.settle_quests(false, [])
 	if ambush:
 		var span := Formulas.travel_p(int(ContentDB.place(place_id)["level"]), GameState.party_average())
 		var difficulty := float(randi_range(1, 5)) / 10.0
@@ -440,6 +442,26 @@ func _shots() -> void:
 	gear._rebuild()
 	await _capture("shop")
 	gear.free()
+	GameState.place_id = "candlewick"
+	GameState.settle_quests(false, [])
+	if GameState.board_active.is_empty():
+		GameState.accept_board(0)
+	if not GameState.board_active.is_empty():
+		var posted: Dictionary = ContentDB.board_quest(str(GameState.board_active[0].get("id", "")))
+		GameState.board_active[0]["progress"] = mini(3, int(posted.get("count", 3)))
+	var qlog := QuestScreen.new()
+	qlog.setup("log")
+	session.add_child(qlog)
+	qlog.set_anchors_preset(Control.PRESET_FULL_RECT)
+	await _capture("quest_log")
+	qlog.setup("board")
+	await _capture("quest_board")
+	qlog.queue_free()
+	var qmap := MapScreen.new()
+	session.add_child(qmap)
+	qmap.set_anchors_preset(Control.PRESET_FULL_RECT)
+	await _capture("quest_map")
+	qmap.queue_free()
 	GameState.place_id = "briar_cross"
 	GameState.remember_lineup("briar_cross", {"cinder_mite": 2, "briar_hound": 1, "thicket_imp": 1})
 	var builder := BattleBuilder.new()

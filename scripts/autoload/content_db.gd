@@ -10,7 +10,7 @@ var classes := {}
 var skills := {}
 var monsters := {}
 var items := {}
-var quests: Array = []
+var quest_book := {}
 var region := {}
 var places := {}
 var edges: Array = []
@@ -27,11 +27,11 @@ func _ready() -> void:
 	_index("res://data/monsters.json", monsters)
 	_index("res://data/items.json", items)
 	var quest_raw: Variant = _read("res://data/quests.json")
-	if quest_raw is Array:
-		quests = quest_raw
+	if quest_raw is Dictionary:
+		quest_book = quest_raw
 	else:
 		push_error("ContentDB quests.json did not load")
-		quests = []
+		quest_book = {}
 	var region_raw: Variant = _read("res://data/region.json")
 	if region_raw is Dictionary:
 		region = Formulas.active_region(region_raw)
@@ -156,8 +156,20 @@ func action_def(id: String) -> Dictionary:
 	return actions.get(id, {})
 
 
+func story_steps() -> Array:
+	return quest_book.get("story", [])
+
+
+func board_quests() -> Array:
+	return quest_book.get("board", [])
+
+
+func board_quest(id: String) -> Dictionary:
+	return QuestRules.find_row(board_quests(), id)
+
+
 func quest(id: String) -> Dictionary:
-	for row in quests:
-		if str(row["id"]) == id:
-			return row
-	return {}
+	var story := QuestRules.find_row(story_steps(), id)
+	if not story.is_empty():
+		return story
+	return board_quest(id)

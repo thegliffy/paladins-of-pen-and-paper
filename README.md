@@ -78,18 +78,18 @@ Native 270×480 captures of the production art:
 [`export_presets.cfg`](export_presets.cfg) has a debug Android preset locked to portrait (`screen/orientation=1`) and arm64-v8a, plus a Linux preset. The project setting `display/window/handheld/orientation` is portrait.
 
 ```bash
-godot --headless --export-debug Android build/paladins-0.3.1-debug.apk
+godot --headless --export-debug Android build/paladins-0.3.2-debug.apk
 ```
 
 The export needs the Godot 4.7.2 Android templates (installed into `android/build`, which is gitignored), a `.build_version` of `4.7.2.stable`, Android SDK 36, build-tools 36.1.0, NDK 29.0.14206865, and a JDK. The project enables ETC2/ASTC import, which the Android exporter requires. Non-resource files (`*.json`, `*.md`) are in the preset include filter. Art is loaded with `load()` / `ResourceLoader`, not `FileAccess.file_exists` on the raw PNG.
 
-The published debug APK is [v0.3.1](https://github.com/thegliffy/paladins-of-pen-and-paper/releases/tag/v0.3.1): [paladins-0.3.1-debug.apk](https://github.com/thegliffy/paladins-of-pen-and-paper/releases/download/v0.3.1/paladins-0.3.1-debug.apk). It is arm64-v8a, portrait, package `com.thegliffy.paladinspenpaper`, version code 13. v0.3.1 swaps in the weapon-less class layer whenever a main-hand weapon is worn, so paladin, druid, wizard, barbarian, bard, and ranger do not draw a second weapon. Cleric and rogue keep their normal layers. v0.3.0 uses the approved item icons and seats gear in the paper-doll recipe: armor under the hair, weapons over the hat, and the chair last. v0.2.9 paints each place's combat backdrop and fills the meadow, coast, cave, and keep with their own monsters. v0.2.8 adds the shared bag, hero equipment, town shop, class starting kits, and monster drops. v0.2.7 applies a direct heal the moment it is cast, gives each place its own monster table, and names a combat backdrop per place. v0.2.6 sizes the fight: five regular foes or three large ones, with mixed lineups spending a shared table of 15 space. v0.2.5 taps an enemy to attack, aims single-target skills by tapping the table, and opens a fight builder. v0.2.4, v0.2.3, v0.2.2, v0.2.1, v0.2.0, and v0.1.0 are left as-is.
+The published debug APK is [v0.3.2](https://github.com/thegliffy/paladins-of-pen-and-paper/releases/tag/v0.3.2): [paladins-0.3.2-debug.apk](https://github.com/thegliffy/paladins-of-pen-and-paper/releases/download/v0.3.2/paladins-0.3.2-debug.apk). It is arm64-v8a, portrait, package `com.thegliffy.paladinspenpaper`, version code 14. v0.3.2 adds a story chain from Candlewick to Gravel Keep and a Candlewick notice board of repeatable kill and drop quests. Accepting a notice rerolls that slot. v0.3.1 swaps in the weapon-less class layer whenever a main-hand weapon is worn, so paladin, druid, wizard, barbarian, bard, and ranger do not draw a second weapon. Cleric and rogue keep their normal layers. v0.3.0 uses the approved item icons and seats gear in the paper-doll recipe: armor under the hair, weapons over the hat, and the chair last. v0.2.9 paints each place's combat backdrop and fills the meadow, coast, cave, and keep with their own monsters. v0.2.8 adds the shared bag, hero equipment, town shop, class starting kits, and monster drops. v0.2.7 applies a direct heal the moment it is cast, gives each place its own monster table, and names a combat backdrop per place. v0.2.6 sizes the fight: five regular foes or three large ones, with mixed lineups spending a shared table of 15 space. v0.2.5 taps an enemy to attack, aims single-target skills by tapping the table, and opens a fight builder. v0.2.4, v0.2.3, v0.2.2, v0.2.1, v0.2.0, and v0.1.0 are left as-is.
 
 ## Where numbers live
 
 | Data | File |
 | --- | --- |
-| Personas, races, classes, skills, monsters, items, the quest | `data/*.json` |
+| Personas, races, classes, skills, monsters, items, story and board quests | `data/*.json` |
 | Class roles, passives, and the threat raffle | [`docs/CLASSES.md`](docs/CLASSES.md), [`docs/DESIGN.md`](docs/DESIGN.md) |
 | Threat coefficients | [`data/threat.json`](data/threat.json) |
 | Places, roads, levels | `data/region.json` |

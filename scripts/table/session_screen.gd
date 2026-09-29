@@ -944,10 +944,18 @@ func open_party() -> void:
 
 
 func open_quest() -> void:
-	var quest: Dictionary = ContentDB.quest("reed_trouble")
-	var done := GameState.quests_done.has("reed_trouble")
-	var body := "%s\n\n%s\n\n%s" % [quest.get("name", "Quest"), quest.get("description", ""), "Done." if done else "Still open."]
-	_open_text_modal("Quest", body, [])
+	if get_node_or_null("QuestScreen"):
+		return
+	_close_modal()
+	var log := QuestScreen.new()
+	log.setup("log")
+	add_child(log)
+	log.closed.connect(func():
+		if is_instance_valid(log):
+			log.queue_free()
+		if is_instance_valid(self):
+			show_hub()
+	)
 
 
 func sync_unit(unit: Dictionary) -> void:

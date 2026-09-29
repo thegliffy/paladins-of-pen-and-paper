@@ -17,6 +17,7 @@ var _places: Control
 var _select_mark: ColorRect
 var _pawn: TextureRect
 var _info: Label
+var _story: Label
 var _travel_button: Button
 var _stop_button: Button
 var _back_button: Button
@@ -53,8 +54,13 @@ func _build() -> void:
 	var gold := Widgets.label("", Layout.font_small(), SpriteCatalog.INK)
 	gold.name = "Gold"
 	Layout.place(gold, top)
-	gold.size.x = top.size.x - 64
+	gold.size.x = top.size.x - 116
 	add_child(gold)
+	var log := Widgets.make_button("Log", Vector2(44, 22))
+	log.name = "Quests"
+	log.position = Vector2(top.position.x + top.size.x - 108, top.position.y + 3)
+	log.pressed.connect(_open_log)
+	add_child(log)
 	var bag := Widgets.make_button("Bag", Vector2(56, 22))
 	bag.name = "Bag"
 	bag.position = Vector2(top.position.x + top.size.x - 60, top.position.y + 3)
@@ -89,6 +95,18 @@ func _build() -> void:
 	var controls := Widgets.panel()
 	Layout.place(controls, Layout.rect("map", "controls"))
 	add_child(controls)
+	var story_back := ColorRect.new()
+	story_back.color = SpriteCatalog.CREAM
+	story_back.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	story_back.position = Vector2(0, view_rect.position.y + view_rect.size.y - 16)
+	story_back.size = Vector2(270, 16)
+	add_child(story_back)
+	_story = Widgets.label("", Layout.font_tiny(), SpriteCatalog.INK)
+	_story.name = "StoryTrack"
+	_story.position = story_back.position + Vector2(4, 0)
+	_story.size = Vector2(262, 16)
+	_story.clip_text = true
+	add_child(_story)
 	_info = Widgets.label("Pick a place.", Layout.font_tiny())
 	Widgets.enable_wrap(_info)
 	var info_rect := Layout.rect("map", "info")
@@ -433,6 +451,7 @@ func _sync_select_mark() -> void:
 func _refresh_hud() -> void:
 	_sync_select_mark()
 	_refresh_gold()
+	_refresh_story()
 	if _selected == "":
 		_info.text = "Tap a place.\nTap again to walk."
 		_travel_button.disabled = true
@@ -451,6 +470,29 @@ func _refresh_hud() -> void:
 	_info.text = Widgets.place_blurb(place, hops, cost, false)
 	_travel_button.disabled = hops <= 0
 	_travel_button.text = "Travel %d" % cost
+
+
+func _refresh_story() -> void:
+	if _story:
+		_story.text = GameState.story_tracker()
+	if _places == null:
+		return
+	var focus := GameState.story_focus_place()
+	for child in _places.get_children():
+		if child is CanvasItem:
+			(child as CanvasItem).modulate = Color(1, 0.82, 0.35) if str(child.name) == focus else Color.WHITE
+
+
+func _open_log() -> void:
+	if _traveling:
+		return
+	var log := QuestScreen.new()
+	log.setup("log")
+	add_child(log)
+	await log.closed
+	if is_instance_valid(log):
+		log.queue_free()
+	_refresh_hud()
 
 
 func _refresh_gold() -> void:
@@ -479,6 +521,9 @@ func _set_travel_buttons(traveling: bool) -> void:
 	var bag := get_node_or_null("Bag")
 	if bag:
 		bag.visible = not traveling
+	var log := get_node_or_null("Quests")
+	if log:
+		log.visible = not traveling
 
 
 func _place_pos(id: String) -> Vector2:

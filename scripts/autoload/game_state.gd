@@ -10,6 +10,10 @@ var lineups := {}
 var party: Array = []
 var inventory := {"tonic": 3, "vial": 2}
 var quests_done: Array = []
+var story_done: Array = []
+var board_offers: Array = ["", "", ""]
+var board_active: Array = []
+var board_salt := 1
 var hops := 0
 var campaign_started := false
 var in_battle := false
@@ -37,6 +41,8 @@ func new_campaign(members: Array) -> void:
 	in_battle = false
 	battle_lock = {}
 	campaign_started = true
+	reset_quests()
+	settle_quests(false, [])
 	save_game()
 
 
@@ -330,6 +336,194 @@ func disarm_battle() -> void:
 	save_game()
 
 
+func reset_quests() -> void:
+	var state := QuestRules.empty_state()
+	_apply_quest_state(state)
+	_refill_offers()
+
+
+func story_step() -> Dictionary:
+	return QuestRules.current_step(ContentDB.story_steps(), story_done)
+
+
+func story_focus_place() -> String:
+	return QuestRules.focus_place(story_step())
+
+
+func story_tracker() -> String:
+	return QuestRules.tracker_line(story_step())
+
+
+func story_reward_line(step: Dictionary) -> String:
+	var parts: PackedStringArray = []
+	var xp := int(step.get("xp", 0))
+	var pay := int(step.get("gold", 0))
+	if xp > 0:
+		parts.append("%d xp" % xp)
+	if pay > 0:
+		parts.append("%d gold" % pay)
+	var reward := str(step.get("reward", ""))
+	if reward != "" and ContentDB.items.has(reward):
+		parts.append(str(ContentDB.item(reward).get("name", reward)))
+	if parts.is_empty():
+		return "No reward."
+	return "Reward: %s." % ", ".join(parts)
+
+
+func active_lines() -> PackedStringArray:
+	var lines := PackedStringArray()
+	for row in board_active:
+		var quest := ContentDB.board_quest(str(row.get("id", "")))
+		if quest.is_empty():
+			continue
+		lines.append(QuestRules.progress_line(quest, int(row.get("progress", 0))))
+	return lines
+
+
+func accept_board(slot: int) -> bool:
+	var result := QuestRules.accept(board_offers, slot, board_active, ContentDB.board_quests(), _quest_regions(), board_salt)
+	if not bool(result.get("ok", false)):
+		return false
+	board_offers = result["offers"]
+	board_active = result["active"]
+	board_salt = int(result["salt"])
+	save_game()
+	return true
+
+
+func abandon_board(quest_id: String) -> void:
+	var quest := ContentDB.board_quest(quest_id)
+	var progress := 0
+	for row in board_active:
+		if str(row.get("id", "")) == quest_id:
+			progress = int(row.get("progress", 0))
+	board_active = QuestRules.abandon(board_active, quest_id)
+	var take := mini(progress, QuestRules.turn_in_takes(quest))
+	if take > 0:
+		_take_many(str(quest.get("item", "")), take)
+	save_game()
+
+
+func turn_in_board(quest_id: String) -> bool:
+	var result := QuestRules.turn_in(board_active, ContentDB.board_quests(), quest_id)
+	if not bool(result.get("ok", false)):
+		return false
+	var quest: Dictionary = result["quest"]
+	board_active = result["active"]
+	var take := QuestRules.turn_in_takes(quest)
+	if take > 0:
+		_take_many(str(quest.get("item", "")), take)
+	_grant_quest_reward(quest)
+	save_game()
+	return true
+
+
+func settle_quests(won: bool, killed: Array) -> PackedStringArray:
+	var notes := PackedStringArray()
+	if party.is_empty():
+		return notes
+	var story: Array = ContentDB.story_steps()
+	var rows: Array = ContentDB.board_quests()
+	var step := QuestRules.current_step(story, story_done)
+	var drop := QuestRules.story_drop_item(step, place_id, killed)
+	if drop != "" and int(inventory.get(drop, 0)) <= 0 and give_item(drop, 1):
+		notes.append("Found %s." % str(ContentDB.item(drop).get("name", drop)))
+	for monster_id in killed:
+		var kind := str(monster_id)
+		for line in QuestRules.note_kill(board_active, rows, kind):
+			notes.append(line)
+		var item_id := QuestRules.collect_drop(board_active, rows, kind, randf())
+		if item_id == "":
+			continue
+		if not give_item(item_id, 1):
+			notes.append("The bag is full.")
+			continue
+		var line := QuestRules.bump_collect(board_active, item_id, rows)
+		if line != "":
+			notes.append(line)
+	var result := QuestRules.advance(story, story_done, place_id, won, killed, inventory)
+	story_done = result["done"]
+	for finished in result.get("completed", []):
+		for item_id in QuestRules.reward_takes([finished]):
+			take_item(str(item_id))
+		_grant_quest_reward(finished)
+		notes.append("%s is done. +%d gold." % [str(finished.get("name", "Quest")), int(finished.get("gold", 0))])
+	if not result.get("completed", []).is_empty():
+		_refill_offers()
+	quests_done = story_done.duplicate()
+	if campaign_started:
+		save_game()
+	return notes
+
+
+func _quest_regions() -> Array:
+	return QuestRules.unlocked_regions(QuestRules.revealed_places(ContentDB.story_steps(), story_done))
+
+
+func _refill_offers() -> void:
+	var blocked: Array = []
+	for row in board_active:
+		blocked.append(str(row.get("id", "")))
+	for offer in board_offers:
+		if str(offer) != "":
+			blocked.append(str(offer))
+	var fresh := QuestRules.fill_offers(ContentDB.board_quests(), _quest_regions(), [], board_salt)
+	var next: Array = []
+	for slot in QuestRules.BOARD_SLOTS:
+		var current := str(board_offers[slot]) if slot < board_offers.size() else ""
+		if current != "" and ContentDB.board_quest(current).is_empty() == false and _quest_regions().has(str(ContentDB.board_quest(current).get("region", ""))):
+			next.append(current)
+			continue
+		var replacement := ""
+		for candidate in fresh:
+			if str(candidate) != "" and not blocked.has(str(candidate)) and not next.has(str(candidate)):
+				replacement = str(candidate)
+				blocked.append(replacement)
+				break
+		next.append(replacement)
+	board_offers = next
+
+
+func _grant_quest_reward(quest: Dictionary) -> void:
+	gold += int(quest.get("gold", 0))
+	var reward := str(quest.get("reward", ""))
+	if reward != "":
+		give_item(reward, 1)
+	var amount := int(quest.get("xp", 0))
+	if amount <= 0:
+		return
+	var living: Array = living_members()
+	if living.is_empty():
+		living = party
+	var share := int(amount / maxi(1, living.size()))
+	var rem := amount % maxi(1, living.size())
+	for i in living.size():
+		apply_xp(living[i], share + (1 if i < rem else 0))
+
+
+func _take_many(item_id: String, count: int) -> void:
+	for _i in count:
+		if not take_item(item_id):
+			return
+
+
+func _apply_quest_state(state: Dictionary) -> void:
+	story_done = state.get("story_done", [])
+	board_offers = state.get("offers", ["", "", ""])
+	board_active = state.get("active", [])
+	board_salt = int(state.get("salt", 1))
+	quests_done = story_done.duplicate()
+
+
+func _quest_state() -> Dictionary:
+	return QuestRules.pack_state({
+		"story_done": story_done,
+		"offers": board_offers,
+		"active": board_active,
+		"salt": board_salt,
+	})
+
+
 func save_game() -> void:
 	if not campaign_started:
 		return
@@ -360,6 +554,11 @@ func load_game() -> bool:
 	quests_done = []
 	for quest_id in data.get("quests_done", []):
 		quests_done.append(str(quest_id))
+	var seed_quests := not data.has("quest_state")
+	if seed_quests:
+		_apply_quest_state(QuestRules.empty_state())
+	else:
+		_apply_quest_state(QuestRules.unpack_state(data.get("quest_state", {})))
 	inventory = {}
 	var raw_items: Dictionary = data.get("inventory", {})
 	for item_id in raw_items.keys():
@@ -370,6 +569,8 @@ func load_game() -> bool:
 	campaign_started = not party.is_empty()
 	in_battle = false
 	battle_lock = {}
+	if seed_quests and campaign_started:
+		settle_quests(false, [])
 	return campaign_started
 
 
@@ -407,7 +608,8 @@ func _capture() -> Dictionary:
 		"place_id": place_id,
 		"party": party.duplicate(true),
 		"inventory": inventory.duplicate(true),
-		"quests_done": quests_done.duplicate(),
+		"quests_done": story_done.duplicate(),
+		"quest_state": _quest_state(),
 		"hops": hops,
 		"lineups": lineups.duplicate(true),
 	}

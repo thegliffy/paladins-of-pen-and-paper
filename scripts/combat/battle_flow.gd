@@ -995,15 +995,14 @@ func _grant_victory() -> void:
 			var drop_id := Formulas.pick_loot(ContentDB.item_rows(), str(category), int(unit["level"]), rng.randi())
 			_keep_drop(drop_id, found)
 		_keep_drop(Formulas.unique_drop(str(monster.get("unique", "")), bool(unit.get("boss", false)), rng.randf()), found)
+	var killed: Array = []
+	for unit in units:
+		if str(unit.get("side", "")) == "monster":
+			killed.append(str(unit.get("kind", "")))
+	var quest_lines := GameState.settle_quests(true, killed)
 	var quest_note := ""
-	if GameState.place_id == "millpond" and not GameState.quests_done.has("reed_trouble"):
-		var quest: Dictionary = ContentDB.quest("reed_trouble")
-		GameState.quests_done.append("reed_trouble")
-		GameState.gold += int(quest.get("gold", 0))
-		for unit in living:
-			if str(unit.get("side", "")) == "player":
-				GameState.apply_xp(GameState.party[int(unit["member_index"])], int(quest.get("xp", 0)) / maxi(1, living.size()))
-		quest_note = "\nReed Trouble is settled. +%d gold." % int(quest.get("gold", 0))
+	if not quest_lines.is_empty():
+		quest_note = "\n" + "\n".join(quest_lines)
 	if leveled:
 		Sfx.play("level")
 	else:
