@@ -95,16 +95,23 @@ func _build() -> void:
 	var controls := Widgets.panel()
 	Layout.place(controls, Layout.rect("map", "controls"))
 	add_child(controls)
-	var story_back := ColorRect.new()
-	story_back.color = SpriteCatalog.CREAM
+	var story_back := Panel.new()
+	story_back.name = "StoryBar"
+	var story_box := StyleBoxFlat.new()
+	story_box.bg_color = SpriteCatalog.CREAM
+	story_box.set_content_margin_all(0)
+	story_back.add_theme_stylebox_override("panel", story_box)
 	story_back.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	story_back.clip_contents = true
 	story_back.position = Vector2(0, view_rect.position.y + view_rect.size.y - 16)
 	story_back.size = Vector2(270, 16)
 	add_child(story_back)
 	_story = Widgets.label("", Layout.font_tiny(), SpriteCatalog.INK)
 	_story.name = "StoryTrack"
-	Widgets.place_wrapped(_story, story_back.position + Vector2(4, 0), Vector2(262, 16))
-	add_child(_story)
+	Widgets.enable_wrap(_story)
+	_story.position = Vector2(4, 0)
+	_story.size = Vector2(262, 16)
+	story_back.add_child(_story)
 	_info = Widgets.label("Pick a place.", Layout.font_tiny())
 	Widgets.enable_wrap(_info)
 	var info_rect := Layout.rect("map", "info")
@@ -487,6 +494,7 @@ func _open_log() -> void:
 	var log := QuestScreen.new()
 	log.setup("log")
 	add_child(log)
+	log.move_to_front()
 	await log.closed
 	if is_instance_valid(log):
 		log.queue_free()

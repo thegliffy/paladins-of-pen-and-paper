@@ -219,16 +219,27 @@ func set_actions(entries: Array) -> void:
 	var gap := 3.0
 	var count := entries.size()
 	var width := (bar.size.x - 4.0 - gap * float(count - 1)) / float(count)
+	var height := bar.size.y - 8.0
+	var labels := PackedStringArray()
+	var want_icon := false
+	for entry in entries:
+		labels.append(str(entry["label"]))
+		if str(entry.get("icon", "")) != "":
+			want_icon = true
+	var fit: Dictionary = Widgets.action_row_fit(labels, width, height, want_icon)
+	var icon_width := int(fit["icon_width"])
 	var x := 2.0
 	for entry in entries:
-		var button := Widgets.make_button(str(entry["label"]), Vector2(width, bar.size.y - 8.0))
+		var button := Widgets.make_button(str(entry["label"]), Vector2(width, height))
 		button.position = Vector2(x, 4)
-		button.size = Vector2(width, bar.size.y - 8.0)
+		button.size = Vector2(width, height)
+		button.add_theme_font_size_override("font_size", int(fit["font_size"]))
+		button.add_theme_constant_override("h_separation", int(fit["gap"]))
 		var icon_name := str(entry.get("icon", ""))
-		if icon_name != "" and Pack.exists("res://art/ui/%s.png" % icon_name):
+		if icon_width > 0 and icon_name != "" and Pack.exists("res://art/ui/%s.png" % icon_name):
 			button.icon = SpriteCatalog.ui(icon_name)
 			button.expand_icon = true
-			button.add_theme_constant_override("icon_max_width", 16)
+			button.add_theme_constant_override("icon_max_width", icon_width)
 		button.disabled = bool(entry.get("disabled", false))
 		button.pressed.connect(_emit_action.bind(str(entry["id"])))
 		_actions.add_child(button)
@@ -948,6 +959,7 @@ func open_quest() -> void:
 	var log := QuestScreen.new()
 	log.setup("log")
 	add_child(log)
+	log.move_to_front()
 	log.closed.connect(func():
 		if is_instance_valid(log):
 			log.queue_free()
@@ -1040,9 +1052,11 @@ func _build_chrome() -> void:
 	rail.add_theme_stylebox_override("panel", ArtPack.nine_slice("ui/panel_dark.png", 6, 6, 6, 6))
 	_initiative.add_child(rail)
 	_banner = Widgets.label("", Layout.font_small())
+	Widgets.enable_wrap(_banner)
 	Layout.place(_banner, Layout.rect("hub", "banner"))
 	add_child(_banner)
 	_caption = Widgets.label("", Layout.font_tiny(), SpriteCatalog.LIGHT)
+	Widgets.enable_wrap(_caption)
 	var caption_rect := Layout.rect("combat", "caption")
 	Layout.place(_caption, caption_rect)
 	_caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER

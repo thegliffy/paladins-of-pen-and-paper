@@ -683,6 +683,7 @@ func _test_wrapped_labels() -> void:
 		check(wrapped.x <= info.size.x + 0.01, str(place["id"]) + " description stays inside the panel")
 		check(wrapped.y <= info.size.y + 0.01, str(place["id"]) + " description wraps inside the panel")
 	_test_quest_text_fit(font_size)
+	_test_hub_text_fit()
 
 
 func _test_quest_text_fit(font_size: int) -> void:
@@ -723,6 +724,34 @@ func _test_quest_text_fit(font_size: int) -> void:
 	sample.free()
 	var victory := "XP 40, split across the table.\nGold +45. Purse 515.\nCrab Shell 2/5\nGrin in the Reeds is done. +45 gold."
 	_fit_text(victory, 230, 120, tiny, "victory toast")
+
+
+func _test_hub_text_fit() -> void:
+	var caption := Layout.rect("combat", "caption")
+	var banner := Layout.rect("hub", "banner")
+	var tiny := Layout.font_tiny()
+	var small := Layout.font_small()
+	var region: Dictionary = _region()
+	for place in region["places"]:
+		_fit_text(str(place["description"]), caption.size.x, caption.size.y, tiny, str(place["id"]) + " hub caption")
+		_fit_text("%s   %d gold" % [str(place["name"]), 9999], banner.size.x, banner.size.y, small, str(place["id"]) + " hub banner")
+	var bar := Layout.rect("combat", "action_bar")
+	var gap := 3.0
+	var width := (bar.size.x - 4.0 - gap * 4.0) / 5.0
+	var height := bar.size.y - 8.0
+	var labels := PackedStringArray(["Travel", "Fight", "Rest", "Quest", "Gear"])
+	var fit: Dictionary = Widgets.action_row_fit(labels, width, height, true)
+	var font: Font = Widgets.ui_font()
+	var font_size := int(fit["font_size"])
+	var icon_w := int(fit["icon_width"])
+	var extra := 0.0 if icon_w == 0 else float(icon_w) + float(fit["gap"])
+	check(font_size >= 12, "hub buttons stay readable")
+	for label in labels:
+		var text_w := font.get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x
+		check(text_w + extra + float(fit["side"]) <= width + 0.01, "%s fits on the hub button" % label)
+	var back: Dictionary = Widgets.action_row_fit(PackedStringArray(["Back"]), bar.size.x - 4.0, height, false)
+	var back_w := font.get_string_size("Back", HORIZONTAL_ALIGNMENT_LEFT, -1, int(back["font_size"])).x
+	check(back_w + float(back["side"]) <= bar.size.x - 4.0 + 0.01, "Back fits on the action bar")
 
 
 func _fit_text(text: String, width: float, height: float, font_size: int, label: String) -> void:

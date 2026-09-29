@@ -175,6 +175,51 @@ static func place_wrapped(node: Label, at: Vector2, box: Vector2) -> void:
 	node.size = box
 
 
+static func wrapped_label(text: String, width: float, font_size: int, color: Color = SpriteCatalog.INK) -> Label:
+	## Autowrap before the text is assigned, then lock the minimum to the
+	## wrapped block. The width is the panel column, not the unwrapped line.
+	var node := Label.new()
+	node.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	node.add_theme_font_size_override("font_size", font_size)
+	node.add_theme_color_override("font_color", color)
+	enable_wrap(node)
+	node.text = text
+	var block := wrap_size(text, width, font_size)
+	node.custom_minimum_size = Vector2(width, maxf(block.y, ui_font().get_height(font_size)))
+	node.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	return node
+
+
+static func action_row_fit(labels: PackedStringArray, width: float, height: float, want_icon: bool) -> Dictionary:
+	## Largest font that keeps every word inside the button. Icons stay when
+	## they fit beside the word; they drop before a label is clipped mid-word.
+	var font := ui_font()
+	var side := 8.0
+	var gap := 2.0
+	var icon_choices: Array = [16, 12] if want_icon else [0]
+	for font_size in [16, 14, 12, 10]:
+		if float(font.get_height(font_size)) > height - 6.0:
+			continue
+		for icon_w in icon_choices:
+			if _action_row_fits(font, labels, int(font_size), int(icon_w), width, side, gap):
+				return {"font_size": int(font_size), "icon_width": int(icon_w), "gap": gap, "side": side}
+	if want_icon:
+		for font_size in [16, 14, 12, 10]:
+			if float(font.get_height(font_size)) > height - 6.0:
+				continue
+			if _action_row_fits(font, labels, int(font_size), 0, width, side, gap):
+				return {"font_size": int(font_size), "icon_width": 0, "gap": gap, "side": side}
+	return {"font_size": 10, "icon_width": 0, "gap": 0.0, "side": side}
+
+
+static func _action_row_fits(font: Font, labels: PackedStringArray, font_size: int, icon_w: int, width: float, side: float, gap: float) -> bool:
+	var widest := 0.0
+	for label in labels:
+		widest = maxf(widest, font.get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x)
+	var extra := 0.0 if icon_w == 0 else float(icon_w) + gap
+	return widest + extra + side <= width + 0.01
+
+
 static func inspect_card_height(description: String, width: float) -> float:
 	var block := wrap_size(description, width - 28.0, Layout.font_size())
 	return maxf(100.0, 62.0 + block.y + 22.0)

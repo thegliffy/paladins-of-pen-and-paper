@@ -24,6 +24,7 @@ static func run(host: Node) -> int:
 	await _builder(host, tree, failures)
 	await _builder_space(host, tree, failures)
 	await _row_fit(host, tree, failures)
+	await _quest_panel(host, tree, failures)
 	if failures.is_empty():
 		print("TOUCH_CHECK_OK")
 		return 0
@@ -1016,3 +1017,217 @@ static func _collect_buttons(node: Node, into: Array[Button]) -> void:
 		into.append(node)
 	for child in node.get_children():
 		_collect_buttons(child, into)
+
+
+static func _quest_panel(host: Node, tree: SceneTree, failures: Array[String]) -> void:
+	GameState.new_campaign([_hero("mason", "delver", "paladin")])
+	GameState.place_id = "candlewick"
+	var session := SessionScreen.new()
+	await _mount(host, tree, session)
+	session.show_hub()
+	host.set("screen", session)
+	host.set("_busy", false)
+	var hub_action := Callable(host, "_on_hub_action")
+	if not session.action_pressed.is_connected(hub_action):
+		session.action_pressed.connect(hub_action)
+	await tree.process_frame
+	_assert_hub_buttons(session, failures)
+	if session._caption.autowrap_mode == TextServer.AUTOWRAP_OFF:
+		failures.append("hub_caption_wrap")
+	var quest := _find_button(session, "Quest")
+	if quest == null:
+		failures.append("quest_button")
+		session.queue_free()
+		return
+	await _tap(tree, quest.get_global_rect().get_center())
+	await _assert_quest_sheet(session, tree, failures, "hub")
+	await _tap_quest(session, tree, "Notice board")
+	await _assert_quest_sheet(session, tree, failures, "board")
+	await _tap_quest(session, tree, "Log")
+	await _assert_quest_sheet(session, tree, failures, "board_back")
+	for i in 3:
+		await _tap_quest(session, tree, "Close")
+		await tree.process_frame
+		await tree.process_frame
+		if session.get_node_or_null("QuestScreen") != null:
+			failures.append("quest_close")
+			break
+		var again := _find_button(session, "Quest")
+		if again == null:
+			failures.append("quest_reopen_button")
+			break
+		await _tap(tree, again.get_global_rect().get_center())
+		await _assert_quest_sheet(session, tree, failures, "reopen_%d" % i)
+	session.queue_free()
+	await tree.process_frame
+	var map := MapScreen.new()
+	await _mount(host, tree, map)
+	var story_bar := map.get_node_or_null("StoryBar")
+	var story_track := map.get_node_or_null("StoryBar/StoryTrack")
+	if story_bar == null or story_track == null or story_track.get_parent() != story_bar:
+		failures.append("story_track_parent")
+		push_error("Touch check: the story tracker is not parented to its parchment")
+	var log := _find_button(map, "Log")
+	if log == null:
+		failures.append("map_log_button")
+		map.queue_free()
+		return
+	await _tap(tree, log.get_global_rect().get_center())
+	await _assert_quest_sheet(map, tree, failures, "map")
+	await _tap_quest(map, tree, "Notice board")
+	await _assert_quest_sheet(map, tree, failures, "map_board")
+	await _tap_quest(map, tree, "Log")
+	await _assert_quest_sheet(map, tree, failures, "map_back")
+	await _tap_quest(map, tree, "Close")
+	await tree.process_frame
+	await tree.process_frame
+	log = _find_button(map, "Log")
+	if log == null:
+		failures.append("map_log_again")
+	else:
+		await _tap(tree, log.get_global_rect().get_center())
+		await _assert_quest_sheet(map, tree, failures, "map_reopen")
+		await _tap_quest(map, tree, "Close")
+		await tree.process_frame
+	map.queue_free()
+	await tree.process_frame
+
+
+static func _assert_hub_buttons(session: SessionScreen, failures: Array[String]) -> void:
+	var bar := Layout.rect("combat", "action_bar")
+	var gap := 3.0
+	var width := (bar.size.x - 4.0 - gap * 4.0) / 5.0
+	var labels := PackedStringArray(["Travel", "Fight", "Rest", "Quest", "Gear"])
+	var font := Widgets.ui_font()
+	for label in labels:
+		var button := _find_button(session, label)
+		if button == null:
+			failures.append("hub_label_%s" % label)
+			push_error("Touch check: hub is missing the %s button" % label)
+			continue
+		var font_size := button.get_theme_font_size("font_size")
+		var text_w := font.get_string_size(button.text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x
+		var icon_w := 0.0
+		if button.icon != null:
+			icon_w = float(button.get_theme_constant("icon_max_width")) + float(button.get_theme_constant("h_separation"))
+		var style := button.get_theme_stylebox("normal")
+		var inner := button.size.x - style.content_margin_left - style.content_margin_right
+		if text_w + icon_w > inner + 0.5:
+			failures.append("hub_clip_%s" % label)
+			push_error("Touch check: %s text %.1f icon %.1f inner %.1f" % [label, text_w, icon_w, inner])
+		if button.text != label:
+			failures.append("hub_word_%s" % label)
+	if width < 40.0:
+		failures.append("hub_button_width")
+
+
+static func _tap_quest(root: Node, tree: SceneTree, text: String) -> void:
+	var screen := root.get_node_or_null("QuestScreen")
+	if screen == null:
+		return
+	var button := _find_button(screen, text)
+	if button == null:
+		push_error("Touch check: quest screen has no %s button" % text)
+		return
+	await _tap(tree, button.get_global_rect().get_center())
+
+
+static func _assert_quest_sheet(root: Node, tree: SceneTree, failures: Array[String], tag: String) -> void:
+	await tree.process_frame
+	await RenderingServer.frame_post_draw
+	var screen := root.get_node_or_null("QuestScreen") as Control
+	if screen == null or not screen.visible:
+		failures.append("quest_screen_%s" % tag)
+		push_error("Touch check: quest screen missing on %s" % tag)
+		return
+	var view := Vector2(Layout.viewport_size())
+	if screen.size.x < view.x - 1.0 or screen.size.y < view.y - 1.0:
+		failures.append("quest_cover_%s" % tag)
+		push_error("Touch check: quest screen size %s on %s" % [screen.size, tag])
+	var sheet := screen.get_node_or_null("Sheet") as Control
+	if sheet == null or not sheet.visible or sheet.size.x < 250.0 or sheet.size.y < 400.0:
+		failures.append("quest_sheet_%s" % tag)
+		push_error("Touch check: parchment missing on %s" % tag)
+		return
+	var image := tree.root.get_viewport().get_texture().get_image()
+	var origin := sheet.get_global_rect().position
+	var sample_at := Vector2i(int(origin.x + 12), int(origin.y + sheet.size.y - 14))
+	if sample_at.x < 0 or sample_at.y < 0 or sample_at.x >= image.get_width() or sample_at.y >= image.get_height():
+		failures.append("quest_pixel_%s" % tag)
+		push_error("Touch check: parchment sample %s outside %s on %s" % [sample_at, image.get_size(), tag])
+	else:
+		var pixel := image.get_pixelv(sample_at)
+		if not _parchment(pixel):
+			failures.append("quest_parchment_%s" % tag)
+			push_error("Touch check: sheet pixel %s at %s on %s" % [pixel, sample_at, tag])
+	var labels: Array[Label] = []
+	_collect_labels(sheet, labels)
+	var seen: Array[Rect2] = []
+	var story := false
+	var posted := false
+	for label in labels:
+		if label.get_parent() == null or not _parented_to(label, sheet):
+			failures.append("quest_parent_%s" % tag)
+			push_error("Touch check: '%s' escaped the sheet on %s" % [label.text, tag])
+			return
+		if label.text == "On the board" or label.text.begins_with("The road is quiet"):
+			story = true
+		if label.text == "Posted":
+			posted = true
+		var rect := _clipped_rect(label)
+		if rect.size.x <= 0.5 or rect.size.y <= 0.5:
+			continue
+		var sheet_rect := sheet.get_global_rect().grow(1.0)
+		if not sheet_rect.encloses(rect):
+			failures.append("quest_overflow_%s" % tag)
+			push_error("Touch check: '%s' %s outside sheet %s on %s" % [label.text, rect, sheet.get_global_rect(), tag])
+		var raw := label.get_global_rect()
+		var bounds := sheet.get_global_rect()
+		if raw.position.x < bounds.position.x - 1.0 or raw.end.x > bounds.end.x + 1.0:
+			failures.append("quest_wide_%s" % tag)
+			push_error("Touch check: '%s' %s wider than the sheet %s on %s" % [label.text, raw, bounds, tag])
+		for other in seen:
+			var hit := rect.intersection(other)
+			if hit.size.x > 1.0 and hit.size.y > 1.0:
+				failures.append("quest_overlap_%s" % tag)
+				push_error("Touch check: '%s' overlaps another label on %s" % [label.text, tag])
+				break
+		seen.append(rect)
+	var wants_story := tag == "hub" or tag.begins_with("reopen") or tag == "board_back" or tag == "map" or tag == "map_back" or tag == "map_reopen"
+	var wants_board := tag == "board" or tag.ends_with("_board")
+	if wants_story and not story:
+		failures.append("quest_story_%s" % tag)
+		push_error("Touch check: story copy missing on %s" % tag)
+	if wants_board and not posted:
+		failures.append("quest_board_%s" % tag)
+		push_error("Touch check: notice board copy missing on %s" % tag)
+
+
+static func _parchment(color: Color) -> bool:
+	return color.a > 0.95 and color.r > 0.75 and color.g > 0.6 and color.b > 0.45 and color.b < color.r
+
+
+static func _parented_to(node: Node, ancestor: Node) -> bool:
+	var cursor := node.get_parent()
+	while cursor:
+		if cursor == ancestor:
+			return true
+		cursor = cursor.get_parent()
+	return false
+
+
+static func _clipped_rect(control: Control) -> Rect2:
+	var rect := control.get_global_rect()
+	var node: Node = control
+	while node:
+		if node is Control and (node as Control).clip_contents:
+			rect = rect.intersection((node as Control).get_global_rect())
+		node = node.get_parent()
+	return rect
+
+
+static func _collect_labels(node: Node, into: Array[Label]) -> void:
+	if node is Label:
+		into.append(node)
+	for child in node.get_children():
+		_collect_labels(child, into)
