@@ -1,0 +1,108 @@
+{
+  "upgrade_max": 3,
+  "gold_step": 30,
+  "tiers": {
+    "1": {"primary": "slime_gel", "secondary": "thorn_chip"},
+    "2": {"primary": "crab_shell", "secondary": "gull_feather"},
+    "3": {"primary": "bat_ear", "secondary": "bone_chip"},
+    "4": {"primary": "squire_pebble", "secondary": "helm_rivet"}
+  },
+  "recipes": [
+    {
+      "id": "gel_edge",
+      "result": "gel_edge",
+      "tier": 1,
+      "gold": 40,
+      "peer": "pocket_knife",
+      "materials": {"slime_gel": 4, "toad_wart": 1}
+    },
+    {
+      "id": "burr_cloak",
+      "result": "burr_cloak",
+      "tier": 1,
+      "gold": 35,
+      "peer": "travel_coat",
+      "materials": {"wolf_burr": 3, "thorn_chip": 2}
+    },
+    {
+      "id": "kettle_band",
+      "result": "kettle_band",
+      "tier": 1,
+      "gold": 25,
+      "peer": "bread_charm",
+      "materials": {"slime_gel": 3}
+    },
+    {
+      "id": "shell_buckler",
+      "result": "shell_buckler",
+      "tier": 2,
+      "gold": 80,
+      "peer": "oak_buckler",
+      "materials": {"crab_shell": 4, "gull_feather": 2}
+    },
+    {
+      "id": "tide_crook",
+      "result": "tide_crook",
+      "tier": 2,
+      "gold": 100,
+      "peer": "lamp_staff",
+      "materials": {"cap_spore": 3, "kelp_scale": 1}
+    },
+    {
+      "id": "gull_charm",
+      "result": "gull_charm",
+      "tier": 2,
+      "gold": 60,
+      "peer": "pond_bead",
+      "materials": {"gull_feather": 4}
+    },
+    {
+      "id": "silk_mail",
+      "result": "silk_mail",
+      "tier": 3,
+      "gold": 140,
+      "peer": "drip_mail",
+      "materials": {"grub_silk": 4, "bone_chip": 2}
+    },
+    {
+      "id": "fang_needle",
+      "result": "fang_needle",
+      "tier": 3,
+      "gold": 160,
+      "peer": "cave_shard",
+      "materials": {"fang_venom": 3, "bat_ear": 3}
+    },
+    {
+      "id": "drip_bead",
+      "result": "drip_bead",
+      "tier": 3,
+      "gold": 100,
+      "peer": "cleft_bead",
+      "materials": {"bone_chip": 3}
+    },
+    {
+      "id": "grit_axe",
+      "result": "grit_axe",
+      "tier": 4,
+      "gold": 220,
+      "peer": "cairn_axe",
+      "materials": {"golem_grit": 2, "squire_pebble": 4}
+    },
+    {
+      "id": "rivet_plate",
+      "result": "rivet_plate",
+      "tier": 4,
+      "gold": 240,
+      "peer": "cairn_plate",
+      "materials": {"helm_rivet": 3, "golem_grit": 1}
+    },
+    {
+      "id": "whisker_charm",
+      "result": "whisker_charm",
+      "tier": 4,
+      "gold": 120,
+      "peer": "march_token",
+      "materials": {"rat_whisker": 5}
+    }
+  ]
+}

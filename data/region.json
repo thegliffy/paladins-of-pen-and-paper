@@ -1,0 +1,401 @@
+{
+  "active": "greenmere",
+  "regions": [
+    {
+      "id": "greenmere",
+      "name": "Greenmere",
+      "start": "candlewick",
+      "map_size": [
+        250,
+        760
+      ],
+      "places": [
+        {
+          "id": "candlewick",
+          "name": "Candlewick",
+          "level": 1,
+          "icon": "house",
+          "x": 120,
+          "y": 310,
+          "kind": "town",
+          "has_inn": true,
+          "shop_tier": 1,
+          "description": "A hamlet of smoke and bread. The inn keeps a kettle on.",
+          "monsters": [],
+          "sprite": "village",
+          "backdrop": "combat/bg_candlewick_portrait.png"
+        },
+        {
+          "id": "millpond",
+          "name": "Millpond",
+          "level": 1,
+          "icon": "windmill",
+          "x": 60,
+          "y": 540,
+          "kind": "meadow",
+          "has_inn": false,
+          "description": "Reeds, a still pond, and things that grin from the mud.",
+          "monsters": [
+            "puddleblob",
+            "thicket_imp",
+            "cinder_mite",
+            "briar_hound",
+            "bramblet",
+            "grinmud_toad"
+          ],
+          "sprite": "windmill",
+          "backdrop": "combat/bg_millpond_portrait.png"
+        },
+        {
+          "id": "briar_cross",
+          "name": "Briar Cross",
+          "level": 2,
+          "icon": "sign",
+          "x": 180,
+          "y": 430,
+          "kind": "meadow",
+          "has_inn": false,
+          "description": "Four roads and a thorn hedge that never stays cut.",
+          "monsters": [
+            "puddleblob",
+            "thicket_imp",
+            "cinder_mite",
+            "briar_hound",
+            "bramblet",
+            "grinmud_toad"
+          ],
+          "sprite": "tavern",
+          "backdrop": "combat/bg_briar_cross_portrait.png"
+        },
+        {
+          "id": "lantern_reach",
+          "name": "Lantern Reach",
+          "level": 2,
+          "icon": "lighthouse",
+          "x": 168,
+          "y": 680,
+          "kind": "coast",
+          "has_inn": false,
+          "description": "A white tower above a blue shallows. The lamp is never cold.",
+          "monsters": [
+            "cinder_mite",
+            "briar_hound",
+            "lantern_wisp",
+            "bottlecrab",
+            "squallgull",
+            "kelpback"
+          ],
+          "sprite": "shrine",
+          "backdrop": "combat/bg_lantern_reach_portrait.png"
+        },
+        {
+          "id": "howling_cleft",
+          "name": "Howling Cleft",
+          "level": 3,
+          "icon": "cave",
+          "x": 70,
+          "y": 180,
+          "kind": "cave",
+          "has_inn": false,
+          "description": "A black mouth in the grey cliffs. Something answers if you shout.",
+          "monsters": [
+            "cave_howler",
+            "lantern_wisp",
+            "briar_hound",
+            "marshlurker",
+            "gloomgrub",
+            "dripfang"
+          ],
+          "sprite": "cave",
+          "backdrop": "combat/bg_howling_cleft_portrait.png"
+        },
+        {
+          "id": "gravel_keep",
+          "name": "Gravel Keep",
+          "level": 4,
+          "icon": "castle",
+          "x": 150,
+          "y": 70,
+          "kind": "keep",
+          "has_inn": false,
+          "description": "A squat keep with no banner. The stones walk at dusk.",
+          "monsters": [
+            "cave_howler",
+            "briar_hound",
+            "marshlurker",
+            "gravel_brute",
+            "pebble_squire",
+            "hollow_helm",
+            "cobble_rat"
+          ],
+          "sprite": "castle",
+          "backdrop": "combat/bg_gravel_keep_portrait.png"
+        },
+        {
+          "id": "brinewick",
+          "name": "Brinewick",
+          "level": 2,
+          "shop_tier": 2,
+          "icon": "house",
+          "x": 48,
+          "y": 620,
+          "kind": "town",
+          "has_inn": true,
+          "description": "Nets, salt bread, and a forge that never quite dries.",
+          "monsters": [],
+          "sprite": "village",
+          "backdrop": "combat/bg_brinewick_portrait.png"
+        },
+        {
+          "id": "ashgate",
+          "name": "Ashgate",
+          "level": 3,
+          "shop_tier": 3,
+          "icon": "house",
+          "x": 36,
+          "y": 260,
+          "kind": "town",
+          "has_inn": true,
+          "description": "A lean-to under the cliff. The kettle boils on cave wind.",
+          "monsters": [],
+          "sprite": "village",
+          "backdrop": "combat/bg_ashgate_portrait.png"
+        },
+        {
+          "id": "pebblegate",
+          "name": "Pebblegate",
+          "level": 4,
+          "shop_tier": 4,
+          "icon": "house",
+          "x": 220,
+          "y": 140,
+          "kind": "town",
+          "has_inn": true,
+          "description": "Tent stalls before the keep. The smith buys stone-drops.",
+          "monsters": [],
+          "sprite": "village",
+          "backdrop": "combat/bg_pebblegate_portrait.png"
+        }
+      ],
+      "edges": [
+        {
+          "a": "candlewick",
+          "b": "millpond",
+          "points": [
+            [
+              120,
+              310
+            ],
+            [
+              90,
+              430
+            ],
+            [
+              60,
+              540
+            ]
+          ]
+        },
+        {
+          "a": "candlewick",
+          "b": "briar_cross",
+          "points": [
+            [
+              120,
+              310
+            ],
+            [
+              150,
+              370
+            ],
+            [
+              180,
+              430
+            ]
+          ]
+        },
+        {
+          "a": "candlewick",
+          "b": "gravel_keep",
+          "points": [
+            [
+              120,
+              310
+            ],
+            [
+              140,
+              190
+            ],
+            [
+              150,
+              70
+            ]
+          ]
+        },
+        {
+          "a": "millpond",
+          "b": "briar_cross",
+          "points": [
+            [
+              60,
+              540
+            ],
+            [
+              120,
+              490
+            ],
+            [
+              180,
+              430
+            ]
+          ]
+        },
+        {
+          "a": "briar_cross",
+          "b": "lantern_reach",
+          "points": [
+            [
+              180,
+              430
+            ],
+            [
+              190,
+              560
+            ],
+            [
+              168,
+              680
+            ]
+          ]
+        },
+        {
+          "a": "briar_cross",
+          "b": "howling_cleft",
+          "points": [
+            [
+              180,
+              430
+            ],
+            [
+              120,
+              300
+            ],
+            [
+              70,
+              180
+            ]
+          ]
+        },
+        {
+          "a": "briar_cross",
+          "b": "gravel_keep",
+          "points": [
+            [
+              180,
+              430
+            ],
+            [
+              200,
+              250
+            ],
+            [
+              150,
+              70
+            ]
+          ]
+        },
+        {
+          "a": "howling_cleft",
+          "b": "gravel_keep",
+          "points": [
+            [
+              70,
+              180
+            ],
+            [
+              110,
+              110
+            ],
+            [
+              150,
+              70
+            ]
+          ]
+        },
+        {
+          "a": "briar_cross",
+          "b": "brinewick",
+          "points": [
+            [180, 430],
+            [110, 530],
+            [48, 620]
+          ]
+        },
+        {
+          "a": "brinewick",
+          "b": "lantern_reach",
+          "points": [
+            [48, 620],
+            [100, 660],
+            [168, 680]
+          ]
+        },
+        {
+          "a": "briar_cross",
+          "b": "ashgate",
+          "points": [
+            [180, 430],
+            [100, 340],
+            [36, 260]
+          ]
+        },
+        {
+          "a": "ashgate",
+          "b": "howling_cleft",
+          "points": [
+            [36, 260],
+            [50, 220],
+            [70, 180]
+          ]
+        },
+        {
+          "a": "howling_cleft",
+          "b": "pebblegate",
+          "points": [
+            [70, 180],
+            [150, 160],
+            [220, 140]
+          ]
+        },
+        {
+          "a": "pebblegate",
+          "b": "gravel_keep",
+          "points": [
+            [220, 140],
+            [190, 100],
+            [150, 70]
+          ]
+        },
+        {
+          "a": "howling_cleft",
+          "b": "lantern_reach",
+          "points": [
+            [
+              70,
+              180
+            ],
+            [
+              40,
+              420
+            ],
+            [
+              168,
+              680
+            ]
+          ]
+        }
+      ],
+      "wanderers": []
+    }
+  ]
+}

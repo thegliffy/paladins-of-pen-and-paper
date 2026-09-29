@@ -1,0 +1,44 @@
+[
+  {
+    "id": "hearthborn",
+    "name": "Hearthborn",
+    "body": 0,
+    "senses": 0,
+    "mind": 1,
+    "passive_id": "kindling",
+    "passive_name": "Kindling",
+    "passive_desc": "Starts with 1 extra skill point.",
+    "energy": 0,
+    "dr": 0,
+    "skill_points": 1,
+    "feature": "none"
+  },
+  {
+    "id": "glenfolk",
+    "name": "Glenfolk",
+    "body": 0,
+    "senses": 1,
+    "mind": 0,
+    "passive_id": "lightfoot",
+    "passive_name": "Lightfoot",
+    "passive_desc": "+400 energy.",
+    "energy": 400,
+    "dr": 0,
+    "skill_points": 0,
+    "feature": "ears"
+  },
+  {
+    "id": "delver",
+    "name": "Delver",
+    "body": 1,
+    "senses": 0,
+    "mind": 0,
+    "passive_id": "stoneblood",
+    "passive_name": "Stoneblood",
+    "passive_desc": "+40 damage reduction.",
+    "energy": 0,
+    "dr": 40,
+    "skill_points": 0,
+    "feature": "beard"
+  }
+]

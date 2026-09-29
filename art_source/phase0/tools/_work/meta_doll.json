@@ -1,0 +1,1389 @@
+{
+ "meta": {
+  "paperdoll/body_skin_1.png": {
+   "anchor": [
+    16,
+    47
+   ],
+   "canvas": [
+    32,
+    48
+   ],
+   "layer": 0,
+   "notes": "skin tone 1 (skin1), light->deep. Includes shoes."
+  },
+  "paperdoll/body_skin_2.png": {
+   "anchor": [
+    16,
+    47
+   ],
+   "canvas": [
+    32,
+    48
+   ],
+   "layer": 0,
+   "notes": "skin tone 2 (skin2), light->deep. Includes shoes."
+  },
+  "paperdoll/body_skin_3.png": {
+   "anchor": [
+    16,
+    47
+   ],
+   "canvas": [
+    32,
+    48
+   ],
+   "layer": 0,
+   "notes": "skin tone 3 (skin3), light->deep. Includes shoes."
+  },
+  "paperdoll/body_skin_4.png": {
+   "anchor": [
+    16,
+    47
+   ],
+   "canvas": [
+    32,
+    48
+   ],
+   "layer": 0,
+   "notes": "skin tone 4 (skin4), light->deep. Includes shoes."
+  },
+  "paperdoll/body_skin_5.png": {
+   "anchor": [
+    16,
+    47
+   ],
+   "canvas": [
+    32,
+    48
+   ],
+   "layer": 0,
+   "notes": "skin tone 5 (skin5), light->deep. Includes shoes."
+  },
+  "paperdoll/body_skin_6.png": {
+   "anchor": [
+    16,
+    47
+   ],
+   "canvas": [
+    32,
+    48
+   ],
+   "layer": 0,
+   "notes": "skin tone 6 (skin6), light->deep. Includes shoes."
+  },
+  "paperdoll/head_1.png": {
+   "anchor": [
+    16,
+    47
+   ],
+   "canvas": [
+    32,
+    48
+   ],
+   "layer": 3,
+   "notes": "round head drawn in REFERENCE skin (tone 3); swap skin via skin_ramps.png. "
+  },
+  "paperdoll/head_2.png": {
+   "anchor": [
+    16,
+    47
+   ],
+   "canvas": [
+    32,
+    48
+   ],
+   "layer": 3,
+   "notes": "square head drawn in REFERENCE skin (tone 3); swap skin via skin_ramps.png. "
+  },
+  "paperdoll/head_3.png": {
+   "anchor": [
+    16,
+    47
+   ],
+   "canvas": [
+    32,
+    48
+   ],
+   "layer": 3,
+   "notes": "chubby head drawn in REFERENCE skin (tone 3); swap skin via skin_ramps.png. "
+  },
+  "paperdoll/head_4.png": {
+   "anchor": [
+    16,
+    47
+   ],
+   "canvas": [
+    32,
+    48
+   ],
+   "layer": 3,
+   "notes": "freckles head drawn in REFERENCE skin (tone 3); swap skin via skin_ramps.png. "
+  },
+  "paperdoll/head_5.png": {
+   "anchor": [
+    16,
+    47
+   ],
+   "canvas": [
+    32,
+    48
+   ],
+   "layer": 3,
+   "notes": "glasses head drawn in REFERENCE skin (tone 3); swap skin via skin_ramps.png. "
+  },
+  "paperdoll/head_6.png": {
+   "anchor": [
+    16,
+    47
+   ],
+   "canvas": [
+    32,
+    48
+   ],
+   "layer": 3,
+   "notes": "beard head drawn in REFERENCE skin (tone 3); swap skin via skin_ramps.png. Beard uses the grayscale hair keys -> tint with the chosen hair ramp."
+  },
+  "paperdoll/hair_1.png": {
+   "anchor": [
+    16,
+    47
+   ],
+   "canvas": [
+    32,
+    48
+   ],
+   "layer": 4,
+   "notes": "bald; GRAYSCALE keys, tint with hair_ramps.png. (empty = bald)"
+  },
+  "paperdoll/hair_2.png": {
+   "anchor": [
+    16,
+    47
+   ],
+   "canvas": [
+    32,
+    48
+   ],
+   "layer": 4,
+   "notes": "short; GRAYSCALE keys, tint with hair_ramps.png."
+  },
+  "paperdoll/hair_3.png": {
+   "anchor": [
+    16,
+    47
+   ],
+   "canvas": [
+    32,
+    48
+   ],
+   "layer": 4,
+   "notes": "spiky; GRAYSCALE keys, tint with hair_ramps.png."
+  },
+  "paperdoll/hair_4.png": {
+   "anchor": [
+    16,
+    47
+   ],
+   "canvas": [
+    32,
+    48
+   ],
+   "layer": 4,
+   "notes": "ponytail; GRAYSCALE keys, tint with hair_ramps.png."
+  },
+  "paperdoll/hair_5.png": {
+   "anchor": [
+    16,
+    47
+   ],
+   "canvas": [
+    32,
+    48
+   ],
+   "layer": 4,
+   "notes": "long; GRAYSCALE keys, tint with hair_ramps.png."
+  },
+  "paperdoll/hair_6.png": {
+   "anchor": [
+    16,
+    47
+   ],
+   "canvas": [
+    32,
+    48
+   ],
+   "layer": 4,
+   "notes": "braids; GRAYSCALE keys, tint with hair_ramps.png."
+  },
+  "paperdoll/hair_7.png": {
+   "anchor": [
+    16,
+    47
+   ],
+   "canvas": [
+    32,
+    48
+   ],
+   "layer": 4,
+   "notes": "afro; GRAYSCALE keys, tint with hair_ramps.png."
+  },
+  "paperdoll/hair_8.png": {
+   "anchor": [
+    16,
+    47
+   ],
+   "canvas": [
+    32,
+    48
+   ],
+   "layer": 4,
+   "notes": "mohawk; GRAYSCALE keys, tint with hair_ramps.png."
+  },
+  "paperdoll/outfit_base.png": {
+   "anchor": [
+    16,
+    47
+   ],
+   "canvas": [
+    32,
+    48
+   ],
+   "layer": 1,
+   "notes": "shirt in grayscale keys (tint with outfit_ramps.png), shorts fixed brown."
+  },
+  "paperdoll/class_paladin.png": {
+   "anchor": [
+    16,
+    47
+   ],
+   "canvas": [
+    32,
+    48
+   ],
+   "layer": 2,
+   "notes": "full-colour class outfit overlay (drawn over outfit_base; may also be used without it)."
+  },
+  "paperdoll/class_paladin_hat.png": {
+   "anchor": [
+    16,
+    47
+   ],
+   "canvas": [
+    32,
+    48
+   ],
+   "layer": 5,
+   "hair_clip_y": 16,
+   "notes": "optional headgear, drawn ABOVE hair. While worn, hide hair rows y < hair_clip_y (e.g. region rect or shader)."
+  },
+  "paperdoll/class_wizard.png": {
+   "anchor": [
+    16,
+    47
+   ],
+   "canvas": [
+    32,
+    48
+   ],
+   "layer": 2,
+   "notes": "full-colour class outfit overlay (drawn over outfit_base; may also be used without it)."
+  },
+  "paperdoll/class_wizard_hat.png": {
+   "anchor": [
+    16,
+    47
+   ],
+   "canvas": [
+    32,
+    48
+   ],
+   "layer": 5,
+   "hair_clip_y": 14,
+   "notes": "optional headgear, drawn ABOVE hair. While worn, hide hair rows y < hair_clip_y (e.g. region rect or shader)."
+  },
+  "paperdoll/class_ranger.png": {
+   "anchor": [
+    16,
+    47
+   ],
+   "canvas": [
+    32,
+    48
+   ],
+   "layer": 2,
+   "notes": "full-colour class outfit overlay (drawn over outfit_base; may also be used without it)."
+  },
+  "paperdoll/class_ranger_hat.png": {
+   "anchor": [
+    16,
+    47
+   ],
+   "canvas": [
+    32,
+    48
+   ],
+   "layer": 5,
+   "hair_clip_y": 17,
+   "notes": "optional headgear, drawn ABOVE hair. While worn, hide hair rows y < hair_clip_y (e.g. region rect or shader)."
+  },
+  "paperdoll/class_bard.png": {
+   "anchor": [
+    16,
+    47
+   ],
+   "canvas": [
+    32,
+    48
+   ],
+   "layer": 2,
+   "notes": "full-colour class outfit overlay (drawn over outfit_base; may also be used without it)."
+  },
+  "paperdoll/class_bard_hat.png": {
+   "anchor": [
+    16,
+    47
+   ],
+   "canvas": [
+    32,
+    48
+   ],
+   "layer": 5,
+   "hair_clip_y": 14,
+   "notes": "optional headgear, drawn ABOVE hair. While worn, hide hair rows y < hair_clip_y (e.g. region rect or shader)."
+  },
+  "paperdoll/class_cleric.png": {
+   "anchor": [
+    16,
+    47
+   ],
+   "canvas": [
+    32,
+    48
+   ],
+   "layer": 2,
+   "notes": "full-colour class outfit overlay (drawn over outfit_base; may also be used without it)."
+  },
+  "paperdoll/class_cleric_hat.png": {
+   "anchor": [
+    16,
+    47
+   ],
+   "canvas": [
+    32,
+    48
+   ],
+   "layer": 5,
+   "hair_clip_y": 13,
+   "notes": "optional headgear, drawn ABOVE hair. While worn, hide hair rows y < hair_clip_y (e.g. region rect or shader)."
+  },
+  "paperdoll/class_rogue.png": {
+   "anchor": [
+    16,
+    47
+   ],
+   "canvas": [
+    32,
+    48
+   ],
+   "layer": 2,
+   "notes": "full-colour class outfit overlay (drawn over outfit_base; may also be used without it)."
+  },
+  "paperdoll/class_rogue_hat.png": {
+   "anchor": [
+    16,
+    47
+   ],
+   "canvas": [
+    32,
+    48
+   ],
+   "layer": 5,
+   "hair_clip_y": 17,
+   "notes": "optional headgear, drawn ABOVE hair. While worn, hide hair rows y < hair_clip_y (e.g. region rect or shader)."
+  },
+  "paperdoll/class_barbarian.png": {
+   "anchor": [
+    16,
+    47
+   ],
+   "canvas": [
+    32,
+    48
+   ],
+   "layer": 2,
+   "notes": "full-colour class outfit overlay (drawn over outfit_base; may also be used without it)."
+  },
+  "paperdoll/class_barbarian_hat.png": {
+   "anchor": [
+    16,
+    47
+   ],
+   "canvas": [
+    32,
+    48
+   ],
+   "layer": 5,
+   "hair_clip_y": 14,
+   "notes": "optional headgear, drawn ABOVE hair. While worn, hide hair rows y < hair_clip_y (e.g. region rect or shader)."
+  },
+  "paperdoll/class_druid.png": {
+   "anchor": [
+    16,
+    47
+   ],
+   "canvas": [
+    32,
+    48
+   ],
+   "layer": 2,
+   "notes": "full-colour class outfit overlay (drawn over outfit_base; may also be used without it)."
+  },
+  "paperdoll/class_druid_hat.png": {
+   "anchor": [
+    16,
+    47
+   ],
+   "canvas": [
+    32,
+    48
+   ],
+   "layer": 5,
+   "hair_clip_y": 0,
+   "notes": "optional headgear, drawn ABOVE hair. While worn, hide hair rows y < hair_clip_y (e.g. region rect or shader)."
+  },
+  "paperdoll/back/body_back_skin_1.png": {
+   "anchor": [
+    24,
+    77
+   ],
+   "canvas": [
+    48,
+    78
+   ],
+   "layer": 0,
+   "notes": "seated, seen from behind."
+  },
+  "paperdoll/back/body_back_skin_2.png": {
+   "anchor": [
+    24,
+    77
+   ],
+   "canvas": [
+    48,
+    78
+   ],
+   "layer": 0,
+   "notes": "seated, seen from behind."
+  },
+  "paperdoll/back/body_back_skin_3.png": {
+   "anchor": [
+    24,
+    77
+   ],
+   "canvas": [
+    48,
+    78
+   ],
+   "layer": 0,
+   "notes": "seated, seen from behind."
+  },
+  "paperdoll/back/body_back_skin_4.png": {
+   "anchor": [
+    24,
+    77
+   ],
+   "canvas": [
+    48,
+    78
+   ],
+   "layer": 0,
+   "notes": "seated, seen from behind."
+  },
+  "paperdoll/back/body_back_skin_5.png": {
+   "anchor": [
+    24,
+    77
+   ],
+   "canvas": [
+    48,
+    78
+   ],
+   "layer": 0,
+   "notes": "seated, seen from behind."
+  },
+  "paperdoll/back/body_back_skin_6.png": {
+   "anchor": [
+    24,
+    77
+   ],
+   "canvas": [
+    48,
+    78
+   ],
+   "layer": 0,
+   "notes": "seated, seen from behind."
+  },
+  "paperdoll/back/outfit_back.png": {
+   "anchor": [
+    24,
+    77
+   ],
+   "canvas": [
+    48,
+    78
+   ],
+   "layer": 1,
+   "notes": "grayscale shirt keys + brown shorts."
+  },
+  "paperdoll/back/hair_back_1.png": {
+   "anchor": [
+    24,
+    77
+   ],
+   "canvas": [
+    48,
+    78
+   ],
+   "layer": 3,
+   "notes": "bald (grayscale keys)."
+  },
+  "paperdoll/back/hair_back_2.png": {
+   "anchor": [
+    24,
+    77
+   ],
+   "canvas": [
+    48,
+    78
+   ],
+   "layer": 3,
+   "notes": "short (grayscale keys)."
+  },
+  "paperdoll/back/hair_back_3.png": {
+   "anchor": [
+    24,
+    77
+   ],
+   "canvas": [
+    48,
+    78
+   ],
+   "layer": 3,
+   "notes": "spiky (grayscale keys)."
+  },
+  "paperdoll/back/hair_back_4.png": {
+   "anchor": [
+    24,
+    77
+   ],
+   "canvas": [
+    48,
+    78
+   ],
+   "layer": 3,
+   "notes": "ponytail (grayscale keys)."
+  },
+  "paperdoll/back/hair_back_5.png": {
+   "anchor": [
+    24,
+    77
+   ],
+   "canvas": [
+    48,
+    78
+   ],
+   "layer": 3,
+   "notes": "long (grayscale keys)."
+  },
+  "paperdoll/back/hair_back_6.png": {
+   "anchor": [
+    24,
+    77
+   ],
+   "canvas": [
+    48,
+    78
+   ],
+   "layer": 3,
+   "notes": "braids (grayscale keys)."
+  },
+  "paperdoll/back/hair_back_7.png": {
+   "anchor": [
+    24,
+    77
+   ],
+   "canvas": [
+    48,
+    78
+   ],
+   "layer": 3,
+   "notes": "afro (grayscale keys)."
+  },
+  "paperdoll/back/hair_back_8.png": {
+   "anchor": [
+    24,
+    77
+   ],
+   "canvas": [
+    48,
+    78
+   ],
+   "layer": 3,
+   "notes": "mohawk (grayscale keys)."
+  },
+  "paperdoll/back/class_back_paladin.png": {
+   "anchor": [
+    24,
+    77
+   ],
+   "canvas": [
+    48,
+    78
+   ],
+   "layer": 2
+  },
+  "paperdoll/back/class_back_paladin_hat.png": {
+   "anchor": [
+    24,
+    77
+   ],
+   "canvas": [
+    48,
+    78
+   ],
+   "layer": 4,
+   "hair_clip_y": 33,
+   "notes": "drawn above hair_back; hide hair rows y < hair_clip_y while worn."
+  },
+  "paperdoll/back/class_back_wizard.png": {
+   "anchor": [
+    24,
+    77
+   ],
+   "canvas": [
+    48,
+    78
+   ],
+   "layer": 2
+  },
+  "paperdoll/back/class_back_wizard_hat.png": {
+   "anchor": [
+    24,
+    77
+   ],
+   "canvas": [
+    48,
+    78
+   ],
+   "layer": 4,
+   "hair_clip_y": 21,
+   "notes": "drawn above hair_back; hide hair rows y < hair_clip_y while worn."
+  },
+  "paperdoll/back/class_back_ranger.png": {
+   "anchor": [
+    24,
+    77
+   ],
+   "canvas": [
+    48,
+    78
+   ],
+   "layer": 2
+  },
+  "paperdoll/back/class_back_ranger_hat.png": {
+   "anchor": [
+    24,
+    77
+   ],
+   "canvas": [
+    48,
+    78
+   ],
+   "layer": 4,
+   "hair_clip_y": 60,
+   "notes": "drawn above hair_back; hide hair rows y < hair_clip_y while worn."
+  },
+  "paperdoll/back/class_back_bard.png": {
+   "anchor": [
+    24,
+    77
+   ],
+   "canvas": [
+    48,
+    78
+   ],
+   "layer": 2
+  },
+  "paperdoll/back/class_back_bard_hat.png": {
+   "anchor": [
+    24,
+    77
+   ],
+   "canvas": [
+    48,
+    78
+   ],
+   "layer": 4,
+   "hair_clip_y": 21,
+   "notes": "drawn above hair_back; hide hair rows y < hair_clip_y while worn."
+  },
+  "paperdoll/back/class_back_cleric.png": {
+   "anchor": [
+    24,
+    77
+   ],
+   "canvas": [
+    48,
+    78
+   ],
+   "layer": 2
+  },
+  "paperdoll/back/class_back_cleric_hat.png": {
+   "anchor": [
+    24,
+    77
+   ],
+   "canvas": [
+    48,
+    78
+   ],
+   "layer": 4,
+   "hair_clip_y": 19,
+   "notes": "drawn above hair_back; hide hair rows y < hair_clip_y while worn."
+  },
+  "paperdoll/back/class_back_rogue.png": {
+   "anchor": [
+    24,
+    77
+   ],
+   "canvas": [
+    48,
+    78
+   ],
+   "layer": 2
+  },
+  "paperdoll/back/class_back_rogue_hat.png": {
+   "anchor": [
+    24,
+    77
+   ],
+   "canvas": [
+    48,
+    78
+   ],
+   "layer": 4,
+   "hair_clip_y": 60,
+   "notes": "drawn above hair_back; hide hair rows y < hair_clip_y while worn."
+  },
+  "paperdoll/back/class_back_barbarian.png": {
+   "anchor": [
+    24,
+    77
+   ],
+   "canvas": [
+    48,
+    78
+   ],
+   "layer": 2
+  },
+  "paperdoll/back/class_back_barbarian_hat.png": {
+   "anchor": [
+    24,
+    77
+   ],
+   "canvas": [
+    48,
+    78
+   ],
+   "layer": 4,
+   "hair_clip_y": 30,
+   "notes": "drawn above hair_back; hide hair rows y < hair_clip_y while worn."
+  },
+  "paperdoll/back/class_back_druid.png": {
+   "anchor": [
+    24,
+    77
+   ],
+   "canvas": [
+    48,
+    78
+   ],
+   "layer": 2
+  },
+  "paperdoll/back/class_back_druid_hat.png": {
+   "anchor": [
+    24,
+    77
+   ],
+   "canvas": [
+    48,
+    78
+   ],
+   "layer": 4,
+   "hair_clip_y": 0,
+   "notes": "drawn above hair_back; hide hair rows y < hair_clip_y while worn."
+  },
+  "paperdoll/back/chair_back.png": {
+   "anchor": [
+    24,
+    77
+   ],
+   "canvas": [
+    48,
+    78
+   ],
+   "layer": 5,
+   "notes": "chair backrest, drawn LAST (in front of the seated body). Active seat: raise all layers 3px and add a 1px gold #f8d040 outline around the union."
+  },
+  "paperdoll/palettes/hair_ramps.png": {
+   "notes": "4x8 px. Row = colour (black,brown,blonde,ginger,white,blue,pink,green); column i replaces grayscale key i (K1 #46424e, K2 #6c6a76, K3 #9c9ca6, K4 #cfd0d4)."
+  },
+  "paperdoll/palettes/outfit_ramps.png": {
+   "notes": "3x8 px. Row = colour (white,red,blue,purple,green,yellow,brown,dark); columns replace K2,K3,K4."
+  },
+  "paperdoll/palettes/skin_ramps.png": {
+   "notes": "4x6 px. Row = tone 1..6; columns replace the reference-skin keys [blush #ec5a44, detail #8c5836, shadow #b27a4e, base #d89c72] in head_*.png (apply as ONE simultaneous lookup)."
+  },
+  "party/seat_paladin_idle.png": {
+   "anchor": [
+    24,
+    77
+   ],
+   "canvas": [
+    48,
+    78
+   ],
+   "composed_from": "paperdoll/back/* (see manifest paperdoll.seat_recipe)",
+   "defaults": {
+    "skin": 2,
+    "head": 1,
+    "hair": 2,
+    "hair_color": "brown",
+    "outfit": "white",
+    "hat": true
+   },
+   "notes": "48x78 seat built from the back-view paperdoll layers."
+  },
+  "party/seat_paladin_active.png": {
+   "anchor": [
+    24,
+    77
+   ],
+   "canvas": [
+    48,
+    78
+   ],
+   "composed_from": "paperdoll/back/* (see manifest paperdoll.seat_recipe)",
+   "defaults": {
+    "skin": 2,
+    "head": 1,
+    "hair": 2,
+    "hair_color": "brown",
+    "outfit": "white",
+    "hat": true
+   },
+   "notes": "48x78 seat built from the back-view paperdoll layers. Active: all layers raised 3px + 1px gold #f8d040 outline around the union."
+  },
+  "party/seat_wizard_idle.png": {
+   "anchor": [
+    24,
+    77
+   ],
+   "canvas": [
+    48,
+    78
+   ],
+   "composed_from": "paperdoll/back/* (see manifest paperdoll.seat_recipe)",
+   "defaults": {
+    "skin": 1,
+    "head": 5,
+    "hair": 5,
+    "hair_color": "blonde",
+    "outfit": "blue",
+    "hat": true
+   },
+   "notes": "48x78 seat built from the back-view paperdoll layers."
+  },
+  "party/seat_wizard_active.png": {
+   "anchor": [
+    24,
+    77
+   ],
+   "canvas": [
+    48,
+    78
+   ],
+   "composed_from": "paperdoll/back/* (see manifest paperdoll.seat_recipe)",
+   "defaults": {
+    "skin": 1,
+    "head": 5,
+    "hair": 5,
+    "hair_color": "blonde",
+    "outfit": "blue",
+    "hat": true
+   },
+   "notes": "48x78 seat built from the back-view paperdoll layers. Active: all layers raised 3px + 1px gold #f8d040 outline around the union."
+  },
+  "party/seat_ranger_idle.png": {
+   "anchor": [
+    24,
+    77
+   ],
+   "canvas": [
+    48,
+    78
+   ],
+   "composed_from": "paperdoll/back/* (see manifest paperdoll.seat_recipe)",
+   "defaults": {
+    "skin": 3,
+    "head": 4,
+    "hair": 4,
+    "hair_color": "ginger",
+    "outfit": "green",
+    "hat": true
+   },
+   "notes": "48x78 seat built from the back-view paperdoll layers."
+  },
+  "party/seat_ranger_active.png": {
+   "anchor": [
+    24,
+    77
+   ],
+   "canvas": [
+    48,
+    78
+   ],
+   "composed_from": "paperdoll/back/* (see manifest paperdoll.seat_recipe)",
+   "defaults": {
+    "skin": 3,
+    "head": 4,
+    "hair": 4,
+    "hair_color": "ginger",
+    "outfit": "green",
+    "hat": true
+   },
+   "notes": "48x78 seat built from the back-view paperdoll layers. Active: all layers raised 3px + 1px gold #f8d040 outline around the union."
+  },
+  "party/seat_bard_idle.png": {
+   "anchor": [
+    24,
+    77
+   ],
+   "canvas": [
+    48,
+    78
+   ],
+   "composed_from": "paperdoll/back/* (see manifest paperdoll.seat_recipe)",
+   "defaults": {
+    "skin": 5,
+    "head": 3,
+    "hair": 6,
+    "hair_color": "black",
+    "outfit": "red",
+    "hat": true
+   },
+   "notes": "48x78 seat built from the back-view paperdoll layers."
+  },
+  "party/seat_bard_active.png": {
+   "anchor": [
+    24,
+    77
+   ],
+   "canvas": [
+    48,
+    78
+   ],
+   "composed_from": "paperdoll/back/* (see manifest paperdoll.seat_recipe)",
+   "defaults": {
+    "skin": 5,
+    "head": 3,
+    "hair": 6,
+    "hair_color": "black",
+    "outfit": "red",
+    "hat": true
+   },
+   "notes": "48x78 seat built from the back-view paperdoll layers. Active: all layers raised 3px + 1px gold #f8d040 outline around the union."
+  },
+  "party/seat_cleric_idle.png": {
+   "anchor": [
+    24,
+    77
+   ],
+   "canvas": [
+    48,
+    78
+   ],
+   "composed_from": "paperdoll/back/* (see manifest paperdoll.seat_recipe)",
+   "defaults": {
+    "skin": 4,
+    "head": 6,
+    "hair": 2,
+    "hair_color": "white",
+    "outfit": "white",
+    "hat": true
+   },
+   "notes": "48x78 seat built from the back-view paperdoll layers."
+  },
+  "party/seat_cleric_active.png": {
+   "anchor": [
+    24,
+    77
+   ],
+   "canvas": [
+    48,
+    78
+   ],
+   "composed_from": "paperdoll/back/* (see manifest paperdoll.seat_recipe)",
+   "defaults": {
+    "skin": 4,
+    "head": 6,
+    "hair": 2,
+    "hair_color": "white",
+    "outfit": "white",
+    "hat": true
+   },
+   "notes": "48x78 seat built from the back-view paperdoll layers. Active: all layers raised 3px + 1px gold #f8d040 outline around the union."
+  },
+  "party/seat_rogue_idle.png": {
+   "anchor": [
+    24,
+    77
+   ],
+   "canvas": [
+    48,
+    78
+   ],
+   "composed_from": "paperdoll/back/* (see manifest paperdoll.seat_recipe)",
+   "defaults": {
+    "skin": 2,
+    "head": 2,
+    "hair": 3,
+    "hair_color": "black",
+    "outfit": "dark",
+    "hat": true
+   },
+   "notes": "48x78 seat built from the back-view paperdoll layers."
+  },
+  "party/seat_rogue_active.png": {
+   "anchor": [
+    24,
+    77
+   ],
+   "canvas": [
+    48,
+    78
+   ],
+   "composed_from": "paperdoll/back/* (see manifest paperdoll.seat_recipe)",
+   "defaults": {
+    "skin": 2,
+    "head": 2,
+    "hair": 3,
+    "hair_color": "black",
+    "outfit": "dark",
+    "hat": true
+   },
+   "notes": "48x78 seat built from the back-view paperdoll layers. Active: all layers raised 3px + 1px gold #f8d040 outline around the union."
+  },
+  "party/seat_barbarian_idle.png": {
+   "anchor": [
+    24,
+    77
+   ],
+   "canvas": [
+    48,
+    78
+   ],
+   "composed_from": "paperdoll/back/* (see manifest paperdoll.seat_recipe)",
+   "defaults": {
+    "skin": 3,
+    "head": 3,
+    "hair": 8,
+    "hair_color": "ginger",
+    "outfit": null,
+    "hat": true
+   },
+   "notes": "48x78 seat built from the back-view paperdoll layers."
+  },
+  "party/seat_barbarian_active.png": {
+   "anchor": [
+    24,
+    77
+   ],
+   "canvas": [
+    48,
+    78
+   ],
+   "composed_from": "paperdoll/back/* (see manifest paperdoll.seat_recipe)",
+   "defaults": {
+    "skin": 3,
+    "head": 3,
+    "hair": 8,
+    "hair_color": "ginger",
+    "outfit": null,
+    "hat": true
+   },
+   "notes": "48x78 seat built from the back-view paperdoll layers. Active: all layers raised 3px + 1px gold #f8d040 outline around the union."
+  },
+  "party/seat_druid_idle.png": {
+   "anchor": [
+    24,
+    77
+   ],
+   "canvas": [
+    48,
+    78
+   ],
+   "composed_from": "paperdoll/back/* (see manifest paperdoll.seat_recipe)",
+   "defaults": {
+    "skin": 6,
+    "head": 6,
+    "hair": 1,
+    "hair_color": "white",
+    "outfit": "green",
+    "hat": true
+   },
+   "notes": "48x78 seat built from the back-view paperdoll layers."
+  },
+  "party/seat_druid_active.png": {
+   "anchor": [
+    24,
+    77
+   ],
+   "canvas": [
+    48,
+    78
+   ],
+   "composed_from": "paperdoll/back/* (see manifest paperdoll.seat_recipe)",
+   "defaults": {
+    "skin": 6,
+    "head": 6,
+    "hair": 1,
+    "hair_color": "white",
+    "outfit": "green",
+    "hat": true
+   },
+   "notes": "48x78 seat built from the back-view paperdoll layers. Active: all layers raised 3px + 1px gold #f8d040 outline around the union."
+  },
+  "paperdoll/palettes/classes_check.png": {
+   "notes": "QA: all 8 classes, default front doll (top) and composed seat (bottom; paladin active)."
+  },
+  "paperdoll/palettes/hair_ramps_preview.png": {
+   "notes": "swatches + pre-tinted example per hair colour."
+  },
+  "paperdoll/palettes/outfit_ramps_preview.png": {
+   "notes": "swatches + pre-tinted example per outfit colour."
+  },
+  "paperdoll/paperdoll_preview.png": {
+   "notes": "3x nearest. 12 random front combos built from the layers + 4 seated back combos (2nd one shows the active raise + gold outline)."
+  },
+  "paperdoll/palettes/afro_back_check.png": {
+   "notes": "QA: back-view afro (hair_back_7) in all 8 hair ramps on the seated body."
+  },
+  "paperdoll/portrait_crop_examples.png": {
+   "portrait_crop_rect": [
+    6,
+    8,
+    20,
+    20
+   ],
+   "notes": "examples of the 20x20 portrait crop taken from the composed front doll."
+  }
+ },
+ "hair_ramps": {
+  "black": [
+   "outline",
+   "ink",
+   "slate",
+   "gray"
+  ],
+  "brown": [
+   "bark",
+   "wood_dk",
+   "wood",
+   "wood_lt"
+  ],
+  "blonde": [
+   "wood_lt",
+   "tan",
+   "gold",
+   "cream"
+  ],
+  "ginger": [
+   "red_dk",
+   "orange",
+   "amber",
+   "gold"
+  ],
+  "white": [
+   "gray",
+   "silver",
+   "mist",
+   "white"
+  ],
+  "blue": [
+   "navy",
+   "blue_dk",
+   "blue",
+   "sky"
+  ],
+  "pink": [
+   "red_dk",
+   "rose_dk",
+   "rose",
+   "pink"
+  ],
+  "green": [
+   "pine_dk",
+   "leaf_dk",
+   "leaf",
+   "grass"
+  ]
+ },
+ "outfit_ramps": {
+  "white": [
+   "silver",
+   "mist",
+   "white"
+  ],
+  "red": [
+   "red_dk",
+   "red",
+   "coral"
+  ],
+  "blue": [
+   "blue_dk",
+   "blue",
+   "sky"
+  ],
+  "purple": [
+   "plum_dk",
+   "plum",
+   "violet"
+  ],
+  "green": [
+   "pine",
+   "leaf_dk",
+   "leaf"
+  ],
+  "yellow": [
+   "orange",
+   "amber",
+   "gold"
+  ],
+  "brown": [
+   "wood_dk",
+   "wood",
+   "wood_lt"
+  ],
+  "dark": [
+   "ink",
+   "slate",
+   "gray"
+  ]
+ },
+ "tones": [
+  [
+   "skin1",
+   "skin2",
+   "skin3",
+   "pink"
+  ],
+  [
+   "skin2",
+   "skin3",
+   "skin4",
+   "rose"
+  ],
+  [
+   "skin3",
+   "skin4",
+   "skin5",
+   "coral"
+  ],
+  [
+   "skin4",
+   "skin5",
+   "skin6",
+   "red"
+  ],
+  [
+   "skin5",
+   "skin6",
+   "wood_dk",
+   "red_dk"
+  ],
+  [
+   "skin6",
+   "wood_dk",
+   "bark",
+   "red_dk"
+  ]
+ ],
+ "seat_defaults": {
+  "paladin": {
+   "skin": 2,
+   "head": 1,
+   "hair": 2,
+   "hair_color": "brown",
+   "outfit": "white",
+   "hat": true
+  },
+  "wizard": {
+   "skin": 1,
+   "head": 5,
+   "hair": 5,
+   "hair_color": "blonde",
+   "outfit": "blue",
+   "hat": true
+  },
+  "ranger": {
+   "skin": 3,
+   "head": 4,
+   "hair": 4,
+   "hair_color": "ginger",
+   "outfit": "green",
+   "hat": true
+  },
+  "bard": {
+   "skin": 5,
+   "head": 3,
+   "hair": 6,
+   "hair_color": "black",
+   "outfit": "red",
+   "hat": true
+  },
+  "cleric": {
+   "skin": 4,
+   "head": 6,
+   "hair": 2,
+   "hair_color": "white",
+   "outfit": "white",
+   "hat": true
+  },
+  "rogue": {
+   "skin": 2,
+   "head": 2,
+   "hair": 3,
+   "hair_color": "black",
+   "outfit": "dark",
+   "hat": true
+  },
+  "barbarian": {
+   "skin": 3,
+   "head": 3,
+   "hair": 8,
+   "hair_color": "ginger",
+   "outfit": null,
+   "hat": true
+  },
+  "druid": {
+   "skin": 6,
+   "head": 6,
+   "hair": 1,
+   "hair_color": "white",
+   "outfit": "green",
+   "hat": true
+  }
+ }
+}

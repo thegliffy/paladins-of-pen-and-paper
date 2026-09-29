@@ -1,0 +1,7 @@
+{
+  "body_per": 2,
+  "armor_per": 0.05,
+  "cover_mult": 0.5,
+  "floor": 1,
+  "debug": false
+}

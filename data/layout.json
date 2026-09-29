@@ -1,0 +1,310 @@
+{
+  "active": "portrait",
+  "portrait": {
+    "viewport": [
+      270,
+      480
+    ],
+    "font": 16,
+    "font_small": 16,
+    "font_tiny": 16,
+    "margin": 4,
+    "button_min": [
+      48,
+      44
+    ],
+    "doll_scale": 1.85,
+    "monster_front_drop": 30,
+    "monster_back_lift": 16,
+    "party_min": 1,
+    "party_max": 5,
+    "combat": {
+      "initiative": [
+        0,
+        0,
+        270,
+        30
+      ],
+      "initiative_origin": [
+        4,
+        3
+      ],
+      "initiative_step": 29,
+      "initiative_slots": 8,
+      "initiative_slot": 24,
+      "monsters": [
+        0,
+        26,
+        270,
+        104
+      ],
+      "monster_marks": [
+        [52, 262],
+        [135, 222],
+        [220, 266]
+      ],
+      "table": [
+        2,
+        343,
+        266,
+        40
+      ],
+      "gm": [
+        135,
+        351
+      ],
+      "seat_xs": [
+        27,
+        81,
+        135,
+        189,
+        243
+      ],
+      "seat_y": 418,
+      "seat_lift": 4,
+      "seat_lifted": [
+        2,
+        4
+      ],
+      "chair_bars": {
+        "offset": [
+          2,
+          66
+        ],
+        "size": [
+          44,
+          10
+        ],
+        "hp": [
+          1,
+          1,
+          42,
+          4
+        ],
+        "mp": [
+          1,
+          6,
+          42,
+          3
+        ],
+        "hp_text": [
+          1,
+          -6,
+          16,
+          7
+        ],
+        "threat": [
+          2,
+          -18,
+          44,
+          8
+        ],
+        "frame": "ui/portrait/seat_bars_frame.png",
+        "frame_active": "ui/portrait/seat_bars_frame_active.png"
+      },
+      "caption": [
+        4,
+        32,
+        262,
+        28
+      ],
+      "name_tab": [
+        4,
+        420,
+        64,
+        10
+      ],
+      "actions": [
+        0,
+        430,
+        270,
+        50
+      ],
+      "action_bar": [
+        0,
+        430,
+        270,
+        50
+      ],
+      "action_main": 32,
+      "action_small": 20,
+      "action_gap": 0,
+      "skill_card": [
+        4,
+        289,
+        224,
+        100
+      ],
+      "seat_anchor": [
+        24,
+        77
+      ],
+      "seat_canvas": [
+        48,
+        78
+      ],
+      "action_slots": {
+        "attack": [
+          4,
+          434,
+          32,
+          32
+        ],
+        "cover": [
+          37,
+          434,
+          32,
+          32
+        ],
+        "skills": [
+          [
+            75,
+            434,
+            32,
+            32
+          ],
+          [
+            108,
+            434,
+            32,
+            32
+          ],
+          [
+            141,
+            434,
+            32,
+            32
+          ],
+          [
+            174,
+            434,
+            32,
+            32
+          ],
+          [
+            207,
+            434,
+            32,
+            32
+          ]
+        ],
+        "item": [
+          245,
+          434,
+          20,
+          20
+        ],
+        "run": [
+          245,
+          456,
+          20,
+          20
+        ]
+      }
+    },
+    "map": {
+      "top_bar": [
+        0,
+        0,
+        270,
+        28
+      ],
+      "view": [
+        0,
+        28,
+        270,
+        328
+      ],
+      "controls": [
+        0,
+        356,
+        270,
+        124
+      ],
+      "info": [
+        8,
+        4,
+        254,
+        64
+      ],
+      "travel_row": [
+        6,
+        72,
+        258,
+        46
+      ],
+      "content": [
+        250,
+        760
+      ]
+    },
+    "creator": {
+      "header": [
+        0,
+        0,
+        270,
+        22
+      ],
+      "doll": [
+        0,
+        22,
+        270,
+        124
+      ],
+      "tabs": [
+        4,
+        148,
+        262,
+        30
+      ],
+      "options": [
+        4,
+        180,
+        262,
+        184
+      ],
+      "stats": [
+        4,
+        366,
+        262,
+        34
+      ],
+      "actions": [
+        4,
+        404,
+        262,
+        72
+      ]
+    },
+    "hub": {
+      "banner": [
+        4,
+        4,
+        262,
+        20
+      ]
+    },
+    "title": {
+      "block": [
+        16,
+        64,
+        238,
+        140
+      ],
+      "actions": [
+        24,
+        320,
+        222,
+        130
+      ]
+    }
+  },
+  "landscape": {
+    "ready": false,
+    "note": "Reserved for the desktop pass. Author this block, set ready to true, and set active to landscape. Screens read Layout and do not hardcode portrait coordinates.",
+    "viewport": [
+      480,
+      270
+    ]
+  }
+}

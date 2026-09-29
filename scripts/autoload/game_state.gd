@@ -1,0 +1,766 @@
+extends Node
+## Party, gold, place, inventory, and the save that survives the process being killed.
+
+const SAVE_PATH := "user://paladins_save.json"
+const START_GOLD := 500
+
+var gold := START_GOLD
+var place_id := "candlewick"
+var lineups := {}
+var party: Array = []
+var inventory := {"tonic": 3, "vial": 2}
+var quests_done: Array = []
+var story_done: Array = []
+var board_offers: Array = ["", "", ""]
+var board_active: Array = []
+var board_salt := 1
+var hops := 0
+var campaign_started := false
+var in_battle := false
+var battle_lock: Dictionary = {}
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_WM_CLOSE_REQUEST or what == NOTIFICATION_APPLICATION_PAUSED or what == NOTIFICATION_APPLICATION_FOCUS_OUT:
+		if campaign_started:
+			save_game()
+
+
+func has_save() -> bool:
+	return FileAccess.file_exists(SAVE_PATH)
+
+
+func new_campaign(members: Array) -> void:
+	gold = START_GOLD
+	place_id = str(ContentDB.region.get("start", "candlewick"))
+	party = members
+	inventory = {"tonic": 3, "vial": 2}
+	quests_done = []
+	hops = 0
+	lineups = {}
+	in_battle = false
+	battle_lock = {}
+	campaign_started = true
+	reset_quests()
+	settle_quests(false, [])
+	save_game()
+
+
+func make_member(persona_id: String, race_id: String, class_id: String, look: Dictionary) -> Dictionary:
+	var member := {
+		"persona": persona_id,
+		"race": race_id,
+		"class_id": class_id,
+		"look": look.duplicate(true),
+		"level": 1,
+		"xp": 0,
+		"hp": 1,
+		"mp": 1,
+		"skill_ranks": {},
+		"skill_points_spent": 0,
+	}
+	for skill_id in ContentDB.class_def(class_id)["skills"]:
+		member["skill_ranks"][str(skill_id)] = 1
+	member["gear"] = Formulas.kit_gear(ContentDB.class_def(class_id))
+	var stats := combat_stats(member)
+	member["hp"] = stats["max_hp"]
+	member["mp"] = stats["max_mp"]
+	return member
+
+
+func combat_stats(member: Dictionary) -> Dictionary:
+	var persona: Dictionary = ContentDB.persona(str(member["persona"]))
+	var race: Dictionary = ContentDB.race(str(member["race"]))
+	var cls: Dictionary = ContentDB.class_def(str(member["class_id"]))
+	var stats := Formulas.compose_stats(
+		int(cls["body"]), int(cls["senses"]), int(cls["mind"]),
+		int(persona["body"]), int(persona["senses"]), int(persona["mind"]),
+		int(race["body"]), int(race["senses"]), int(race["mind"])
+	)
+	var bonus := Formulas.sum_bonus(_worn_items(member))
+	stats["body"] += int(bonus["body"])
+	stats["senses"] += int(bonus["senses"])
+	stats["mind"] += int(bonus["mind"])
+	var level := int(member["level"])
+	var max_hp := Formulas.max_hp(level, stats["body"], stats["mind"]) + int(bonus["max_hp"])
+	var max_mp := Formulas.max_energy(level, stats["body"], stats["mind"]) + int(race.get("energy", 0)) + int(bonus["max_mp"])
+	return {
+		"body": stats["body"],
+		"senses": stats["senses"],
+		"mind": stats["mind"],
+		"max_hp": max_hp,
+		"max_mp": max_mp,
+		"attack": Formulas.player_attack(level, stats["body"]) + int(bonus["attack"]),
+		"dr": int(race.get("dr", 0)) + int(persona.get("dr", 0)) + int(bonus["dr"]),
+		"initiative": int(persona.get("initiative", 0)) + int(bonus["initiative"]),
+		"spell_bonus": float(persona.get("spell_bonus", 0.0)) + float(bonus["spell_bonus"]),
+		"travel_bonus": int(persona.get("travel_bonus", 0)),
+		"skill_points": int(race.get("skill_points", 0)),
+		"crit": float(bonus["crit"]),
+		"gear_threat": int(bonus["threat"]),
+	}
+
+
+func display_name(member: Dictionary) -> String:
+	return "%s the %s %s" % [
+		ContentDB.persona(str(member["persona"]))["name"],
+		ContentDB.race(str(member["race"]))["name"],
+		ContentDB.class_def(str(member["class_id"]))["name"],
+	]
+
+
+func unspent_points(member: Dictionary) -> int:
+	var stats := combat_stats(member)
+	return Formulas.total_skill_points(int(member["level"]), int(stats["skill_points"])) - int(member["skill_points_spent"])
+
+
+func spend_point(member: Dictionary, skill_id: String) -> bool:
+	if unspent_points(member) <= 0:
+		return false
+	if Formulas.is_passive(ContentDB.skill(skill_id)):
+		return false
+	var rank := int(member["skill_ranks"].get(skill_id, 1))
+	if rank >= 15:
+		return false
+	member["skill_ranks"][skill_id] = rank + 1
+	member["skill_points_spent"] = int(member["skill_points_spent"]) + 1
+	save_game()
+	return true
+
+
+func apply_xp(member: Dictionary, amount: int) -> bool:
+	var before := combat_stats(member)
+	member["xp"] = int(member["xp"]) + amount
+	var leveled := false
+	while int(member["xp"]) >= Formulas.xp_to_next(int(member["level"])):
+		member["xp"] = int(member["xp"]) - Formulas.xp_to_next(int(member["level"]))
+		member["level"] = int(member["level"]) + 1
+		leveled = true
+	var after := combat_stats(member)
+	member["hp"] = mini(after["max_hp"], int(member["hp"]) + maxi(0, after["max_hp"] - before["max_hp"]))
+	member["mp"] = mini(after["max_mp"], int(member["mp"]) + maxi(0, after["max_mp"] - before["max_mp"]))
+	return leveled
+
+
+func party_levels() -> Array:
+	var levels: Array = []
+	for member in party:
+		levels.append(int(member["level"]))
+	return levels
+
+
+func party_average() -> float:
+	return Formulas.party_average(party_levels())
+
+
+func living_members() -> Array:
+	var living: Array = []
+	for member in party:
+		if int(member["hp"]) > 0:
+			living.append(member)
+	return living
+
+
+func party_power() -> int:
+	var total := 0
+	var source: Array = living_members()
+	if source.is_empty():
+		source = party
+	for member in source:
+		total += int(combat_stats(member)["attack"])
+	return maxi(1, total)
+
+
+func travel_bonus() -> int:
+	var bonus := 0
+	for member in party:
+		bonus += int(combat_stats(member)["travel_bonus"])
+	return bonus
+
+
+func give_item(item_id: String, count: int = 1) -> bool:
+	if not ContentDB.has_item(item_id) or count <= 0:
+		return false
+	var bag := inventory.duplicate()
+	if not _bag_give(bag, item_id, count):
+		return false
+	inventory = bag
+	return true
+
+
+func equip_item(member_index: int, item_id: String, slot: String = "") -> String:
+	if member_index < 0 or member_index >= party.size():
+		return "hero"
+	if not ContentDB.has_item(item_id) or int(inventory.get(item_id, 0)) <= 0:
+		return "bag"
+	var member: Dictionary = party[member_index]
+	var item: Dictionary = ContentDB.resolve(item_id)
+	var block := Formulas.wear_block(item, ContentDB.class_def(str(member["class_id"])))
+	if block != "":
+		return block
+	var gear := Formulas.normalize_gear(member.get("gear", {}))
+	var main_hands := _hands_of(str(gear["main"]))
+	var plan: Dictionary = Formulas.equip_plan(gear, item, slot, main_hands)
+	if not bool(plan.get("ok", false)):
+		return str(plan.get("reason", "slot"))
+	var bag := inventory.duplicate()
+	if not _bag_take(bag, item_id):
+		return "bag"
+	for removed_id in plan.get("removed", []):
+		if not _bag_give(bag, str(removed_id)):
+			return "full"
+	var before := combat_stats(member)
+	inventory = bag
+	member["gear"] = plan["gear"]
+	_fit_pools(member, before, combat_stats(member))
+	save_game()
+	return ""
+
+
+func unequip_slot(member_index: int, slot: String) -> String:
+	if member_index < 0 or member_index >= party.size():
+		return "hero"
+	var member: Dictionary = party[member_index]
+	var gear := Formulas.normalize_gear(member.get("gear", {}))
+	var item_id := _slot_item(gear, slot)
+	if item_id == "":
+		return "empty"
+	var bag := inventory.duplicate()
+	if not _bag_give(bag, item_id):
+		return "full"
+	var before := combat_stats(member)
+	inventory = bag
+	_clear_slot(gear, slot)
+	member["gear"] = gear
+	_fit_pools(member, before, combat_stats(member))
+	save_game()
+	return ""
+
+
+func buy_item(item_id: String) -> String:
+	if not ContentDB.has_item(item_id):
+		return "item"
+	var item: Dictionary = ContentDB.resolve(item_id)
+	if not bool(item.get("shop", false)):
+		return "shop"
+	var price := int(item.get("price", 0))
+	if gold < price:
+		return "gold"
+	if not give_item(item_id, 1):
+		return "full"
+	gold -= price
+	save_game()
+	return ""
+
+
+func use_on(member_index: int, item_id: String) -> String:
+	if member_index < 0 or member_index >= party.size():
+		return "hero"
+	if not ContentDB.has_item(item_id):
+		return "item"
+	var item: Dictionary = ContentDB.resolve(item_id)
+	if str(item.get("slot", "")) != "usable":
+		return "slot"
+	var member: Dictionary = party[member_index]
+	if int(member.get("hp", 0)) <= 0:
+		return "down"
+	if not take_item(item_id):
+		return "bag"
+	var stats := combat_stats(member)
+	var kind := str(item.get("kind", ""))
+	var amount := int(item.get("amount", 0))
+	if kind == "heal_hp" or kind == "heal_both":
+		member["hp"] = mini(int(stats["max_hp"]), int(member["hp"]) + amount)
+	if kind == "heal_mp" or kind == "heal_both":
+		var mp_amount := amount if kind == "heal_mp" else int(item.get("mp_amount", 0))
+		member["mp"] = mini(int(stats["max_mp"]), int(member["mp"]) + mp_amount)
+	save_game()
+	return ""
+
+
+func sell_item(item_id: String) -> String:
+	if not ContentDB.has_item(item_id):
+		return "item"
+	if int(inventory.get(item_id, 0)) <= 0:
+		return "bag"
+	var item: Dictionary = ContentDB.resolve(item_id)
+	if not take_item(item_id):
+		return "bag"
+	gold += CraftRules.sell_price(int(item.get("price", 0)), int(item.get("plus", 0)))
+	save_game()
+	return ""
+
+
+func take_item(item_id: String) -> bool:
+	var have := int(inventory.get(item_id, 0))
+	if have <= 0:
+		return false
+	inventory[item_id] = have - 1
+	if int(inventory[item_id]) <= 0:
+		inventory.erase(item_id)
+	return true
+
+
+func lineup_counts(place_id_key: String, order: Array) -> Dictionary:
+	var saved: Dictionary = lineups.get(place_id_key, {})
+	var sizes := {}
+	for monster_id in order:
+		var key := str(monster_id)
+		var monster: Dictionary = ContentDB.monster(key) if ContentDB.monsters.has(key) else {}
+		sizes[key] = Formulas.monster_size_tag(monster)
+	var counts: Dictionary = Formulas.clamp_counts(order, saved, sizes)
+	var any := false
+	for monster_id in order:
+		if int(counts.get(str(monster_id), 0)) > 0:
+			any = true
+			break
+	if not any and not order.is_empty():
+		counts[str(order[0])] = 1
+	return counts
+
+
+func remember_lineup(place_id_key: String, counts: Dictionary) -> void:
+	lineups[place_id_key] = counts.duplicate()
+	if campaign_started and not in_battle:
+		save_game()
+
+
+func arm_battle() -> void:
+	battle_lock = _capture()
+	in_battle = true
+	_write(battle_lock)
+
+
+func disarm_battle() -> void:
+	in_battle = false
+	battle_lock = {}
+	save_game()
+
+
+func reset_quests() -> void:
+	var state := QuestRules.empty_state()
+	_apply_quest_state(state)
+	_refill_offers()
+
+
+func story_step() -> Dictionary:
+	return QuestRules.current_step(ContentDB.story_steps(), story_done)
+
+
+func story_focus_place() -> String:
+	return QuestRules.focus_place(story_step())
+
+
+func story_tracker() -> String:
+	return QuestRules.tracker_line(story_step())
+
+
+func story_reward_line(step: Dictionary) -> String:
+	var parts: PackedStringArray = []
+	var xp := int(step.get("xp", 0))
+	var pay := int(step.get("gold", 0))
+	if xp > 0:
+		parts.append("%d xp" % xp)
+	if pay > 0:
+		parts.append("%d gold" % pay)
+	var reward := str(step.get("reward", ""))
+	if reward != "" and ContentDB.items.has(reward):
+		parts.append(str(ContentDB.item(reward).get("name", reward)))
+	if parts.is_empty():
+		return "No reward."
+	return "Reward: %s." % ", ".join(parts)
+
+
+func active_lines() -> PackedStringArray:
+	var lines := PackedStringArray()
+	for row in board_active:
+		var quest := ContentDB.board_quest(str(row.get("id", "")))
+		if quest.is_empty():
+			continue
+		lines.append(QuestRules.progress_line(quest, int(row.get("progress", 0))))
+	return lines
+
+
+func accept_board(slot: int) -> bool:
+	var result := QuestRules.accept(board_offers, slot, board_active, ContentDB.board_quests(), _quest_regions(), board_salt)
+	if not bool(result.get("ok", false)):
+		return false
+	board_offers = result["offers"]
+	board_active = result["active"]
+	board_salt = int(result["salt"])
+	save_game()
+	return true
+
+
+func abandon_board(quest_id: String) -> void:
+	var quest := ContentDB.board_quest(quest_id)
+	var progress := 0
+	for row in board_active:
+		if str(row.get("id", "")) == quest_id:
+			progress = int(row.get("progress", 0))
+	board_active = QuestRules.abandon(board_active, quest_id)
+	var take := mini(progress, QuestRules.turn_in_takes(quest))
+	if take > 0:
+		_take_many(str(quest.get("item", "")), take)
+	save_game()
+
+
+func turn_in_board(quest_id: String) -> bool:
+	var result := QuestRules.turn_in(board_active, ContentDB.board_quests(), quest_id)
+	if not bool(result.get("ok", false)):
+		return false
+	var quest: Dictionary = result["quest"]
+	board_active = result["active"]
+	var take := QuestRules.turn_in_takes(quest)
+	if take > 0:
+		_take_many(str(quest.get("item", "")), take)
+	_grant_quest_reward(quest)
+	save_game()
+	return true
+
+
+func settle_quests(won: bool, killed: Array) -> PackedStringArray:
+	var notes := PackedStringArray()
+	if party.is_empty():
+		return notes
+	var story: Array = ContentDB.story_steps()
+	var rows: Array = ContentDB.board_quests()
+	var step := QuestRules.current_step(story, story_done)
+	var drop := QuestRules.story_drop_item(step, place_id, killed)
+	if drop != "" and int(inventory.get(drop, 0)) <= 0 and give_item(drop, 1):
+		notes.append("Found %s." % str(ContentDB.item(drop).get("name", drop)))
+	for monster_id in killed:
+		var kind := str(monster_id)
+		for line in QuestRules.note_kill(board_active, rows, kind):
+			notes.append(line)
+		var drop_roll := QuestRules.collect_result(board_active, rows, kind, randf())
+		var item_id := str(drop_roll.get("item", ""))
+		if item_id == "":
+			continue
+		if not give_item(item_id, 1):
+			notes.append("The bag is full.")
+			continue
+		if not bool(drop_roll.get("counts", false)):
+			continue
+		var line := QuestRules.bump_collect(board_active, item_id, rows)
+		if line != "":
+			notes.append(line)
+	var result := QuestRules.advance(story, story_done, place_id, won, killed, inventory)
+	story_done = result["done"]
+	for finished in result.get("completed", []):
+		for item_id in QuestRules.reward_takes([finished]):
+			take_item(str(item_id))
+		_grant_quest_reward(finished)
+		notes.append("%s is done. +%d gold." % [str(finished.get("name", "Quest")), int(finished.get("gold", 0))])
+	if not result.get("completed", []).is_empty():
+		_refill_offers()
+	quests_done = story_done.duplicate()
+	if campaign_started:
+		save_game()
+	return notes
+
+
+func revealed_places() -> Array:
+	return QuestRules.revealed_places(ContentDB.story_steps(), story_done)
+
+
+func craft_recipe(recipe_id: String) -> String:
+	var recipe := ContentDB.recipe(recipe_id)
+	if recipe.is_empty():
+		return "recipe"
+	var result_id := str(recipe.get("result", ""))
+	if not ContentDB.has_item(result_id):
+		return "item"
+	var cap := Formulas.stack_cap(ContentDB.item(result_id))
+	var paid := CraftRules.apply_craft(recipe, inventory, gold, cap)
+	if not bool(paid.get("ok", false)):
+		return str(paid.get("reason", "recipe"))
+	inventory = paid["inventory"]
+	gold = int(paid["gold"])
+	save_game()
+	return ""
+
+
+func upgrade_item(key: String) -> String:
+	if not ContentDB.has_item(key):
+		return "item"
+	var item := ContentDB.resolve(key)
+	var cap := Formulas.stack_cap(ContentDB.item(CraftRules.base_id(key)))
+	var paid := CraftRules.apply_upgrade(key, item, inventory, gold, ContentDB.tier_mats(), cap)
+	if not bool(paid.get("ok", false)):
+		return str(paid.get("reason", "bag"))
+	inventory = paid["inventory"]
+	gold = int(paid["gold"])
+	save_game()
+	return ""
+
+
+func upgrade_worn(member_index: int, slot: String) -> String:
+	if member_index < 0 or member_index >= party.size():
+		return "hero"
+	var member: Dictionary = party[member_index]
+	var gear := Formulas.normalize_gear(member.get("gear", {}))
+	var key := _slot_item(gear, slot)
+	if key == "" or not ContentDB.has_item(key):
+		return "empty"
+	if slot.begins_with("trinket:"):
+		return "slot"
+	var item := ContentDB.resolve(key)
+	var paid := CraftRules.apply_worn_upgrade(key, item, inventory, gold, ContentDB.tier_mats())
+	if not bool(paid.get("ok", false)):
+		return str(paid.get("reason", "material"))
+	inventory = paid["inventory"]
+	gold = int(paid["gold"])
+	var before := combat_stats(member)
+	gear[slot] = str(paid["key"])
+	member["gear"] = gear
+	_fit_pools(member, before, combat_stats(member))
+	save_game()
+	return ""
+
+
+func _quest_regions() -> Array:
+	return QuestRules.unlocked_regions(QuestRules.revealed_places(ContentDB.story_steps(), story_done))
+
+
+func _refill_offers() -> void:
+	var blocked: Array = []
+	for row in board_active:
+		blocked.append(str(row.get("id", "")))
+	for offer in board_offers:
+		if str(offer) != "":
+			blocked.append(str(offer))
+	var fresh := QuestRules.fill_offers(ContentDB.board_quests(), _quest_regions(), [], board_salt)
+	var next: Array = []
+	for slot in QuestRules.BOARD_SLOTS:
+		var current := str(board_offers[slot]) if slot < board_offers.size() else ""
+		if current != "" and ContentDB.board_quest(current).is_empty() == false and _quest_regions().has(str(ContentDB.board_quest(current).get("region", ""))):
+			next.append(current)
+			continue
+		var replacement := ""
+		for candidate in fresh:
+			if str(candidate) != "" and not blocked.has(str(candidate)) and not next.has(str(candidate)):
+				replacement = str(candidate)
+				blocked.append(replacement)
+				break
+		next.append(replacement)
+	board_offers = next
+
+
+func _grant_quest_reward(quest: Dictionary) -> void:
+	gold += int(quest.get("gold", 0))
+	var reward := str(quest.get("reward", ""))
+	if reward != "":
+		give_item(reward, 1)
+	var amount := int(quest.get("xp", 0))
+	if amount <= 0:
+		return
+	var living: Array = living_members()
+	if living.is_empty():
+		living = party
+	var share := int(amount / maxi(1, living.size()))
+	var rem := amount % maxi(1, living.size())
+	for i in living.size():
+		apply_xp(living[i], share + (1 if i < rem else 0))
+
+
+func _take_many(item_id: String, count: int) -> void:
+	for _i in count:
+		if not take_item(item_id):
+			return
+
+
+func _apply_quest_state(state: Dictionary) -> void:
+	story_done = state.get("story_done", [])
+	board_offers = state.get("offers", ["", "", ""])
+	board_active = state.get("active", [])
+	board_salt = int(state.get("salt", 1))
+	quests_done = story_done.duplicate()
+
+
+func _quest_state() -> Dictionary:
+	return QuestRules.pack_state({
+		"story_done": story_done,
+		"offers": board_offers,
+		"active": board_active,
+		"salt": board_salt,
+	})
+
+
+func save_game() -> void:
+	if not campaign_started:
+		return
+	if in_battle and not battle_lock.is_empty():
+		_write(battle_lock)
+	else:
+		_write(_capture())
+
+
+func load_game() -> bool:
+	if not has_save():
+		return false
+	var parsed = JSON.parse_string(FileAccess.get_file_as_string(SAVE_PATH))
+	if typeof(parsed) != TYPE_DICTIONARY:
+		return false
+	var data: Dictionary = parsed
+	gold = int(data.get("gold", START_GOLD))
+	place_id = str(data.get("place_id", "candlewick"))
+	hops = int(data.get("hops", 0))
+	lineups = {}
+	var raw_lineups: Dictionary = data.get("lineups", {})
+	for saved_place in raw_lineups.keys():
+		var counts := {}
+		var raw_counts: Dictionary = raw_lineups[saved_place]
+		for monster_id in raw_counts.keys():
+			counts[str(monster_id)] = maxi(0, int(raw_counts[monster_id]))
+		lineups[str(saved_place)] = counts
+	quests_done = []
+	for quest_id in data.get("quests_done", []):
+		quests_done.append(str(quest_id))
+	var seed_quests := not data.has("quest_state")
+	if seed_quests:
+		_apply_quest_state(QuestRules.empty_state())
+	else:
+		_apply_quest_state(QuestRules.unpack_state(data.get("quest_state", {})))
+	inventory = {}
+	var packed_bag := CraftRules.pack_bag(data.get("inventory", {}))
+	for item_id in packed_bag.keys():
+		if ContentDB.has_item(str(item_id)):
+			inventory[str(item_id)] = int(packed_bag[item_id])
+	party = []
+	for raw in data.get("party", []):
+		party.append(_normalize_member(raw))
+	campaign_started = not party.is_empty()
+	in_battle = false
+	battle_lock = {}
+	if seed_quests and campaign_started:
+		settle_quests(false, [])
+	return campaign_started
+
+
+func _normalize_member(raw: Dictionary) -> Dictionary:
+	var look: Dictionary = raw.get("look", {})
+	var member := {
+		"persona": str(raw.get("persona", "mason")),
+		"race": str(raw.get("race", "hearthborn")),
+		"class_id": str(raw.get("class_id", "paladin")),
+		"look": {
+			"skin": int(look.get("skin", 0)),
+			"head": int(look.get("head", 0)),
+			"hair": int(look.get("hair", 0)),
+			"hair_color": int(look.get("hair_color", 0)),
+			"outfit_color": int(look.get("outfit_color", 0)),
+		},
+		"level": int(raw.get("level", 1)),
+		"xp": int(raw.get("xp", 0)),
+		"hp": int(raw.get("hp", 1)),
+		"mp": int(raw.get("mp", 1)),
+		"skill_ranks": {},
+		"skill_points_spent": int(raw.get("skill_points_spent", 0)),
+		"gear": _pack_gear(Formulas.normalize_gear(raw.get("gear", {}))),
+	}
+	var ranks: Dictionary = raw.get("skill_ranks", {})
+	for skill_id in ranks.keys():
+		member["skill_ranks"][str(skill_id)] = int(ranks[skill_id])
+	return member
+
+
+func _capture() -> Dictionary:
+	return {
+		"version": 1,
+		"gold": gold,
+		"place_id": place_id,
+		"party": party.duplicate(true),
+		"inventory": CraftRules.pack_bag(inventory),
+		"quests_done": story_done.duplicate(),
+		"quest_state": _quest_state(),
+		"hops": hops,
+		"lineups": lineups.duplicate(true),
+	}
+
+
+func _worn_items(member: Dictionary) -> Array:
+	var worn: Array = []
+	for item_id in Formulas.gear_ids(Formulas.normalize_gear(member.get("gear", {}))):
+		var worn_item := ContentDB.resolve(str(item_id))
+		if not worn_item.is_empty():
+			worn.append(worn_item)
+	return worn
+
+
+func _pack_gear(gear: Dictionary) -> Dictionary:
+	var packed := Formulas.normalize_gear(gear)
+	packed["main"] = CraftRules.pack_key(str(packed["main"]))
+	packed["off"] = CraftRules.pack_key(str(packed["off"]))
+	packed["armor"] = CraftRules.pack_key(str(packed["armor"]))
+	var trinkets: Array = []
+	for trinket_id in packed["trinkets"]:
+		trinkets.append(CraftRules.pack_key(str(trinket_id)))
+	packed["trinkets"] = trinkets
+	return packed
+
+
+func _hands_of(item_id: String) -> int:
+	var worn := ContentDB.resolve(item_id)
+	if worn.is_empty():
+		return 1
+	return int(worn.get("hands", 1))
+
+
+func _slot_item(gear: Dictionary, slot: String) -> String:
+	if slot.begins_with("trinket:"):
+		var index := int(slot.trim_prefix("trinket:"))
+		var trinkets: Array = gear["trinkets"]
+		if index < 0 or index >= trinkets.size():
+			return ""
+		return str(trinkets[index])
+	return str(gear.get(slot, ""))
+
+
+func _clear_slot(gear: Dictionary, slot: String) -> void:
+	if slot.begins_with("trinket:"):
+		var index := int(slot.trim_prefix("trinket:"))
+		var trinkets: Array = gear["trinkets"]
+		if index >= 0 and index < trinkets.size():
+			trinkets[index] = ""
+		return
+	gear[slot] = ""
+
+
+func _bag_take(bag: Dictionary, item_id: String) -> bool:
+	var have := int(bag.get(item_id, 0))
+	if have <= 0:
+		return false
+	bag[item_id] = have - 1
+	if int(bag[item_id]) <= 0:
+		bag.erase(item_id)
+	return true
+
+
+func _bag_give(bag: Dictionary, item_id: String, count: int = 1) -> bool:
+	if not ContentDB.has_item(item_id) or count <= 0:
+		return false
+	var have := int(bag.get(item_id, 0))
+	if have <= 0 and bag.size() >= Formulas.BAG_SLOTS:
+		return false
+	var room := Formulas.stack_cap(ContentDB.resolve(item_id)) - have
+	var add := mini(count, room)
+	if add <= 0:
+		return false
+	bag[item_id] = have + add
+	return true
+
+
+func _fit_pools(member: Dictionary, before: Dictionary, after: Dictionary) -> void:
+	if int(member.get("hp", 0)) > 0:
+		var hp := int(member["hp"]) + maxi(0, int(after["max_hp"]) - int(before["max_hp"]))
+		member["hp"] = clampi(hp, 1, int(after["max_hp"]))
+	if int(after["max_mp"]) >= 0:
+		var mp := int(member.get("mp", 0)) + maxi(0, int(after["max_mp"]) - int(before["max_mp"]))
+		member["mp"] = clampi(mp, 0, int(after["max_mp"]))
+
+
+func _write(data: Dictionary) -> void:
+	var file := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
+	if file:
+		file.store_string(JSON.stringify(data))
