@@ -103,9 +103,7 @@ func _build() -> void:
 	add_child(story_back)
 	_story = Widgets.label("", Layout.font_tiny(), SpriteCatalog.INK)
 	_story.name = "StoryTrack"
-	_story.position = story_back.position + Vector2(4, 0)
-	_story.size = Vector2(262, 16)
-	_story.clip_text = true
+	Widgets.place_wrapped(_story, story_back.position + Vector2(4, 0), Vector2(262, 16))
 	add_child(_story)
 	_info = Widgets.label("Pick a place.", Layout.font_tiny())
 	Widgets.enable_wrap(_info)

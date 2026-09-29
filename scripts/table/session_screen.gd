@@ -921,9 +921,7 @@ func show_end(title: String, body: String, from_ratio: float, to_ratio: float) -
 	heading.size = Vector2(230, 24)
 	_modal.add_child(heading)
 	var copy := Widgets.label(body, Layout.font_tiny())
-	copy.position = Vector2(8, 36)
-	copy.size = Vector2(230, 120)
-	copy.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	Widgets.place_wrapped(copy, Vector2(8, 36), Vector2(230, 120))
 	_modal.add_child(copy)
 	var bar := Widgets.bar(220, 10, SpriteCatalog.GOLD, SpriteCatalog.HP_BACK)
 	bar["root"].position = Vector2(12, 164)

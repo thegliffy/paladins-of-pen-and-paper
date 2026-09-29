@@ -682,6 +682,67 @@ func _test_wrapped_labels() -> void:
 		var wrapped := Widgets.wrap_size(blurb, info.size.x, font_size)
 		check(wrapped.x <= info.size.x + 0.01, str(place["id"]) + " description stays inside the panel")
 		check(wrapped.y <= info.size.y + 0.01, str(place["id"]) + " description wraps inside the panel")
+	_test_quest_text_fit(font_size)
+
+
+func _test_quest_text_fit(font_size: int) -> void:
+	var quests: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/quests.json"))
+	var item_names := {}
+	var item_rows: Array = JSON.parse_string(FileAccess.get_file_as_string("res://data/items.json"))
+	for item in item_rows:
+		item_names[str(item["id"])] = str(item["name"])
+	var tiny := Layout.font_tiny()
+	var flavor := ""
+	for step in quests["story"]:
+		var step_name := str(step["name"])
+		if flavor == "":
+			flavor = str(step["gm"])
+		_fit_text(step_name, 246, 20, font_size, step_name + " title")
+		_fit_text(str(step["objective"]), 246, 32, font_size, step_name + " objective")
+		_fit_text(str(step["gm"]), 246, 64, tiny, step_name + " flavor")
+		_fit_text(_reward_line(step, item_names), 246, 16, tiny, step_name + " reward")
+		_fit_text(QuestRules.tracker_line(step), 262, 16, tiny, step_name + " tracker")
+		_fit_text("%s is done. +%d gold." % [step_name, int(step.get("gold", 0))], 230, 120, tiny, step_name + " toast")
+	_fit_text(QuestRules.tracker_line({}), 262, 16, tiny, "quiet tracker")
+	for quest in quests["board"]:
+		var quest_name := str(quest["name"])
+		var progress := QuestRules.progress_line(quest, int(quest.get("count", 1)))
+		_fit_text(quest_name, 220, 16, font_size, quest_name + " notice")
+		var ask := "Bring %d %s." % [int(quest["count"]), str(quest.get("item_name", ""))]
+		if str(quest.get("kind", "")) == "kill":
+			ask = "Defeat %d %s." % [int(quest["count"]), str(quest.get("monster_name", ""))]
+		_fit_text(ask, 220, 16, tiny, quest_name + " ask")
+		_fit_text(progress, 246, 16, font_size, quest_name + " counter")
+		_fit_text("%s  %s" % [quest_name, progress], 160, 28, tiny, quest_name + " turn-in")
+		_fit_text(_reward_line(quest, item_names), 220, 16, tiny, quest_name + " pay")
+		_fit_text(progress, 230, 120, tiny, quest_name + " toast")
+	var sample := Widgets.label(flavor, tiny)
+	Widgets.place_wrapped(sample, Vector2(12, 80), Vector2(246, 64))
+	check(sample.size.x <= 246.01, "quest flavor label stays at the panel width")
+	check(sample.get_combined_minimum_size().x <= 246.01, "quest flavor label wraps instead of growing")
+	sample.free()
+	var victory := "XP 40, split across the table.\nGold +45. Purse 515.\nCrab Shell 2/5\nGrin in the Reeds is done. +45 gold."
+	_fit_text(victory, 230, 120, tiny, "victory toast")
+
+
+func _fit_text(text: String, width: float, height: float, font_size: int, label: String) -> void:
+	var block := Widgets.wrap_size(text, width, font_size)
+	check(block.x <= width + 0.01, label + " stays inside the width")
+	check(block.y <= height + 0.01, label + " wraps inside the height")
+
+
+func _reward_line(step: Dictionary, item_names: Dictionary) -> String:
+	var parts: PackedStringArray = []
+	if int(step.get("xp", 0)) > 0:
+		parts.append("%d xp" % int(step.get("xp", 0)))
+	if int(step.get("gold", 0)) > 0:
+		parts.append("%d gold" % int(step.get("gold", 0)))
+	var reward := str(step.get("reward", ""))
+	if reward != "":
+		parts.append(str(item_names.get(reward, reward)))
+	if parts.is_empty():
+		return "No reward."
+	return ", ".join(parts)
 
 
 func _test_targeting_and_lineup() -> void:

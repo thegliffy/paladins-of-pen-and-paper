@@ -75,37 +75,17 @@ func _build_story() -> void:
 	if step.is_empty():
 		_body("The road is quiet. The board in Candlewick still has work.", y)
 		return
-	var name := Widgets.label(str(step.get("name", "")), Layout.font_size(), SpriteCatalog.INK)
-	name.position = Vector2(12, y)
-	name.size = Vector2(246, 20)
-	add_child(name)
+	_copy(str(step.get("name", "")), Vector2(12, y), Vector2(246, 20), Layout.font_size(), SpriteCatalog.INK)
 	y += 22.0
-	var objective := Widgets.label(str(step.get("objective", "")), Layout.font_small(), SpriteCatalog.HP)
-	objective.position = Vector2(12, y)
-	objective.size = Vector2(246, 32)
-	Widgets.enable_wrap(objective)
-	add_child(objective)
+	_copy(str(step.get("objective", "")), Vector2(12, y), Vector2(246, 32), Layout.font_small(), SpriteCatalog.HP)
 	y += 36.0
-	var gm := Widgets.label(str(step.get("gm", "")), Layout.font_tiny(), SpriteCatalog.INK)
-	gm.position = Vector2(12, y)
-	gm.size = Vector2(246, 64)
-	Widgets.enable_wrap(gm)
-	add_child(gm)
+	_copy(str(step.get("gm", "")), Vector2(12, y), Vector2(246, 64), Layout.font_tiny(), SpriteCatalog.INK)
 	y += 68.0
-	var reward := Widgets.label(GameState.story_reward_line(step), Layout.font_tiny(), SpriteCatalog.GOLD)
-	reward.position = Vector2(12, y)
-	reward.size = Vector2(246, 16)
-	add_child(reward)
+	_copy(GameState.story_reward_line(step), Vector2(12, y), Vector2(246, 16), Layout.font_tiny(), SpriteCatalog.GOLD)
 	y += 20.0
-	var done := Widgets.label("Steps %d/%d" % [GameState.story_done.size(), ContentDB.story_steps().size()], Layout.font_tiny(), SpriteCatalog.INK)
-	done.position = Vector2(12, y)
-	done.size = Vector2(246, 16)
-	add_child(done)
+	_copy("Steps %d/%d" % [GameState.story_done.size(), ContentDB.story_steps().size()], Vector2(12, y), Vector2(246, 16), Layout.font_tiny(), SpriteCatalog.INK)
 	y += 22.0
-	var header := Widgets.label("On the board", Layout.font_tiny(), SpriteCatalog.INK)
-	header.position = Vector2(12, y)
-	header.size = Vector2(246, 14)
-	add_child(header)
+	_copy("On the board", Vector2(12, y), Vector2(246, 14), Layout.font_tiny(), SpriteCatalog.INK)
 	y += 16.0
 	var lines: Array = GameState.active_lines()
 	if lines.is_empty():
@@ -121,11 +101,7 @@ func _build_active() -> void:
 	var hint := "Turn finished work in at the Candlewick board."
 	if not _at_candlewick():
 		hint = "The notice board is in Candlewick."
-	var note := Widgets.label(hint, Layout.font_tiny(), SpriteCatalog.INK)
-	note.position = Vector2(12, y)
-	note.size = Vector2(246, 28)
-	Widgets.enable_wrap(note)
-	add_child(note)
+	_copy(hint, Vector2(12, y), Vector2(246, 28), Layout.font_tiny(), SpriteCatalog.INK)
 	y += 32.0
 	if GameState.board_active.is_empty():
 		_body("Nothing accepted. The board posts three at a time.", y)
@@ -137,14 +113,8 @@ func _build_active() -> void:
 		card.size = Vector2(246, 72)
 		card.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		add_child(card)
-		var title := Widgets.label(str(quest.get("name", row.get("id", ""))), Layout.font_small(), SpriteCatalog.INK)
-		title.position = Vector2(20, y + 4)
-		title.size = Vector2(220, 16)
-		add_child(title)
-		var progress := Widgets.label(QuestRules.progress_line(quest, int(row.get("progress", 0))), Layout.font_size(), SpriteCatalog.HP)
-		progress.position = Vector2(20, y + 22)
-		progress.size = Vector2(220, 18)
-		add_child(progress)
+		_copy(str(quest.get("name", row.get("id", ""))), Vector2(20, y + 4), Vector2(220, 16), Layout.font_small(), SpriteCatalog.INK)
+		_copy(QuestRules.progress_line(quest, int(row.get("progress", 0))), Vector2(20, y + 22), Vector2(220, 18), Layout.font_size(), SpriteCatalog.HP)
 		var drop := Widgets.make_button("Abandon", Vector2(80, 24))
 		drop.position = Vector2(20, y + 42)
 		var quest_id := str(row.get("id", ""))
@@ -168,21 +138,14 @@ func _build_board() -> void:
 		var quest: Dictionary = ContentDB.board_quest(str(row.get("id", "")))
 		if not QuestRules.can_turn_in(quest, int(row.get("progress", 0))):
 			continue
-		var ready := Widgets.label("%s  %s" % [quest.get("name", ""), QuestRules.progress_line(quest, int(row.get("progress", 0)))], Layout.font_tiny(), SpriteCatalog.SAFE)
-		ready.position = Vector2(12, y)
-		ready.size = Vector2(160, 28)
-		Widgets.enable_wrap(ready)
-		add_child(ready)
+		_copy("%s  %s" % [quest.get("name", ""), QuestRules.progress_line(quest, int(row.get("progress", 0)))], Vector2(12, y), Vector2(160, 28), Layout.font_tiny(), SpriteCatalog.SAFE)
 		var turn := Widgets.make_button("Turn in", Vector2(78, 26))
 		turn.position = Vector2(178, y)
 		var quest_id := str(row.get("id", ""))
 		turn.pressed.connect(_turn_in.bind(quest_id))
 		add_child(turn)
 		y += 32.0
-	var posted := Widgets.label("Posted", Layout.font_tiny(), SpriteCatalog.INK)
-	posted.position = Vector2(12, y)
-	posted.size = Vector2(240, 14)
-	add_child(posted)
+	_copy("Posted", Vector2(12, y), Vector2(240, 14), Layout.font_tiny(), SpriteCatalog.INK)
 	y += 16.0
 	for slot in GameState.board_offers.size():
 		var id := str(GameState.board_offers[slot])
@@ -193,23 +156,11 @@ func _build_board() -> void:
 		card.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		add_child(card)
 		if quest.is_empty():
-			var quiet := Widgets.label("The board is quiet.", Layout.font_tiny(), SpriteCatalog.INK)
-			quiet.position = Vector2(20, y + 28)
-			quiet.size = Vector2(220, 20)
-			add_child(quiet)
+			_copy("The board is quiet.", Vector2(20, y + 28), Vector2(220, 20), Layout.font_tiny(), SpriteCatalog.INK)
 		else:
-			var title := Widgets.label(str(quest.get("name", "")), Layout.font_small(), SpriteCatalog.INK)
-			title.position = Vector2(20, y + 4)
-			title.size = Vector2(220, 16)
-			add_child(title)
-			var ask := Widgets.label(_ask_line(quest), Layout.font_tiny(), SpriteCatalog.HP)
-			ask.position = Vector2(20, y + 22)
-			ask.size = Vector2(220, 16)
-			add_child(ask)
-			var pay := Widgets.label(GameState.story_reward_line(quest), Layout.font_tiny(), SpriteCatalog.GOLD)
-			pay.position = Vector2(20, y + 38)
-			pay.size = Vector2(140, 14)
-			add_child(pay)
+			_copy(str(quest.get("name", "")), Vector2(20, y + 4), Vector2(220, 16), Layout.font_small(), SpriteCatalog.INK)
+			_copy(_ask_line(quest), Vector2(20, y + 22), Vector2(220, 16), Layout.font_tiny(), SpriteCatalog.HP)
+			_copy(GameState.story_reward_line(quest), Vector2(20, y + 38), Vector2(220, 16), Layout.font_tiny(), SpriteCatalog.GOLD)
 			var take := Widgets.make_button("Accept", Vector2(72, 24))
 			take.position = Vector2(168, y + 54)
 			take.disabled = GameState.board_active.size() >= QuestRules.ACTIVE_CAP
@@ -217,10 +168,7 @@ func _build_board() -> void:
 			add_child(take)
 		y += 92.0
 	if y < 430.0:
-		var cap := Widgets.label("Active %d/%d. Accepting posts a new notice." % [GameState.board_active.size(), QuestRules.ACTIVE_CAP], Layout.font_tiny(), SpriteCatalog.INK)
-		cap.position = Vector2(12, 448)
-		cap.size = Vector2(246, 16)
-		add_child(cap)
+		_copy("Active %d/%d. Accepting posts a new notice." % [GameState.board_active.size(), QuestRules.ACTIVE_CAP], Vector2(12, 448), Vector2(246, 16), Layout.font_tiny(), SpriteCatalog.INK)
 
 
 func _tab_button(label: String, tab: String, at: Vector2) -> void:
@@ -236,19 +184,18 @@ func _tab_button(label: String, tab: String, at: Vector2) -> void:
 	add_child(button)
 
 
-func _body(text: String, y: float) -> void:
-	var copy := Widgets.label(text, Layout.font_tiny(), SpriteCatalog.INK)
-	copy.position = Vector2(12, y)
-	copy.size = Vector2(246, 48)
-	Widgets.enable_wrap(copy)
+func _copy(text: String, at: Vector2, box: Vector2, font_size: int, color: Color) -> void:
+	var copy := Widgets.label(text, font_size, color)
+	Widgets.place_wrapped(copy, at, box)
 	add_child(copy)
+
+
+func _body(text: String, y: float) -> void:
+	_copy(text, Vector2(12, y), Vector2(246, 48), Layout.font_tiny(), SpriteCatalog.INK)
 
 
 func _line(text: String, y: float) -> void:
-	var copy := Widgets.label(text, Layout.font_small(), SpriteCatalog.HP)
-	copy.position = Vector2(12, y)
-	copy.size = Vector2(246, 16)
-	add_child(copy)
+	_copy(text, Vector2(12, y), Vector2(246, 16), Layout.font_small(), SpriteCatalog.HP)
 
 
 func _ask_line(quest: Dictionary) -> String:

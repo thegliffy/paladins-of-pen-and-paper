@@ -163,8 +163,16 @@ static func wrap_size(text: String, width: float, font_size: int) -> Vector2:
 
 static func enable_wrap(node: Label) -> void:
 	node.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	node.clip_text = false
+	node.clip_text = true
 	node.add_theme_constant_override("line_spacing", 0)
+
+
+static func place_wrapped(node: Label, at: Vector2, box: Vector2) -> void:
+	## Autowrap before size. Setting size first locks the label to the
+	## unwrapped line, and it will not shrink once that minimum is cached.
+	enable_wrap(node)
+	node.position = at
+	node.size = box
 
 
 static func inspect_card_height(description: String, width: float) -> float:
