@@ -17,12 +17,14 @@ var _actions: Control
 var _turn_tab: Panel
 var _turn_name: TextureRect
 var _caption: Label
+var _caption_plate: Panel
 var _initiative: Control
 var _inspect: Panel
 var _action_art: TextureRect
 var _inspect_catcher: Control
 var _slot_x: Dictionary = {}
 var _banner: Label
+var _banner_plate: Panel
 var _modal: Control
 var _dice: Control
 var _dice_labels: Array = []
@@ -65,10 +67,10 @@ func show_hub() -> void:
 	clear_monsters()
 	_set_table_visible(true)
 	_initiative.visible = false
-	_banner.visible = true
+	_set_banner_shown(true)
 	var place: Dictionary = ContentDB.place(GameState.place_id)
 	_banner.text = "%s   %d gold" % [place["name"], GameState.gold]
-	_caption.text = str(place["description"])
+	_set_caption(str(place["description"]))
 	_sync_party()
 	var fight: bool = not ContentDB.place_monster_ids(GameState.place_id).is_empty()
 	set_actions([
@@ -82,17 +84,17 @@ func show_hub() -> void:
 
 
 func location_banner(text: String) -> void:
-	_caption.text = text
+	_set_caption(text)
 	await get_tree().create_timer(Timing.LOCATION_BANNER).timeout
 	if is_instance_valid(self):
 		var place: Dictionary = ContentDB.place(GameState.place_id)
-		_caption.text = str(place.get("description", ""))
+		_set_caption(str(place.get("description", "")))
 
 
 func stage_battle_preview() -> void:
 	_dress_reference_party()
 	show_hub()
-	_banner.visible = false
+	_set_banner_shown(false)
 	_initiative.visible = true
 	var rows := [
 		{"id": "cinder_mite", "hp_ratio": 1.0},
@@ -117,7 +119,7 @@ func stage_battle_preview() -> void:
 	for unit in units:
 		_add_monster(unit)
 	_layout_monsters()
-	_caption.text = ""
+	_set_caption("")
 	var order := [
 		{"id": "p0", "side": "player", "index": 0},
 		{"id": "m0", "side": "monster", "kind": "cinder_mite"},
@@ -142,8 +144,8 @@ func intro(ambush: bool) -> void:
 	clear_monsters()
 	_set_table_visible(false)
 	_initiative.visible = false
-	_banner.visible = false
-	_caption.text = "Ambush!" if ambush else "The table goes quiet."
+	_set_banner_shown(false)
+	_set_caption("Ambush!" if ambush else "The table goes quiet.")
 	await get_tree().create_timer(Timing.BATTLE_INTRO).timeout
 	_set_table_visible(true)
 	_initiative.visible = true
@@ -653,7 +655,18 @@ func set_actions_enabled(enabled: bool) -> void:
 
 
 func set_caption(text: String) -> void:
+	_set_caption(text)
+
+
+func _set_caption(text: String) -> void:
 	_caption.text = text
+	if _caption_plate:
+		_caption_plate.visible = text != ""
+
+
+func _set_banner_shown(shown: bool) -> void:
+	if _banner_plate:
+		_banner_plate.visible = shown
 
 
 func raise_member(index: int, up: bool) -> void:
@@ -1051,17 +1064,29 @@ func _build_chrome() -> void:
 	rail.offset_bottom = 0
 	rail.add_theme_stylebox_override("panel", ArtPack.nine_slice("ui/panel_dark.png", 6, 6, 6, 6))
 	_initiative.add_child(rail)
-	_banner = Widgets.label("", Layout.font_small())
+	var banner_rect := Layout.rect("hub", "banner")
+	_banner_plate = Widgets.header_plate()
+	_banner_plate.name = "BannerPlate"
+	Layout.place(_banner_plate, banner_rect)
+	add_child(_banner_plate)
+	_banner = Widgets.label("", Layout.font_small(), Widgets.header_ink())
 	Widgets.enable_wrap(_banner)
-	Layout.place(_banner, Layout.rect("hub", "banner"))
-	add_child(_banner)
-	_caption = Widgets.label("", Layout.font_tiny(), SpriteCatalog.LIGHT)
-	Widgets.enable_wrap(_caption)
+	_banner.position = Vector2(4, 1)
+	_banner.size = Vector2(banner_rect.size.x - 8.0, banner_rect.size.y - 2.0)
+	_banner.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_banner_plate.add_child(_banner)
 	var caption_rect := Layout.rect("combat", "caption")
-	Layout.place(_caption, caption_rect)
+	_caption_plate = Widgets.header_plate()
+	_caption_plate.name = "CaptionPlate"
+	Layout.place(_caption_plate, caption_rect)
+	add_child(_caption_plate)
+	_caption = Widgets.label("", Layout.font_tiny(), Widgets.header_ink())
+	Widgets.enable_wrap(_caption)
+	_caption.position = Vector2(4, 1)
+	_caption.size = Vector2(caption_rect.size.x - 8.0, caption_rect.size.y - 2.0)
 	_caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_caption.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	add_child(_caption)
+	_caption_plate.add_child(_caption)
 	_turn_tab = Panel.new()
 	var tab_box := StyleBoxTexture.new()
 	tab_box.texture = ArtPack.texture("ui/portrait/name_tab.png")

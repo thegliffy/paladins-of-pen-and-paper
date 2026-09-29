@@ -161,6 +161,45 @@ static func wrap_size(text: String, width: float, font_size: int) -> Vector2:
 	return font.get_multiline_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, width, font_size)
 
 
+static func header_ink() -> Color:
+	return SpriteCatalog.INK
+
+
+static func header_back() -> Color:
+	return SpriteCatalog.CREAM
+
+
+static func header_plate() -> Panel:
+	## Opaque parchment. A light label on the sky disappears into the clouds.
+	var plate := Panel.new()
+	var box := StyleBoxFlat.new()
+	box.bg_color = header_back()
+	box.border_color = Color("5a4028")
+	box.set_border_width_all(2)
+	box.set_content_margin_all(0)
+	plate.add_theme_stylebox_override("panel", box)
+	plate.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	plate.clip_contents = true
+	return plate
+
+
+static func contrast_ratio(fg: Color, bg: Color) -> float:
+	var lighter := maxf(_relative_luminance(fg), _relative_luminance(bg))
+	var darker := minf(_relative_luminance(fg), _relative_luminance(bg))
+	return (lighter + 0.05) / (darker + 0.05)
+
+
+static func _relative_luminance(color: Color) -> float:
+	var weights := [0.2126, 0.7152, 0.0722]
+	var channels: Array[float] = [color.r, color.g, color.b]
+	var lum := 0.0
+	for i in channels.size():
+		var ch := channels[i]
+		var linear := ch / 12.92 if ch <= 0.04045 else pow((ch + 0.055) / 1.055, 2.4)
+		lum += weights[i] * linear
+	return lum
+
+
 static func enable_wrap(node: Label) -> void:
 	node.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	node.clip_text = true

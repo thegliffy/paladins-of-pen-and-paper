@@ -731,10 +731,16 @@ func _test_hub_text_fit() -> void:
 	var banner := Layout.rect("hub", "banner")
 	var tiny := Layout.font_tiny()
 	var small := Layout.font_small()
+	var caption_w := caption.size.x - 8.0
+	var caption_h := caption.size.y - 2.0
+	var banner_w := banner.size.x - 8.0
+	var banner_h := banner.size.y - 2.0
 	var region: Dictionary = _region()
 	for place in region["places"]:
-		_fit_text(str(place["description"]), caption.size.x, caption.size.y, tiny, str(place["id"]) + " hub caption")
-		_fit_text("%s   %d gold" % [str(place["name"]), 9999], banner.size.x, banner.size.y, small, str(place["id"]) + " hub banner")
+		_fit_text(str(place["description"]), caption_w, caption_h, tiny, str(place["id"]) + " hub caption")
+		_fit_text("%s   %d gold" % [str(place["name"]), 9999], banner_w, banner_h, small, str(place["id"]) + " hub banner")
+	check(Widgets.header_back().a >= 0.99, "hub header backing is opaque")
+	check(Widgets.contrast_ratio(Widgets.header_ink(), Widgets.header_back()) >= 4.5, "hub header text contrasts with its parchment")
 	var bar := Layout.rect("combat", "action_bar")
 	var gap := 3.0
 	var width := (bar.size.x - 4.0 - gap * 4.0) / 5.0

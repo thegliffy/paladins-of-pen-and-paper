@@ -1032,6 +1032,7 @@ static func _quest_panel(host: Node, tree: SceneTree, failures: Array[String]) -
 		session.action_pressed.connect(hub_action)
 	await tree.process_frame
 	_assert_hub_buttons(session, failures)
+	await _assert_header_plates(session, tree, failures)
 	if session._caption.autowrap_mode == TextServer.AUTOWRAP_OFF:
 		failures.append("hub_caption_wrap")
 	var quest := _find_button(session, "Quest")
@@ -1091,6 +1092,35 @@ static func _quest_panel(host: Node, tree: SceneTree, failures: Array[String]) -
 		await tree.process_frame
 	map.queue_free()
 	await tree.process_frame
+
+
+static func _assert_header_plates(session: SessionScreen, tree: SceneTree, failures: Array[String]) -> void:
+	await RenderingServer.frame_post_draw
+	var image := tree.root.get_viewport().get_texture().get_image()
+	for plate_name in ["BannerPlate", "CaptionPlate"]:
+		var plate := session.get_node_or_null(plate_name) as Panel
+		if plate == null or not plate.visible or plate.get_child_count() < 1:
+			failures.append("hub_plate_%s" % plate_name)
+			push_error("Touch check: %s is missing" % plate_name)
+			continue
+		var label := plate.get_child(0) as Label
+		if label == null or label.get_parent() != plate:
+			failures.append("hub_plate_label_%s" % plate_name)
+			push_error("Touch check: %s text is not on the plate" % plate_name)
+			continue
+		var style := plate.get_theme_stylebox("panel") as StyleBoxFlat
+		var fg := label.get_theme_color("font_color")
+		if style == null or style.bg_color.a < 0.99 or Widgets.contrast_ratio(fg, style.bg_color) < 4.5:
+			failures.append("hub_contrast_%s" % plate_name)
+			push_error("Touch check: %s text does not contrast with its backing" % plate_name)
+		var at := plate.get_global_rect().position + Vector2(6, 6)
+		if at.x < 0.0 or at.y < 0.0 or at.x >= image.get_width() or at.y >= image.get_height():
+			failures.append("hub_plate_pixel_%s" % plate_name)
+			continue
+		var pixel := image.get_pixel(int(at.x), int(at.y))
+		if pixel.b > pixel.r or pixel.a < 0.95:
+			failures.append("hub_plate_sky_%s" % plate_name)
+			push_error("Touch check: %s still shows the sky %s" % [plate_name, pixel])
 
 
 static func _assert_hub_buttons(session: SessionScreen, failures: Array[String]) -> void:
