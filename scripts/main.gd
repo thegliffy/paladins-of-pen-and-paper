@@ -22,10 +22,6 @@ func _ready() -> void:
 		await _shots()
 		get_tree().quit()
 		return
-	if OS.get_cmdline_user_args().has("--v036-shots"):
-		await _v036_shots()
-		get_tree().quit()
-		return
 	_show_title()
 
 
@@ -380,6 +376,7 @@ func _opaque_pixels(tex: Texture2D) -> int:
 
 
 func _shots() -> void:
+	Engine.max_fps = 30
 	_seed_party()
 	var creator := CreatorScreen.new()
 	creator.stage_preview()
@@ -505,13 +502,6 @@ func _shots() -> void:
 	session.add_child(flow)
 	var elapsed := await flow.measure_visible_attack()
 	print("BASIC_ATTACK_MS %d" % elapsed)
-
-
-func _v036_shots() -> void:
-	_seed_party()
-	var session := SessionScreen.new()
-	await _swap(session)
-	await _capture_v036(session)
 
 
 func _capture_v036(session: SessionScreen) -> void:

@@ -4,6 +4,7 @@ extends RefCounted
 
 
 static func run(host: Node) -> int:
+	Engine.max_fps = 30
 	Input.set_emulate_mouse_from_touch(false)
 	Input.set_emulate_touch_from_mouse(false)
 	var tree := host.get_tree()
@@ -1641,8 +1642,8 @@ static func _bottom_and_levels(host: Node, tree: SceneTree, failures: Array[Stri
 		failures.append("victory_queue")
 		push_error("Touch check: both heroes should choose, queue is %s" % queued)
 	var picks := {"n": 0}
-	_take_level_choices(tree, session, failures, picks)
-	await session.resolve_level_ups()
+	session.resolve_level_ups()
+	await _take_level_choices(tree, session, failures, picks)
 	if GameState.peek_level() >= 0 or int(picks["n"]) < 2:
 		failures.append("level_remaining")
 		push_error("Touch check: level choices left %s after %s picks" % [GameState.level_queue.size(), picks["n"]])

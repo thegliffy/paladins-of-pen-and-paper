@@ -35,10 +35,10 @@ var _table: TextureRect
 var _gm: TextureRect
 var _table_props: Array = []
 var _action_back: ColorRect
-	var _level_open := false
-	var _armed_action := ""
-	var _hold_id := ""
-	var _hold_spent := ""
+var _level_open := false
+var _armed_action := ""
+var _hold_id := ""
+var _hold_spent := ""
 var _freeze_bars := false
 var _idle := 0.0
 var _idle_frame := 0
@@ -1536,7 +1536,7 @@ func show_hero_sheet(index: int) -> void:
 		spell = float(unit.get("spell_bonus", spell))
 		flat_threat = int(unit.get("gear_threat", flat_threat))
 	var persona := str(ContentDB.persona(str(member["persona"])).get("name", "Hero"))
-	var class_name := str(ContentDB.class_def(str(member["class_id"])).get("name", ""))
+	var role_name := str(ContentDB.class_def(str(member["class_id"])).get("name", ""))
 	var level := int(member["level"])
 	var rules: Dictionary = ContentDB.threat_rules()
 	var cls: Dictionary = ContentDB.class_def(str(member["class_id"]))
@@ -1546,7 +1546,7 @@ func show_hero_sheet(index: int) -> void:
 	)
 	var lines: PackedStringArray = []
 	lines.append(persona)
-	lines.append("%s    Level %d" % [class_name, level])
+	lines.append("%s    Level %d" % [role_name, level])
 	lines.append("XP %d / %d to next" % [int(member["xp"]), Formulas.xp_to_next(level)])
 	lines.append("HP %s" % Formulas.vital_text(hp, max_hp))
 	lines.append("MP %s" % Formulas.vital_text(mp, max_mp))
