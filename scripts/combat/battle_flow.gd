@@ -242,7 +242,9 @@ func _take_turn(unit: Dictionary) -> String:
 	var outcome := ""
 	if str(unit["side"]) == "player":
 		outcome = await _player_turn(unit)
+		_note_armed("")
 	else:
+		_note_armed("")
 		await _monster_turn(unit)
 	if str(unit["side"]) == "player":
 		view.raise_member(int(unit["member_index"]), false)
@@ -296,7 +298,13 @@ func _player_turn(unit: Dictionary) -> String:
 	return ""
 
 
+func _note_armed(action_id: String) -> void:
+	if view != null and view.has_method("set_armed_action"):
+		view.set_armed_action(action_id)
+
+
 func _present_turn(unit: Dictionary, armed: String, picking: bool) -> void:
+	_note_armed(armed)
 	_show_actor_bar(unit, armed, false)
 	if armed == "":
 		view.hide_inspect()

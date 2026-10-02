@@ -524,6 +524,14 @@ func _capture_v036(session: SessionScreen) -> void:
 	GameState.place_id = "candlewick"
 	session.show_hub()
 	await _capture("hub_bar_v036")
+	var shown: Dictionary = GameState.party[0]
+	var worn: Dictionary = Formulas.normalize_gear(shown.get("gear", {}))
+	if str(worn.get("main", "")) != "":
+		worn["main"] = CraftRules.stack_key(str(worn["main"]), 1)
+		shown["gear"] = worn
+	session.show_hero_sheet(0)
+	await _capture("hero_stats_v036")
+	session.close_stats_sheet()
 	var member: Dictionary = GameState.party[0]
 	member["xp"] = 0
 	GameState.apply_xp(member, Formulas.xp_to_next(int(member["level"])))
@@ -536,7 +544,7 @@ func _capture_v036(session: SessionScreen) -> void:
 	GameState.gold = gold
 	GameState.place_id = "millpond"
 	GameState.give_item("bread_charm", 1)
-	GameState.equip_item(0, "bread_charm", "trinket")
+	GameState.equip_item(0, "bread_charm", "")
 	session._sync_party()
 	session.present_units([
 		{"id": "m0", "side": "monster", "kind": "puddleblob", "hp": 20, "max_hp": 20, "mp": 0, "max_mp": 1, "back_row": false},

@@ -146,18 +146,18 @@ static func enqueue(queue: Array, member_index: int, levels: int) -> Array:
 static func commit(queue: Array, member: Dictionary, skills: Array, option_id: String) -> Dictionary:
 	if queue.is_empty():
 		return {"ok": false, "reason": "none", "queue": queue}
-	var match := {}
+	var chosen := {}
 	for option in offers(member, skills):
 		if str(option.get("id", "")) == option_id:
-			match = option
+			chosen = option
 			break
-	if match.is_empty():
+	if chosen.is_empty():
 		return {"ok": false, "reason": "choice", "queue": queue}
-	if not apply(member, match):
+	if not apply(member, chosen):
 		return {"ok": false, "reason": "choice", "queue": queue}
 	var rest: Array = queue.duplicate()
 	rest.pop_front()
-	return {"ok": true, "reason": "", "queue": rest, "option": match}
+	return {"ok": true, "reason": "", "queue": rest, "option": chosen}
 
 
 static func sheet_line(member: Dictionary, names: Dictionary) -> String:
