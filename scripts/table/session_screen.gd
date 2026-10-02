@@ -75,6 +75,7 @@ func show_hub() -> void:
 	_apply_hub_plates()
 	var place: Dictionary = ContentDB.place(GameState.place_id)
 	_banner.text = "%s   %d gold" % [place["name"], GameState.gold]
+	_fit_header_plate(_banner_plate, _banner, Layout.rect("hub", "banner"))
 	_set_caption(str(place["description"]))
 	_sync_party()
 	var fight: bool = not ContentDB.place_monster_ids(GameState.place_id).is_empty()
@@ -680,6 +681,28 @@ func _set_caption(text: String) -> void:
 	_caption.text = text
 	if _caption_plate:
 		_caption_plate.visible = text != ""
+		_fit_header_plate(_caption_plate, _caption, Layout.rect("combat", "caption"))
+
+
+func _header_frame(plate: Panel) -> float:
+	var style := plate.get_theme_stylebox("panel")
+	if style is StyleBoxTexture:
+		return (style as StyleBoxTexture).texture_margin_top
+	if style is StyleBoxFlat:
+		return float((style as StyleBoxFlat).get_border_width(SIDE_TOP))
+	return 0.0
+
+
+func _fit_header_plate(plate: Panel, label: Label, base: Rect2) -> void:
+	if plate == null or label == null:
+		return
+	var frame := _header_frame(plate)
+	var font_size := label.get_theme_font_size("font_size")
+	var height := Widgets.fitted_header_height(label.text, base.size.x, font_size, base.size.y, frame)
+	plate.position = base.position
+	plate.size = Vector2(base.size.x, height)
+	label.position = Vector2(frame, frame)
+	label.size = Vector2(maxf(1.0, base.size.x - frame * 2.0), height - frame * 2.0)
 
 
 func _apply_hub_plates() -> void:
@@ -1242,42 +1265,51 @@ func _sync_party() -> void:
 func _attach_chair_bars(seat: Control, member: Dictionary, stats: Dictionary, pid: String) -> void:
 	var spec: Dictionary = Layout.cfg()["combat"]["chair_bars"]
 	var offset: Array = spec["offset"]
+	var bar_size := Vector2(float(spec["size"][0]), float(spec["size"][1]))
 	var host := Control.new()
 	host.name = "BarHost"
 	host.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	host.position = Vector2(float(offset[0]), float(offset[1]))
+	host.size = bar_size
 	seat.add_child(host)
-	var frame := _icon_rect(str(spec.get("frame", "ui/portrait/seat_bars_frame.png")))
+	var frame := ColorRect.new()
 	frame.name = "Frame"
-	frame.size = Vector2(float(spec["size"][0]), float(spec["size"][1]))
+	frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	frame.color = ArtPack.SEAT_BAR_INK
+	frame.size = bar_size
 	host.add_child(frame)
+	var ring := ColorRect.new()
+	ring.name = "Ring"
+	ring.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	ring.color = ArtPack.SEAT_BAR_GOLD
+	ring.size = bar_size
+	ring.visible = false
+	host.add_child(ring)
 	var hp_rect: Array = spec["hp"]
-	var hp_fill := _clipped_fill("ui/portrait/seat_bar_hp.png", Vector2(float(hp_rect[0]), float(hp_rect[1])), Vector2(float(hp_rect[2]), float(hp_rect[3])))
+	var hp_at := Vector2(float(hp_rect[0]), float(hp_rect[1]))
+	var hp_size := Vector2(float(hp_rect[2]), float(hp_rect[3]))
+	var hp_empty := _bar_trough(ArtPack.SEAT_BAR_HP_EMPTY, hp_at, hp_size)
+	host.add_child(hp_empty)
+	var hp_fill := _clipped_fill("ui/portrait/seat_bar_hp_tile.png", hp_at, hp_size)
+	_seat_fill_texture(hp_fill, "hp", 0)
 	host.add_child(hp_fill["clip"])
 	var mp_rect: Array = spec["mp"]
-	var mp_fill := _clipped_fill("ui/portrait/seat_bar_mp.png", Vector2(float(mp_rect[0]), float(mp_rect[1])), Vector2(float(mp_rect[2]), float(mp_rect[3])))
+	var mp_at := Vector2(float(mp_rect[0]), float(mp_rect[1]))
+	var mp_size := Vector2(float(mp_rect[2]), float(mp_rect[3]))
+	var mp_empty := _bar_trough(ArtPack.SEAT_BAR_MP_EMPTY, mp_at, mp_size)
+	host.add_child(mp_empty)
+	var mp_fill := _clipped_fill("ui/portrait/seat_bar_mp_tile.png", mp_at, mp_size)
+	_seat_fill_texture(mp_fill, "mp", 0)
 	host.add_child(mp_fill["clip"])
 	_set_clip_ratio(hp_fill, float(member["hp"]) / float(maxi(1, int(stats["max_hp"]))))
 	_set_clip_ratio(mp_fill, float(member["mp"]) / float(maxi(1, int(stats["max_mp"]))))
 	var text_rect: Array = spec["hp_text"]
-	var hp_label := DigitReadout.new()
-	hp_label.sheet = "ui/portrait/digits_3x5_outlined.png"
-	hp_label.cell = Vector2i(5, 7)
-	hp_label.advance = 4
-	hp_label.position = Vector2(float(text_rect[0]), float(text_rect[1]))
-	hp_label.size = Vector2(float(text_rect[2]), float(text_rect[3]))
+	var hp_label := _vital_digits(text_rect, Formulas.vital_text(int(member["hp"]), int(stats["max_hp"])))
 	hp_label.name = "HpDigits"
-	hp_label.set_text(Formulas.vital_text(int(member["hp"]), int(stats["max_hp"])))
 	host.add_child(hp_label)
-	var mp_text: Array = spec.get("mp_text", [0, 11, 44, 7])
-	var mp_label := DigitReadout.new()
-	mp_label.sheet = "ui/portrait/digits_3x5_outlined.png"
-	mp_label.cell = Vector2i(5, 7)
-	mp_label.advance = 4
-	mp_label.position = Vector2(float(mp_text[0]), float(mp_text[1]))
-	mp_label.size = Vector2(float(mp_text[2]), float(mp_text[3]))
+	var mp_text: Array = spec.get("mp_text", [1, 10, 46, 8])
+	var mp_label := _vital_digits(mp_text, Formulas.vital_text(int(member["mp"]), int(stats["max_mp"])))
 	mp_label.name = "MpDigits"
-	mp_label.set_text(Formulas.vital_text(int(member["mp"]), int(stats["max_mp"])))
 	host.add_child(mp_label)
 	var threat_rect: Array = spec["threat"]
 	var threat_label := Widgets.label("", Layout.font_tiny(), SpriteCatalog.GOLD)
@@ -1401,20 +1433,15 @@ func _raise(index: int, up: bool) -> void:
 		var base := Vector2(point.x - anchor.x, point.y - anchor.y)
 		var raised := up and i == index
 		seat.position = base + Vector2(0, -Timing.PLAYER_RISE_PX if raised else 0)
-		var host := seat.get_node_or_null("BarHost/Frame") as TextureRect
-		if host:
-			host.texture = ArtPack.texture("ui/portrait/seat_bars_frame_active.png" if raised else "ui/portrait/seat_bars_frame.png")
-			host.position = Vector2(-1, -1) if raised else Vector2.ZERO
-			host.size = Vector2(46, 12) if raised else Vector2(44, 10)
 		var bars: Dictionary = Layout.cfg()["combat"]["chair_bars"]
-		var hp_home := float(bars["hp_text"][1])
-		var mp_home := float(bars["mp_text"][1])
-		var digits: DigitReadout = seat.get_node_or_null("BarHost/HpDigits") as DigitReadout
-		if digits:
-			digits.position.y = hp_home - (1.0 if raised else 0.0)
-		var mp_digits: DigitReadout = seat.get_node_or_null("BarHost/MpDigits") as DigitReadout
-		if mp_digits:
-			mp_digits.position.y = mp_home - (1.0 if raised else 0.0)
+		var bar_size := Vector2(float(bars["size"][0]), float(bars["size"][1]))
+		var frame := seat.get_node_or_null("BarHost/Frame") as ColorRect
+		if frame:
+			frame.position = Vector2(-1, -1) if raised else Vector2.ZERO
+			frame.size = bar_size + (Vector2(2, 2) if raised else Vector2.ZERO)
+		var ring := seat.get_node_or_null("BarHost/Ring") as ColorRect
+		if ring:
+			ring.visible = raised
 		var doll := seat.get_node_or_null("Doll") as PaperDoll
 		if doll:
 			doll.set_raised(raised)
@@ -1695,6 +1722,37 @@ func _restore_seat_layer() -> void:
 	move_child(_seat_layer, _initiative.get_index())
 
 
+func _bar_trough(color: Color, at: Vector2, full_size: Vector2) -> ColorRect:
+	var trough := ColorRect.new()
+	trough.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	trough.color = color
+	trough.position = at
+	trough.size = full_size
+	return trough
+
+
+func _vital_digits(rect: Array, text: String) -> DigitReadout:
+	var label := DigitReadout.new()
+	label.sheet = "ui/portrait/digits_3x5_outlined.png"
+	label.cell = Vector2i(5, 7)
+	label.advance = 4
+	label.h_align = HORIZONTAL_ALIGNMENT_CENTER
+	label.v_align = VERTICAL_ALIGNMENT_CENTER
+	label.position = Vector2(float(rect[0]), float(rect[1]))
+	label.size = Vector2(float(rect[2]), float(rect[3]))
+	label.set_text(text)
+	return label
+
+
+func _seat_fill_texture(fill: Dictionary, kind: String, flash: int) -> void:
+	var clip: Control = fill["clip"]
+	if clip.get_child_count() == 0:
+		return
+	var tex: TextureRect = clip.get_child(0)
+	tex.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	tex.texture = ArtPack.vital_strip(kind, int(tex.size.y), flash)
+
+
 func _clipped_fill(rel: String, at: Vector2, full_size: Vector2) -> Dictionary:
 	var clip := Control.new()
 	clip.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -1741,10 +1799,11 @@ func _pulse_low_hp() -> void:
 		if clip.get_child_count() == 0:
 			continue
 		var tex: TextureRect = clip.get_child(0)
+		tex.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 		if float(info.get("hp_ratio", 1.0)) < 0.25:
-			tex.texture = ArtPack.frame_texture("ui/portrait/seat_bar_hp_lowflash.png", frame, Vector2(42, 4))
+			tex.texture = ArtPack.vital_strip("hp", int(tex.size.y), frame)
 		else:
-			tex.texture = ArtPack.texture("ui/portrait/seat_bar_hp.png")
+			tex.texture = ArtPack.vital_strip("hp", int(tex.size.y), 0)
 
 
 func _class_has_threat_passive(class_id: String) -> bool:

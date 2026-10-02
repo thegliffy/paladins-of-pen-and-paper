@@ -12,11 +12,18 @@ const HAIR_KEYS: Array = ["#46424e", "#6c6a76", "#9c9ca6", "#cfd0d4"]
 const OUTFIT_KEYS: Array = ["#6c6a76", "#9c9ca6", "#cfd0d4"]
 const SKIN_KEYS: Array = ["#ec5a44", "#8c5836", "#b27a4e", "#d89c72"]
 
+const SEAT_BAR_INK := Color("120c18")
+const SEAT_BAR_HP_EMPTY := Color("3e1016")
+const SEAT_BAR_MP_EMPTY := Color("161c40")
+const SEAT_BAR_GOLD := Color("fcf0a0")
+const SEAT_BAR_GLYPH := Color("fcf0a0")
+
 static var _manifest: Dictionary = {}
 static var _textures: Dictionary = {}
 static var _missing: Dictionary = {}
 static var _baked: Dictionary = {}
 static var _outlined: Dictionary = {}
+static var _strips: Dictionary = {}
 
 
 static func clear_bake_cache() -> void:
@@ -61,6 +68,28 @@ static func frame_texture(rel: String, frame: int, frame_size: Vector2) -> Atlas
 	atlas.atlas = texture(rel)
 	atlas.region = Rect2(float(frame) * frame_size.x, 0, frame_size.x, frame_size.y)
 	return atlas
+
+
+static func vital_strip(kind: String, height: int, flash: int = 0) -> Texture2D:
+	## Stretch the refined seat-bar tiles to a taller track. The bands are the
+	## tile rows, repeated nearest-neighbour so a wider chair bar stays on palette.
+	var key := "%s:%d:%d" % [kind, height, flash]
+	if _strips.has(key):
+		return _strips[key]
+	var bands: Array[Color] = [Color("ec5a44"), Color("c02c2c"), Color("7c1c22")]
+	if kind == "mp":
+		bands = [Color("86c8f8"), Color("4c9ce8"), Color("3466cc")]
+	elif flash == 1:
+		bands = [Color("f6f6f2"), Color("fcf0a0"), Color("f09a2c")]
+	var rows := maxi(1, height)
+	var image := Image.create(1, rows, false, Image.FORMAT_RGBA8)
+	var src_h := bands.size()
+	for y in rows:
+		var sy := mini(src_h - 1, int(float(y) * float(src_h) / float(rows)))
+		image.set_pixel(0, y, bands[sy])
+	var made := ImageTexture.create_from_image(image)
+	_strips[key] = made
+	return made
 
 
 static func slot_file(state: String) -> String:

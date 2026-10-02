@@ -1123,6 +1123,14 @@ static func _assert_header_plates(session: SessionScreen, tree: SceneTree, failu
 		if backing.a < 0.99 or Widgets.contrast_ratio(fg, backing) < 4.5:
 			failures.append("hub_contrast_%s" % plate_name)
 			push_error("Touch check: %s text does not contrast with its backing" % plate_name)
+		var frame := _header_frame(plate)
+		var font_size := label.get_theme_font_size("font_size")
+		var wrapped := Widgets.wrap_size(label.text, maxf(1.0, label.size.x), font_size)
+		var slack := maxf(0.0, label.size.y - wrapped.y)
+		var text_bottom := label.position.y + slack * 0.5 + wrapped.y
+		if text_bottom > plate.size.y - frame + 0.01:
+			failures.append("hub_plate_fit_%s" % plate_name)
+			push_error("Touch check: %s wrapped text is taller than its plate" % plate_name)
 		var at := plate.get_global_rect().position + Vector2(6, 6)
 		if at.x < 0.0 or at.y < 0.0 or at.x >= image.get_width() or at.y >= image.get_height():
 			failures.append("hub_plate_pixel_%s" % plate_name)
@@ -1131,6 +1139,15 @@ static func _assert_header_plates(session: SessionScreen, tree: SceneTree, failu
 		if pixel.b > pixel.r or pixel.a < 0.95:
 			failures.append("hub_plate_sky_%s" % plate_name)
 			push_error("Touch check: %s still shows the sky %s" % [plate_name, pixel])
+
+
+static func _header_frame(plate: Panel) -> float:
+	var style := plate.get_theme_stylebox("panel")
+	if style is StyleBoxTexture:
+		return (style as StyleBoxTexture).texture_margin_top
+	if style is StyleBoxFlat:
+		return float((style as StyleBoxFlat).get_border_width(SIDE_TOP))
+	return 0.0
 
 
 static func _plate_backing(plate: Panel) -> Color:
@@ -1562,6 +1579,28 @@ static func _bottom_and_levels(host: Node, tree: SceneTree, failures: Array[Stri
 			if int(tempered["max_hp"]) <= worn_max or hp_digits.text != _vital(int(member["hp"]), int(tempered["max_hp"])):
 				failures.append("pool_upgrade_text")
 				push_error("Touch check: tempered mail reads %s" % hp_digits.text)
+	session.sync_unit({"id": "p0", "hp": 700, "max_hp": 700, "mp": 700, "max_mp": 700})
+	if hp_digits.text != "700/700" or mp_digits.text != "700/700":
+		failures.append("pool_wide_text")
+		push_error("Touch check: 700/700 reads %s %s" % [hp_digits.text, mp_digits.text])
+	elif hp_digits.content_size().x > hp_digits.size.x + 0.01 or mp_digits.content_size().x > mp_digits.size.x + 0.01:
+		failures.append("pool_wide_fit")
+		push_error("Touch check: 700/700 is wider than the bar")
+	else:
+		var host_rect := (session._seats[0].get_node("BarHost") as Control).get_global_rect()
+		var hp_rect := hp_digits.get_global_rect()
+		var mp_rect := mp_digits.get_global_rect()
+		var action_top := Layout.rect("combat", "action_bar").position.y
+		var stacked := hp_rect.intersection(mp_rect)
+		if not host_rect.encloses(hp_rect) or not host_rect.encloses(mp_rect):
+			failures.append("pool_wide_fit")
+			push_error("Touch check: 700/700 sits outside the bar")
+		elif hp_rect.end.y > action_top or mp_rect.end.y > action_top:
+			failures.append("pool_wide_action")
+			push_error("Touch check: 700/700 crosses the skill bar")
+		elif stacked.size.x > 1.0 and stacked.size.y > 1.0:
+			failures.append("pool_wide_overlap")
+			push_error("Touch check: 700/700 health and energy overlap")
 	session.sync_unit({"id": "p0", "hp": 40, "max_hp": 100, "mp": 10, "max_mp": 20})
 	var wide := session.bar_fill_width("p0")
 	var wide_mp := session.mp_bar_fill_width("p0")

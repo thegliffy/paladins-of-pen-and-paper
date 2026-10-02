@@ -550,6 +550,8 @@ func _shots() -> void:
 	await _capture_towns(session)
 	await _capture_v036(session)
 	await _capture_v037(session)
+	await _capture_v038(session)
+	await _capture_bars(session)
 	GameState.place_id = "millpond"
 	session.stage_battle_preview()
 	var flow := BattleFlow.new()
@@ -651,6 +653,36 @@ func _capture_v037(session: SessionScreen) -> void:
 	GameState.gold = gold
 	GameState.place_id = place
 	session._sync_party()
+	session.show_hub()
+
+
+func _capture_v038(session: SessionScreen) -> void:
+	var place := GameState.place_id
+	GameState.place_id = "pebblegate"
+	session.show_hub()
+	await _capture("hub_pebblegate_v038")
+	GameState.place_id = place
+	session.show_hub()
+
+
+func _capture_bars(session: SessionScreen) -> void:
+	var place := GameState.place_id
+	GameState.place_id = "pebblegate"
+	session.clear_monsters()
+	session.show_hub()
+	await _capture("hub_bars_v038")
+	GameState.place_id = "gravel_keep"
+	session.show_hub()
+	session.present_units([
+		{"id": "m0", "side": "monster", "kind": "pebble_squire", "hp": 22, "max_hp": 28, "mp": 0, "max_mp": 1, "back_row": false},
+		{"id": "m1", "side": "monster", "kind": "hollow_helm", "hp": 36, "max_hp": 40, "mp": 0, "max_mp": 1, "back_row": false},
+		{"id": "m2", "side": "monster", "kind": "cobble_rat", "hp": 14, "max_hp": 18, "mp": 0, "max_mp": 1, "back_row": true},
+	])
+	session.show_member_bar(0, {}, "", {})
+	session._raise(0, true)
+	await _capture("combat_bars_v038")
+	session.clear_monsters()
+	GameState.place_id = place
 	session.show_hub()
 
 

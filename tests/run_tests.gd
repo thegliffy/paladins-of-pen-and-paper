@@ -51,6 +51,14 @@ func eq(a, b, label: String) -> void:
 	check(a == b, "%s (got %s expected %s)" % [label, a, b])
 
 
+func _rect_inside(inner: Array, outer: Array) -> bool:
+	var ix := int(inner[0])
+	var iy := int(inner[1])
+	var ox := int(outer[0])
+	var oy := int(outer[1])
+	return ix >= ox and iy >= oy and ix + int(inner[2]) <= ox + int(outer[2]) and iy + int(inner[3]) <= oy + int(outer[3])
+
+
 func _test_reference_character() -> void:
 	# Class 4/1/1 + persona 3/0/0 + race +1 body + base 2/2/2.
 	var stats := Formulas.compose_stats(4, 1, 1, 3, 0, 0, 1, 0, 0)
@@ -496,25 +504,64 @@ func _test_portrait_layout() -> void:
 	check(int(actions[1]) + int(actions[3]) >= 460, "action bar sits in the bottom thumb zone")
 	var chair: Dictionary = layout["portrait"]["combat"]["chair_bars"]
 	check(chair.has("hp") and chair.has("mp") and chair.has("hp_text") and chair.has("mp_text"), "chair bars are data")
+	var hp_bar: Array = chair["hp"]
+	var mp_bar: Array = chair["mp"]
 	var hp_text: Array = chair["hp_text"]
 	var mp_text: Array = chair["mp_text"]
 	var threat: Array = chair["threat"]
-	check(int(hp_text[2]) >= 28 and int(hp_text[3]) >= 7, "hp number box fits a cur/max readout")
-	check(int(mp_text[2]) >= 28 and int(mp_text[3]) >= 7, "mp number box fits a cur/max readout")
+	check(_rect_inside(hp_text, hp_bar), "hp number sits inside the health bar")
+	check(_rect_inside(mp_text, mp_bar), "mp number sits inside the energy bar")
 	check(int(hp_text[1]) + int(hp_text[3]) <= int(mp_text[1]), "hp number sits above the energy number")
-	check(int(mp_text[1]) + int(mp_text[3]) <= 0, "energy number sits above the chair bars")
 	check(int(threat[1]) + int(threat[3]) <= int(hp_text[1]), "threat sits above the health number")
+	var readout := DigitReadout.new()
+	readout.set_text("700/700")
+	var wide := readout.content_size()
+	readout.free()
+	check(wide.x <= float(hp_text[2]) + 0.01 and wide.y <= float(hp_text[3]) + 0.01, "700/700 fits inside the health bar")
+	check(wide.x <= float(mp_text[2]) + 0.01 and wide.y <= float(mp_text[3]) + 0.01, "700/700 fits inside the energy bar")
 	var name_tab: Array = layout["portrait"]["combat"]["name_tab"]
 	var anchor: Array = layout["portrait"]["combat"]["seat_anchor"]
+	var canvas: Array = layout["portrait"]["combat"]["seat_canvas"]
 	var offset: Array = chair["offset"]
-	var mp_bottom := int(layout["portrait"]["combat"]["seat_y"]) - int(anchor[1]) + int(offset[1]) + int(mp_text[1]) + int(mp_text[3])
+	var bar_size: Array = chair["size"]
+	eq(int(bar_size[0]), int(canvas[0]), "chair bars use the full seat width")
+	check(int(offset[1]) - 1 >= int(canvas[1]), "chair bars sit below the seat, including the active ring")
+	var xs: Array = layout["portrait"]["combat"]["seat_xs"]
+	var left := int(xs[0]) - int(anchor[0]) + int(offset[0])
+	var right := int(xs[xs.size() - 1]) - int(anchor[0]) + int(offset[0]) + int(bar_size[0])
+	check(left >= 0 and right <= int(layout["portrait"]["viewport"][0]), "five chair bars stay on the 270-wide screen")
+	check(int(xs[1]) - int(xs[0]) - int(bar_size[0]) >= 2, "five chair bars keep a gap")
+	var bar_top := int(layout["portrait"]["combat"]["seat_y"]) - int(anchor[1]) + int(offset[1])
+	var bar_bottom := bar_top + int(bar_size[1])
+	var mp_bottom := bar_top + int(mp_text[1]) + int(mp_text[3])
 	check(mp_bottom <= int(name_tab[1]), "chair numbers clear the turn tab")
+	check(bar_bottom <= int(name_tab[1]), "chair bars clear the turn tab")
+	check(bar_bottom <= int(actions[1]), "chair bars clear the skill bar")
+	var strip: Array = layout["portrait"]["combat"]["initiative"]
+	check(bar_top >= int(strip[1]) + int(strip[3]), "chair bars clear the turn strip")
+	var frame_image := ArtPack.texture("ui/portrait/seat_bars_frame.png").get_image()
+	var hp_tile := ArtPack.texture("ui/portrait/seat_bar_hp_tile.png").get_image()
+	var mp_tile := ArtPack.texture("ui/portrait/seat_bar_mp_tile.png").get_image()
+	var flash_image := ArtPack.texture("ui/portrait/seat_bar_hp_lowflash.png").get_image()
+	var digit_image := ArtPack.texture("ui/portrait/digits_3x5_outlined.png").get_image()
+	check(frame_image.get_pixel(0, 0).is_equal_approx(ArtPack.SEAT_BAR_INK), "bar frame stays the pack ink")
+	check(frame_image.get_pixel(1, 1).is_equal_approx(ArtPack.SEAT_BAR_HP_EMPTY), "health track stays the pack empty")
+	check(frame_image.get_pixel(1, 6).is_equal_approx(ArtPack.SEAT_BAR_MP_EMPTY), "energy track stays the pack empty")
+	check(ArtPack.texture("ui/portrait/seat_bars_frame_active.png").get_image().get_pixel(1, 1).is_equal_approx(ArtPack.SEAT_BAR_GOLD), "active ring stays the pack gold")
+	check(digit_image.get_pixel(2, 1).is_equal_approx(ArtPack.SEAT_BAR_GLYPH), "digit glyph stays the pack gold")
+	check(hp_tile.get_pixel(0, 0).is_equal_approx(Color("ec5a44")), "health fill highlight stays the tile")
+	check(mp_tile.get_pixel(0, 0).is_equal_approx(Color("86c8f8")), "energy fill highlight stays the tile")
+	check(flash_image.get_pixel(42, 0).is_equal_approx(Color("f6f6f2")), "low-health flash stays the tile")
+	check(Widgets.contrast_ratio(ArtPack.SEAT_BAR_GLYPH, ArtPack.SEAT_BAR_HP_EMPTY) >= 4.5, "health digits read on the empty track")
+	check(Widgets.contrast_ratio(ArtPack.SEAT_BAR_GLYPH, ArtPack.SEAT_BAR_MP_EMPTY) >= 4.5, "energy digits read on the empty track")
+	check(Widgets.contrast_ratio(ArtPack.SEAT_BAR_INK, hp_tile.get_pixel(0, 0)) >= 4.5, "health outline reads on the fill")
+	check(Widgets.contrast_ratio(ArtPack.SEAT_BAR_INK, mp_tile.get_pixel(0, 0)) >= 4.5, "energy outline reads on the fill")
+	check(Widgets.contrast_ratio(ArtPack.SEAT_BAR_INK, flash_image.get_pixel(42, 0)) >= 4.5, "health outline reads on the low flash")
 	var skill_card: Array = layout["portrait"]["combat"]["skill_card"]
 	eq(skill_card.size(), 4, "skill card rect")
 	check(int(skill_card[2]) > 0 and int(skill_card[3]) > 0, "skill card has a size")
 	eq(int(layout["portrait"]["party_min"]), 1, "party minimum")
 	eq(int(layout["portrait"]["party_max"]), 5, "party maximum")
-	var strip: Array = layout["portrait"]["combat"]["initiative"]
 	var slot_px := int(layout["portrait"]["combat"]["initiative_slot"])
 	var slot_n := int(layout["portrait"]["combat"]["initiative_slots"])
 	eq(slot_n, 8, "initiative holds eight combatants")
@@ -744,14 +791,24 @@ func _test_hub_text_fit() -> void:
 	var banner := Layout.rect("hub", "banner")
 	var tiny := Layout.font_tiny()
 	var small := Layout.font_small()
-	var caption_w := caption.size.x - 8.0
-	var caption_h := caption.size.y - 2.0
-	var banner_w := banner.size.x - 8.0
-	var banner_h := banner.size.y - 2.0
+	var frame := 4.0
+	var caption_w := caption.size.x - frame * 2.0
+	var banner_w := banner.size.x - frame * 2.0
+	var banner_h := banner.size.y - frame * 2.0
 	var region: Dictionary = _region()
 	for place in region["places"]:
-		_fit_text(str(place["description"]), caption_w, caption_h, tiny, str(place["id"]) + " hub caption")
-		_fit_text("%s   %d gold" % [str(place["name"]), 9999], banner_w, banner_h, small, str(place["id"]) + " hub banner")
+		var desc := str(place["description"])
+		var block := Widgets.wrap_size(desc, caption_w, tiny)
+		var fitted := Widgets.fitted_header_height(desc, caption.size.x, tiny, caption.size.y, frame)
+		check(block.x <= caption_w + 0.01, str(place["id"]) + " hub caption stays inside the width")
+		check(block.y <= fitted - frame * 2.0 + 0.01, str(place["id"]) + " hub caption fits its plate")
+		if block.y > caption.size.y - frame * 2.0 + 0.01:
+			check(fitted > caption.size.y + 0.01, str(place["id"]) + " blurb plate grows for the wrapped lines")
+		var banner_text := "%s   %d gold" % [str(place["name"]), 9999]
+		var banner_fitted := Widgets.fitted_header_height(banner_text, banner.size.x, small, banner.size.y, frame)
+		var banner_block := Widgets.wrap_size(banner_text, banner_w, small)
+		check(banner_block.y <= banner_fitted - frame * 2.0 + 0.01, str(place["id"]) + " hub banner fits its plate")
+		check(banner_block.y <= banner_h + frame * 2.0 + 0.01, str(place["id"]) + " hub banner stays one line")
 	check(Widgets.header_back().a >= 0.99, "hub header backing is opaque")
 	check(Widgets.contrast_ratio(Widgets.header_ink(), Widgets.header_back()) >= 4.5, "hub header text contrasts with its parchment")
 	var bar := Layout.rect("combat", "action_bar")
