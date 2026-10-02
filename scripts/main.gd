@@ -324,6 +324,9 @@ func _export_check() -> void:
 		if not _texture_ok(icon) or icon.get_width() != 16 or icon.get_height() != 16:
 			failures.append("item_%s" % item_id)
 			push_error("Export check: %s icon did not load at 16x16 (%s)" % [item_id, icon_path])
+		elif ArtPack.icon_is_placeholder(icon):
+			failures.append("item_placeholder_%s" % item_id)
+			push_error("Export check: %s icon is still a parchment placeholder" % item_id)
 		var doll_path := str(item.get("doll", ""))
 		if doll_path == "":
 			continue
@@ -341,6 +344,22 @@ func _export_check() -> void:
 			var sheet := ArtPack.seat_idle(class_id, armed)
 			if not _texture_ok(sheet) or sheet.get_width() != 48 or sheet.get_height() != 78:
 				failures.append("seat_%s_%s" % [class_id, armed])
+	var no_quiver := ArtPack.class_back_rel("ranger", true, "dagger")
+	var no_quiver_tex := ArtPack.texture(no_quiver) if ArtPack.has(no_quiver) else null
+	if not _texture_ok(no_quiver_tex) or no_quiver_tex.get_width() != 48 or no_quiver_tex.get_height() != 78:
+		failures.append("noquiver_ranger")
+		push_error("Export check: ranger no-quiver layer did not load")
+	for state in ["idle", "active"]:
+		var seat_rel := ArtPack.seat_sheet_rel("ranger", "seat_%s" % state, true, "dagger")
+		var seat_tex := ArtPack.texture(seat_rel) if ArtPack.has(seat_rel) else null
+		if not _texture_ok(seat_tex) or seat_tex.get_width() != 48 or seat_tex.get_height() != 78:
+			failures.append("noquiver_seat_%s" % state)
+			push_error("Export check: ranger %s no-quiver seat did not load" % state)
+	for pin in ["brinewick", "ashgate", "pebblegate"]:
+		var pin_tex := ArtPack.texture("map/loc_%s.png" % pin)
+		if not _texture_ok(pin_tex) or pin_tex.get_width() != 32 or pin_tex.get_height() != 32:
+			failures.append("pin_%s" % pin)
+			push_error("Export check: %s pin did not load at 32x32" % pin)
 	for monster_id in ["bramblet", "grinmud_toad", "bottlecrab", "squallgull", "kelpback", "gloomgrub", "dripfang", "pebble_squire", "hollow_helm", "cobble_rat"]:
 		var idle := ArtPack.monster_frame(monster_id, "idle", 0)
 		var attack := ArtPack.monster_frame(monster_id, "attack", 0)
@@ -530,6 +549,7 @@ func _shots() -> void:
 	await _capture("cave")
 	await _capture_towns(session)
 	await _capture_v036(session)
+	await _capture_v037(session)
 	GameState.place_id = "millpond"
 	session.stage_battle_preview()
 	var flow := BattleFlow.new()
@@ -579,6 +599,54 @@ func _capture_v036(session: SessionScreen) -> void:
 	await _capture("combat_hp_v036")
 	GameState.party = party
 	GameState.level_queue = queue
+	GameState.inventory = bag
+	GameState.gold = gold
+	GameState.place_id = place
+	session._sync_party()
+	session.show_hub()
+
+
+func _capture_v037(session: SessionScreen) -> void:
+	var party: Array = GameState.party.duplicate(true)
+	var bag: Dictionary = GameState.inventory.duplicate()
+	var gold := GameState.gold
+	var place := GameState.place_id
+	GameState.place_id = "gravel_keep"
+	session.show_hub()
+	session.present_units([
+		{"id": "m0", "side": "monster", "kind": "pebble_squire", "hp": 22, "max_hp": 28, "mp": 0, "max_mp": 1, "back_row": false},
+		{"id": "m1", "side": "monster", "kind": "hollow_helm", "hp": 36, "max_hp": 40, "mp": 0, "max_mp": 1, "back_row": false},
+		{"id": "m2", "side": "monster", "kind": "cobble_rat", "hp": 14, "max_hp": 18, "mp": 0, "max_mp": 1, "back_row": true},
+	])
+	session.show_member_bar(0, {}, "", {})
+	await _capture("combat_gravel_v037")
+	GameState.place_id = "pebblegate"
+	session.clear_monsters()
+	session.show_hub()
+	await _capture("hub_pebblegate_v037")
+	var map := MapScreen.new()
+	session.add_child(map)
+	map.set_anchors_preset(Control.PRESET_FULL_RECT)
+	map.offset_left = 0
+	map.offset_top = 0
+	map.offset_right = 0
+	map.offset_bottom = 0
+	map._focus_on(Vector2(120, 200), false)
+	await _capture("map_pins_v037")
+	map.queue_free()
+	for item_id in ["oath_blade", "thorn_bow", "pocket_knife", "kettle_shield", "tonic", "slime_gel", "ash_coat", "gate_sword"]:
+		GameState.give_item(item_id, 1)
+	var gear := GearScreen.new()
+	gear.setup("bag")
+	session.add_child(gear)
+	gear.set_anchors_preset(Control.PRESET_FULL_RECT)
+	gear.offset_left = 0
+	gear.offset_top = 0
+	gear.offset_right = 0
+	gear.offset_bottom = 0
+	await _capture("bag_icons_v037")
+	gear.queue_free()
+	GameState.party = party
 	GameState.inventory = bag
 	GameState.gold = gold
 	GameState.place_id = place

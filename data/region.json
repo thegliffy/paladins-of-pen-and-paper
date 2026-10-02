@@ -143,7 +143,7 @@
           "has_inn": true,
           "description": "Nets, salt bread, and a forge that never quite dries.",
           "monsters": [],
-          "sprite": "village",
+          "sprite": "brinewick",
           "backdrop": "combat/bg_brinewick_portrait.png"
         },
         {
@@ -158,7 +158,7 @@
           "has_inn": true,
           "description": "A lean-to under the cliff. The kettle boils on cave wind.",
           "monsters": [],
-          "sprite": "village",
+          "sprite": "ashgate",
           "backdrop": "combat/bg_ashgate_portrait.png"
         },
         {
@@ -173,7 +173,7 @@
           "has_inn": true,
           "description": "Tent stalls before the keep. The smith buys stone-drops.",
           "monsters": [],
-          "sprite": "village",
+          "sprite": "pebblegate",
           "backdrop": "combat/bg_pebblegate_portrait.png"
         }
       ],

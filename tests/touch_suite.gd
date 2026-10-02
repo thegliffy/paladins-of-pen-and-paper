@@ -1118,9 +1118,9 @@ static func _assert_header_plates(session: SessionScreen, tree: SceneTree, failu
 			failures.append("hub_plate_label_%s" % plate_name)
 			push_error("Touch check: %s text is not on the plate" % plate_name)
 			continue
-		var style := plate.get_theme_stylebox("panel") as StyleBoxFlat
 		var fg := label.get_theme_color("font_color")
-		if style == null or style.bg_color.a < 0.99 or Widgets.contrast_ratio(fg, style.bg_color) < 4.5:
+		var backing := _plate_backing(plate)
+		if backing.a < 0.99 or Widgets.contrast_ratio(fg, backing) < 4.5:
 			failures.append("hub_contrast_%s" % plate_name)
 			push_error("Touch check: %s text does not contrast with its backing" % plate_name)
 		var at := plate.get_global_rect().position + Vector2(6, 6)
@@ -1131,6 +1131,18 @@ static func _assert_header_plates(session: SessionScreen, tree: SceneTree, failu
 		if pixel.b > pixel.r or pixel.a < 0.95:
 			failures.append("hub_plate_sky_%s" % plate_name)
 			push_error("Touch check: %s still shows the sky %s" % [plate_name, pixel])
+
+
+static func _plate_backing(plate: Panel) -> Color:
+	var flat := plate.get_theme_stylebox("panel") as StyleBoxFlat
+	if flat != null:
+		return flat.bg_color
+	var textured := plate.get_theme_stylebox("panel") as StyleBoxTexture
+	if textured != null and textured.texture != null:
+		var image := textured.texture.get_image()
+		if image != null and image.get_width() > 0:
+			return image.get_pixel(image.get_width() / 2, image.get_height() / 2)
+	return Color(0, 0, 0, 0)
 
 
 static func _assert_hub_buttons(session: SessionScreen, failures: Array[String]) -> void:

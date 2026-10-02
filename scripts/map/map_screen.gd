@@ -431,7 +431,7 @@ func _spawn_places(content_size: Vector2) -> void:
 		node.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		node.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		node.stretch_mode = TextureRect.STRETCH_SCALE
-		node.position = _place_pos(id) - Vector2(16, 28)
+		node.position = _place_pos(id) - ArtPack.map_pin_anchor()
 		node.size = loc.get_size()
 		_places.add_child(node)
 	_select_mark = ColorRect.new()

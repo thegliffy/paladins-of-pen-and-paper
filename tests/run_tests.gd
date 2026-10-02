@@ -623,9 +623,11 @@ func _test_art_present() -> void:
 	check(FileAccess.file_exists("res://art_source/phase0/manifest.json"), "production manifest")
 	var grass: Texture2D = ArtPack.texture("map/tile_grass.png")
 	check(grass != null and grass.get_width() > 0, "map grass loads through ArtPack")
-	for sprite_name in ["village", "windmill", "tavern", "shrine", "cave", "castle"]:
+	for sprite_name in ["village", "windmill", "tavern", "shrine", "cave", "castle", "brinewick", "ashgate", "pebblegate"]:
 		var loc: Texture2D = ArtPack.texture("map/loc_%s.png" % sprite_name)
-		check(loc != null and loc.get_width() > 0, "map place %s loads through ArtPack" % sprite_name)
+		check(loc != null and loc.get_width() == 32 and loc.get_height() == 32, "map place %s is a 32x32 pin" % sprite_name)
+	var pin_anchor := ArtPack.map_pin_anchor()
+	eq(pin_anchor, Vector2(16, 28), "map pins anchor at 16,28")
 	var seat: Texture2D = ArtPack.texture("party/seat_paladin_idle.png")
 	check(seat != null and seat.get_width() > 0, "seat doll loads through ArtPack")
 	var skill_icon: Texture2D = ArtPack.texture("ui/skills/paladin_1.png")
@@ -1008,6 +1010,10 @@ func _test_place_rosters() -> void:
 		eq(backdrop, "combat/bg_%s_portrait.png" % place_id, place_id + " names its portrait backdrop")
 		var tex: Texture2D = ArtPack.texture(backdrop)
 		check(tex != null and tex.get_width() == 270 and tex.get_height() == 480, place_id + " backdrop is 270x480")
+		if place_id == "brinewick" or place_id == "ashgate" or place_id == "pebblegate":
+			eq(str(place.get("sprite", "")), place_id, place_id + " uses its own map pin")
+			var candle: Texture2D = ArtPack.texture("combat/bg_candlewick_portrait.png")
+			check(candle != null and not _is_recolor(candle.get_image(), tex.get_image()), place_id + " backdrop is not a tinted Candlewick")
 		if str(place.get("kind", "")) == "town":
 			check(roster.is_empty(), place_id + " has no fights")
 			continue
@@ -1141,6 +1147,7 @@ func _test_gear() -> void:
 		check(ArtPack.has(icon), str(row["id"]) + " icon file")
 		var icon_tex := ArtPack.texture(icon)
 		check(icon_tex != null and icon_tex.get_width() == 16 and icon_tex.get_height() == 16, str(row["id"]) + " icon is 16x16")
+		check(not ArtPack.icon_is_placeholder(icon_tex), str(row["id"]) + " icon is not a parchment placeholder")
 		var doll := str(row.get("doll", ""))
 		if doll == "":
 			continue
@@ -1195,6 +1202,7 @@ func _test_seat_gear() -> void:
 	eq(ArtPack.class_back_rel("cleric", true), "paperdoll/back/class_back_cleric.png", "cleric keeps the normal layer")
 	eq(ArtPack.class_back_rel("rogue", true), "paperdoll/back/class_back_rogue.png", "rogue keeps the normal layer")
 	eq(ArtPack.seat_sheet_rel("cleric", "seat_idle", true), "party/seat_cleric_idle.png", "cleric seat stays the normal bake")
+	_test_ranger_quiver()
 	_test_one_equipped_weapon()
 	check(ArtPack.offhand_flips({"slot": "weapon", "tag": "dagger", "hands": 1}), "a dagger flips in the off hand")
 	check(ArtPack.offhand_flips({"slot": "weapon", "tag": "sword", "hands": 1}), "a one-handed sword flips in the off hand")
@@ -1230,6 +1238,75 @@ func _test_seat_gear() -> void:
 	var front := ArtPack.compose_doll("front", look, "paladin", full)
 	check(front.get_width() == 32 and front.get_height() == 48, "the front doll stays 32x48")
 	check(_same_image(front.get_image(), front_bare.get_image()), "seat overlays are not baked onto the front doll")
+
+
+func _test_ranger_quiver() -> void:
+	var normal := "paperdoll/back/class_back_ranger.png"
+	var bow_layer := "paperdoll/back/class_back_ranger_noweapon.png"
+	var bare_layer := "paperdoll/back/class_back_ranger_noweapon_noquiver.png"
+	eq(ArtPack.class_back_rel("ranger", false, ""), normal, "an unarmed ranger keeps the bow and quiver")
+	eq(ArtPack.class_back_rel("ranger", true, "bow"), bow_layer, "a bow keeps the quiver")
+	eq(ArtPack.class_back_rel("ranger", true, "dagger"), bare_layer, "a dagger drops the quiver")
+	eq(ArtPack.pick_class_back("ranger", true, true, "axe"), bare_layer, "any non-bow tag drops the quiver")
+	eq(ArtPack.seat_sheet_rel("ranger", "seat_idle", false, ""), "party/seat_ranger_idle.png", "unarmed ranger seat")
+	eq(ArtPack.seat_sheet_rel("ranger", "seat_active", true, "bow"), "party/seat_ranger_active_noweapon.png", "bow ranger active seat keeps the quiver")
+	eq(ArtPack.seat_sheet_rel("ranger", "seat_idle", true, "dagger"), "party/seat_ranger_idle_noweapon_noquiver.png", "dagger ranger idle seat drops the quiver")
+	eq(ArtPack.seat_sheet_rel("ranger", "seat_active", true, "dagger"), "party/seat_ranger_active_noweapon_noquiver.png", "dagger ranger active seat drops the quiver")
+	for rel in [bare_layer, "party/seat_ranger_idle_noweapon_noquiver.png", "party/seat_ranger_active_noweapon_noquiver.png"]:
+		var sheet := ArtPack.texture(rel)
+		check(sheet != null and sheet.get_width() == 48 and sheet.get_height() == 78, rel + " loads at 48x78")
+	var look := ArtPack.default_look("ranger")
+	var bow_gear := {"main": "paperdoll/gear/thorn_bow.png", "main_weapon": true, "main_tag": "bow"}
+	var knife_gear := {"main": "paperdoll/gear/pocket_knife.png", "main_weapon": true, "main_tag": "dagger"}
+	var bow_plan: Array = ArtPack.seat_blit_plan("ranger", bow_gear)
+	var knife_plan: Array = ArtPack.seat_blit_plan("ranger", knife_gear)
+	var bow_class := ""
+	var knife_class := ""
+	for bow_step in bow_plan:
+		if str(bow_step["id"]) == "class":
+			bow_class = str(bow_step["path"])
+	for knife_step in knife_plan:
+		if str(knife_step["id"]) == "class":
+			knife_class = str(knife_step["path"])
+	eq(bow_class, bow_layer, "composing a bow uses the quiver layer")
+	eq(knife_class, bare_layer, "composing a dagger uses the no-quiver layer")
+	var bare := ArtPack.compose_doll("back", look, "ranger")
+	var with_bow := ArtPack.compose_doll("back", look, "ranger", bow_gear)
+	var with_knife := ArtPack.compose_doll("back", look, "ranger", knife_gear)
+	check(bare.get_width() == 48 and with_bow.get_height() == 78, "ranger seats compose at 48x78")
+	check(not _same_image(bare.get_image(), with_bow.get_image()), "a bow changes the ranger seat")
+	check(not _same_image(with_bow.get_image(), with_knife.get_image()), "a dagger seat is not the bow seat")
+	var idle_sheet := ArtPack.seat_idle("ranger", true, "dagger")
+	var active_sheet := ArtPack.seat_active("ranger", true, "dagger")
+	check(idle_sheet != null and active_sheet != null, "no-quiver seat sheets load")
+
+
+func _is_recolor(source: Image, other: Image) -> bool:
+	if source == null or other == null:
+		return true
+	if source.get_width() != other.get_width() or source.get_height() != other.get_height():
+		return false
+	var sample := source.get_pixel(10, 10)
+	var tint := other.get_pixel(10, 10)
+	if sample.r < 0.05 or sample.g < 0.05 or sample.b < 0.05:
+		return false
+	var kr := tint.r / sample.r
+	var kg := tint.g / sample.g
+	var kb := tint.b / sample.b
+	var hit := 0
+	var total := 0
+	var y := 0
+	while y < source.get_height():
+		var x := 0
+		while x < source.get_width():
+			var a := source.get_pixel(x, y)
+			var b := other.get_pixel(x, y)
+			total += 1
+			if absf(a.r * kr - b.r) < 0.05 and absf(a.g * kg - b.g) < 0.05 and absf(a.b * kb - b.b) < 0.05:
+				hit += 1
+			x += 8
+		y += 8
+	return total > 0 and float(hit) / float(total) > 0.85
 
 
 func _test_one_equipped_weapon() -> void:

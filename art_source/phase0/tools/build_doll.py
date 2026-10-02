@@ -742,8 +742,11 @@ def sleeves(L, base, dark, light, cuff=None, bell=True):
             folds(Q, sl, [[(7, 49), (6, 56)], [(10, 50), (11, 57)]] if sl[50, 5] else [[(40, 49), (41, 56)], [(37, 50), (36, 57)]], C[dark])
             if cuff: paint(Q, sl & (bys >= 59) | (e_bot(sl) & (bys >= 57)), C[cuff])
         part(L, f)
-def class_back(c):
+def class_back(c, noweapon=False, noquiver=False):
+    """noweapon=True skips the baked class weapon parts (they are always the LAST parts of the class, so removing them
+    leaves every other pixel identical and reveals the fully drawn parts / body underneath)."""
     L = layer(BW, BH)
+    NW = not noweapon
     if c == 'paladin':
         def plate(Q):
             m = TORSO | HIPS & (bys <= 60); shade3(Q, m, C['silver'], C['gray'], C['mist'], spine=True)
@@ -757,22 +760,22 @@ def class_back(c):
             part(L, lambda Q, up=up: (shade3(Q, up, C['silver'], C['gray'], C['mist']), paint(Q, up & (bys == 52), C['gray'])))
         for cx in (9.5, 37.5):
             part(L, lambda Q, cx=cx: (lambda m: (shade3(Q, m, C['silver'], C['gray'], C['mist']), paint(Q, m & (bys == int(46.5)), C['gray']), paint(Q, m & (bys == 45) & ~e_left(m), C['white'])))(Ell(cx, 45.5, 5.2, 4.2) & (bys <= 48)))
-        part(L, lambda Q: (paint(Q, M([(4, 55), (6, 55), (6, 69), (4, 69)]), C['silver']), paint(Q, M([(5, 55), (6, 55), (6, 69), (5, 69)]), C['gray']), paint(Q, M([(2, 53), (8, 53), (8, 54), (2, 54)]), C['gold']), paint(Q, M([(4, 50), (6, 50), (6, 52), (4, 52)]), C['wood_dk'])))  # sword at the left hip
+        if NW: part(L, lambda Q: (paint(Q, M([(4, 55), (6, 55), (6, 69), (4, 69)]), C['silver']), paint(Q, M([(5, 55), (6, 55), (6, 69), (5, 69)]), C['gray']), paint(Q, M([(2, 53), (8, 53), (8, 54), (2, 54)]), C['gold']), paint(Q, M([(4, 50), (6, 50), (6, 52), (4, 52)]), C['wood_dk'])))  # sword at the left hip
     elif c == 'wizard':
         part(L, lambda Q: robe_body(Q, 'blue', 'blue_dk', 'sky', 'gold', trim='gold'))
         part(L, lambda Q: belt(Q, 55, 'gold', 'amber', knot=M([(30, 56), (32, 56), (33, 61), (31, 61)])))
         sleeves(L, 'blue', 'blue_dk', 'sky', cuff='gold')
-        part(L, lambda Q: (paint(Q, M([(41, 26), (43, 26), (43, 77), (41, 77)]), C['wood']), paint(Q, M([(43, 28), (43, 28), (43, 77), (43, 77)]) | (bxs == 43) & (bys >= 27), C['wood_dk']),
+        if NW: part(L, lambda Q: (paint(Q, M([(41, 26), (43, 26), (43, 77), (41, 77)]), C['wood']), paint(Q, M([(43, 28), (43, 28), (43, 77), (43, 77)]) | (bxs == 43) & (bys >= 27), C['wood_dk']),
             shade3(Q, Ell(42, 23.5, 3.2, 3.2), C['violet'], C['plum'], C['sky_lt']), paint(Q, P1([(27.6, 15)]), C['white'])))
-        part(L, lambda Q: shade3(Q, Ell(40.5, 55.5, 2.0, 2.0), C['skin3'], C['skin4'], C['skin2']))    # hand on the staff
+        if NW: part(L, lambda Q: shade3(Q, Ell(40.5, 55.5, 2.0, 2.0), C['skin3'], C['skin4'], C['skin2']))    # hand on the staff
     elif c == 'ranger':
         part(L, lambda Q: (lambda m: (shade3(Q, m, C['leaf'], C['leaf_dk'], C['grass'], spine=True), folds(Q, m, [[(19, 46), (13, 67)], [(28, 46), (34, 67)], [(23, 50), (22, 67)]], C['leaf_dk'], C['grass']), paint(Q, e_bot(m), C['pine'])))(robe_mask(67, 18.5)))
         part(L, lambda Q: belt(Q, 56, 'wood', 'wood_dk', knot=M([(15, 57), (18, 57), (18, 61), (15, 61)])))
         sleeves(L, 'leaf_dk', 'pine', 'leaf', bell=False)
-        part(L, lambda Q: (shade3(Q, M([(27, 32), (32, 34), (21, 58), (16, 56)]), C['wood'], C['wood_dk'], C['wood_lt']), paint(Q, LNn([(19, 55), (29, 34)]), C['wood_dk'])))   # quiver
-        part(L, lambda Q: (paint(Q, P1([(19, 21), (20, 20), (21, 21), (18, 20)]), C['white']), paint(Q, P1([(20, 21)]), C['red'])))
-        part(L, lambda Q: (paint(Q, LNn([(5, 30), (3, 40), (3, 54), (6, 66)], 2), C['wood_lt']), paint(Q, LNn([(6, 30), (6, 66)]), C['cream'])))     # bow at the left side
-        part(L, lambda Q: shade3(Q, Ell(5, 55.5, 2.0, 2.0), C['skin3'], C['skin4'], C['skin2']))
+        if not noquiver: part(L, lambda Q: (shade3(Q, M([(27, 32), (32, 34), (21, 58), (16, 56)]), C['wood'], C['wood_dk'], C['wood_lt']), paint(Q, LNn([(19, 55), (29, 34)]), C['wood_dk'])))   # quiver
+        if not noquiver: part(L, lambda Q: (paint(Q, P1([(19, 21), (20, 20), (21, 21), (18, 20)]), C['white']), paint(Q, P1([(20, 21)]), C['red'])))
+        if NW: part(L, lambda Q: (paint(Q, LNn([(5, 30), (3, 40), (3, 54), (6, 66)], 2), C['wood_lt']), paint(Q, LNn([(6, 30), (6, 66)]), C['cream'])))     # bow at the left side
+        if NW: part(L, lambda Q: shade3(Q, Ell(5, 55.5, 2.0, 2.0), C['skin3'], C['skin4'], C['skin2']))
     elif c == 'bard':
         def doub(Q):
             m = TORSO; shade3(Q, m, C['red'], C['red_dk'], C['coral'], spine=True)
@@ -783,8 +786,8 @@ def class_back(c):
         for up, fo in ((ARM_UP_L, FORE_L), (ARM_UP_R, FORE_R)):
             part(L, lambda Q, fo=fo: shade3(Q, fo, C['red'], C['red_dk'], C['coral']))
             part(L, lambda Q, up=up: (shade3(Q, up, C['cream'], C['sand'], C['white']), paint(Q, up & ((bxs % 3) == 0) & ~e_bot(up) & ~e_top(up), C['red'])))
-        part(L, lambda Q: (shade3(Q, Ell(39, 57, 5.2, 6.2), C['tan'], C['wood_lt'], C['sand']), paint(Q, Ell(38.5, 56, 1.4, 1.4), C['wood_dk'])))
-        part(L, lambda Q: (paint(Q, LNn([(40, 51), (42, 32)], 2), C['wood_dk']), shade3(Q, M([(41, 27), (44, 27), (44, 32), (41, 32)]), C['wood'], C['wood_dk'], C['wood_lt']), paint(Q, P1([(27, 18), (29, 20)]), C['gold'])))
+        if NW: part(L, lambda Q: (shade3(Q, Ell(39, 57, 5.2, 6.2), C['tan'], C['wood_lt'], C['sand']), paint(Q, Ell(38.5, 56, 1.4, 1.4), C['wood_dk'])))
+        if NW: part(L, lambda Q: (paint(Q, LNn([(40, 51), (42, 32)], 2), C['wood_dk']), shade3(Q, M([(41, 27), (44, 27), (44, 32), (41, 32)]), C['wood'], C['wood_dk'], C['wood_lt']), paint(Q, P1([(27, 18), (29, 20)]), C['gold'])))
     elif c == 'cleric':
         part(L, lambda Q: robe_body(Q, 'white', 'mist', 'white', 'gold'))
         part(L, lambda Q: (lambda m: (paint(Q, m, C['gold']), paint(Q, e_right(m), C['amber'])))(LNn([(15, 42), (18, 56)], 2) | LNn([(32, 42), (29, 56)], 2)))  # stole bands
@@ -809,8 +812,8 @@ def class_back(c):
         part(L, lambda Q: (paint(Q, LNn([(12, 44), (34, 58)], 2), C['wood_dk']), paint(Q, LNn([(12, 43), (34, 57)]) , C['wood'])))                      # harness strap
         part(L, lambda Q: (lambda m: (shade3(Q, m, C['tan'], C['wood_lt'], C['sand']), paint(Q, m & (((bxs + bys) % 4) == 0) & ~e_bot(m), C['wood_lt'])))(M([(15, 39), (32, 39), (38, 43), (39, 47), (36, 46), (34, 49), (31, 46), (27, 49), (23.5, 46), (20, 49), (16, 46), (13, 49), (11, 46), (8, 47), (9, 43)])))
         for fo in (FORE_L, FORE_R): part(L, lambda Q, fo=fo: (paint(Q, fo & (bys >= 55), C['wood']), paint(Q, e_bot(fo) & (bys >= 55), C['wood_dk'])))
-        part(L, lambda Q: (paint(Q, LNn([(11, 66), (35, 30)], 2), C['wood']), paint(Q, LNn([(12, 66), (36, 30)]), C['wood_dk'])))
-        part(L, lambda Q: (lambda m: (shade3(Q, m, C['silver'], C['gray'], C['mist']), paint(Q, e_right(m) & (bxs >= 40), C['white'])))(M([(33, 28), (38, 22), (43, 24), (44, 30), (42, 36), (37, 34), (35, 32)])))
+        if NW: part(L, lambda Q: (paint(Q, LNn([(11, 66), (35, 30)], 2), C['wood']), paint(Q, LNn([(12, 66), (36, 30)]), C['wood_dk'])))
+        if NW: part(L, lambda Q: (lambda m: (shade3(Q, m, C['silver'], C['gray'], C['mist']), paint(Q, e_right(m) & (bxs >= 40), C['white'])))(M([(33, 28), (38, 22), (43, 24), (44, 30), (42, 36), (37, 34), (35, 32)])))
     elif c == 'druid':
         part(L, lambda Q: robe_body(Q, 'leaf_dk', 'pine', 'leaf', 'wood', flare=20.5))
         part(L, lambda Q: (lambda m: (paint(Q, m, C['wood']), paint(Q, e_right(m) | e_bot(m), C['wood_dk'])))(M([(9, 44), (38, 44), (37, 47), (10, 47)]) & robe_mask()))
@@ -818,9 +821,9 @@ def class_back(c):
             part(L, lambda Q, cx=cx, cy=cy, k=k: (lambda m: (paint(Q, m, C['lime'] if k % 3 == 0 else C['leaf']), paint(Q, e_right(m) | e_bot(m), C['leaf_dk'] if k % 3 else C['grass'])))(Ell(cx, cy, 2.6, 2.0)))
         part(L, lambda Q: belt(Q, 56, 'leaf', 'leaf_dk', knot=M([(29, 57), (31, 57), (32, 62), (30, 62)])))
         sleeves(L, 'leaf_dk', 'pine', 'leaf', cuff='wood')
-        part(L, lambda Q: (paint(Q, LNn([(5, 77), (5, 44), (4, 34), (6, 26)], 2), C['wood']), paint(Q, LNn([(6, 77), (6, 44)]), C['wood_dk'])))
-        part(L, lambda Q: (lambda m: (shade3(Q, m, C['lime'], C['leaf'], C['cream'])))(Ell(4.5, 24, 3.2, 2.6) | Ell(8, 26, 2.2, 1.8)))
-        part(L, lambda Q: shade3(Q, Ell(6, 55.5, 2.0, 2.0), C['skin3'], C['skin4'], C['skin2']))
+        if NW: part(L, lambda Q: (paint(Q, LNn([(5, 77), (5, 44), (4, 34), (6, 26)], 2), C['wood']), paint(Q, LNn([(6, 77), (6, 44)]), C['wood_dk'])))
+        if NW: part(L, lambda Q: (lambda m: (shade3(Q, m, C['lime'], C['leaf'], C['cream'])))(Ell(4.5, 24, 3.2, 2.6) | Ell(8, 26, 2.2, 1.8)))
+        if NW: part(L, lambda Q: shade3(Q, Ell(6, 55.5, 2.0, 2.0), C['skin3'], C['skin4'], C['skin2']))
     return L
 _hb3 = hat_back
 def hat_back(c):
@@ -875,6 +878,19 @@ for n in range(8): save(img(hb[n]), P + f'back/hair_back_{n+1}.png'); META[P + f
 for c in CLASSES:
     save(img(cb[c]), P + f'back/class_back_{c}.png'); META[P + f'back/class_back_{c}.png'] = dict(BA, layer=2)
     save(img(hbk[c]), P + f'back/class_back_{c}_hat.png'); META[P + f'back/class_back_{c}_hat.png'] = dict(BA, layer=4, hair_clip_y=HAT_CLIP_BACK[c], notes='drawn above hair_back; hide hair rows y < hair_clip_y while worn.')
+# weapon-less class layers (used instead of class_back_<c> when a main-hand weapon is equipped)
+NOWEAPON = {'paladin': 'sword at the left hip', 'druid': 'staff (and its hand) at the left', 'wizard': 'staff (and its hand) at the right', 'barbarian': 'axe across the back',
+            'bard': 'lute at the right', 'ranger': 'bow (and its hand) at the left'}
+cbn = {c: class_back(c, noweapon=True) for c in NOWEAPON}
+for c, what in NOWEAPON.items():
+    save(img(cbn[c]), P + f'back/class_back_{c}_noweapon.png')
+    META[P + f'back/class_back_{c}_noweapon.png'] = dict(BA, layer=2, variant_of=P + f'back/class_back_{c}.png', status='draft_pending_approval',
+        notes=f'class_back_{c} without the baked {what}; everything else pixel-identical (the weapon parts were the last parts of the layer, so the arm/robe/cape underneath is already fully drawn). Use when a main-hand weapon is equipped.')
+# ranger without quiver + fletching (refine-2): for a ranger holding a NON-bow main-hand weapon (see manifest paperdoll.ranger_quiver)
+cbq = class_back('ranger', noweapon=True, noquiver=True); save(img(cbq), P + 'back/class_back_ranger_noweapon_noquiver.png')
+save(img(cbq), 'tools/_work/doll_raw/' + P + 'back/class_back_ranger_noweapon_noquiver.png')   # unrefined copy: build_refine reads this (keeps refine idempotent)
+META[P + 'back/class_back_ranger_noweapon_noquiver.png'] = dict(BA, layer=2, variant_of=P + 'back/class_back_ranger_noweapon.png', status='review',
+    notes='class_back_ranger_noweapon without the back quiver and its fletching. Use when the ranger holds a main-hand weapon whose tag is not bow.')
 save(img(ch), P + 'back/chair_back.png'); META[P + 'back/chair_back.png'] = dict(BA, layer=5, notes='chair backrest, drawn LAST (in front of the seated body). Active seat: raise all layers 3px and add a 1px gold #f8d040 outline around the union.')
 
 # ramps (machine-readable, 1px per entry) + previews
@@ -904,11 +920,11 @@ def compose_front(skin, head, hair, hcol, ocol, cls, hat):
     over(L, hl)
     if cls and hat: over(L, hats[cls])
     return L
-def compose_back(skin, hair, hcol, ocol, cls, hat, active=False):
+def compose_back(skin, hair, hcol, ocol, cls, hat, active=False, noweapon=False):
     L = layer(BW, BH)
     over(L, bb[skin])
     if ocol: over(L, remap_arr(ob, outfit_map(ocol)))
-    if cls: over(L, cb[cls])
+    if cls: over(L, cbn[cls] if (noweapon and cls in cbn) else cb[cls])
     hl = remap_arr(hb[hair], hair_map(hcol))
     if cls and hat: hl = clip_hair(hl, HAT_CLIP_BACK[cls])
     over(L, hl)
@@ -918,14 +934,26 @@ def compose_back(skin, hair, hcol, ocol, cls, hat, active=False):
         L2 = layer(BW, BH); L2[:-3] = L[3:]; L = L2; outline(L, C['gold'])
     return L
 # ---------- party seats = composed back dolls (v3) ----------
-def seat(c, active):
+def seat(c, active, noweapon=False):
     d = SEAT_DEFAULTS[c]
-    return compose_back(d['skin'] - 1, d['hair'] - 1, d['hair_color'], d['outfit'], c, d['hat'], active=active)
+    return compose_back(d['skin'] - 1, d['hair'] - 1, d['hair_color'], d['outfit'], c, d['hat'], active=active, noweapon=noweapon)
 for c in CLASSES:
     for st, act in (('idle', False), ('active', True)):
         save(img(seat(c, act)), f'party/seat_{c}_{st}.png')
         META[f'party/seat_{c}_{st}.png'] = dict(anchor=[24, 77], canvas=[BW, BH], composed_from='paperdoll/back/* (see manifest paperdoll.seat_recipe)', defaults=SEAT_DEFAULTS[c],
             notes='48x78 seat built from the back-view paperdoll layers.' + (' Active: all layers raised 3px + 1px gold #f8d040 outline around the union.' if act else ''))
+for c in NOWEAPON:
+    for st, act in (('idle', False), ('active', True)):
+        save(img(seat(c, act, noweapon=True)), f'party/seat_{c}_{st}_noweapon.png')
+        META[f'party/seat_{c}_{st}_noweapon.png'] = dict(anchor=[24, 77], canvas=[BW, BH], composed_from=f'seat_recipe with back/class_back_{c}_noweapon', defaults=SEAT_DEFAULTS[c], status='draft_pending_approval',
+            notes=f'party/seat_{c}_{st} without the baked class weapon (for a hero with a main-hand weapon equipped; draw the gear overlays on top per seat_recipe steps_with_gear).')
+for st, act in (('idle', False), ('active', True)):
+    d = SEAT_DEFAULTS['ranger']; Lq = layer(BW, BH); over(Lq, bb[d['skin'] - 1]); over(Lq, remap_arr(ob, outfit_map(d['outfit']))); over(Lq, cbq)
+    hl = clip_hair(remap_arr(hb[d['hair'] - 1], hair_map(d['hair_color'])), HAT_CLIP_BACK['ranger']); over(Lq, hl); over(Lq, hbk['ranger']); over(Lq, ch)
+    if act: L2 = layer(BW, BH); L2[:-3] = Lq[3:]; Lq = L2; outline(Lq, C['gold'])
+    save(img(Lq), f'party/seat_ranger_{st}_noweapon_noquiver.png')
+    META[f'party/seat_ranger_{st}_noweapon_noquiver.png'] = dict(anchor=[24, 77], canvas=[BW, BH], composed_from='seat_recipe with back/class_back_ranger_noweapon_noquiver', defaults=SEAT_DEFAULTS['ranger'], status='review',
+        notes='ranger seat with no baked bow and no quiver: for a ranger holding a non-bow main-hand weapon.')
 def front_default(c):
     d = SEAT_DEFAULTS[c]
     return compose_front(d['skin'] - 1, d['head'] - 1, d['hair'] - 1, d['hair_color'], d['outfit'], c, d['hat'])

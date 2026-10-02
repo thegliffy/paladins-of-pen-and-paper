@@ -29,6 +29,27 @@ static func skin_button(button: Button) -> void:
 	button.add_theme_font_size_override("font_size", Layout.font_small())
 
 
+static func skin_hub_button(button: Button) -> void:
+	## Hub action row. The 9-slice keeps a 6px wood edge; the content inset
+	## matches the old tan buttons so the full words still fit beside the icons.
+	var normal := ArtPack.nine_slice("ui/hub/hub_button.png", 6, 6, 6, 6)
+	var pressed := ArtPack.nine_slice("ui/hub/hub_button_down.png", 6, 6, 6, 6)
+	for box in [normal, pressed]:
+		box.content_margin_left = 4
+		box.content_margin_right = 4
+		box.content_margin_top = 2
+		box.content_margin_bottom = 2
+	button.add_theme_stylebox_override("normal", normal)
+	button.add_theme_stylebox_override("hover", normal)
+	button.add_theme_stylebox_override("pressed", pressed)
+	button.add_theme_stylebox_override("disabled", pressed)
+	button.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+
+
+static func hub_plate() -> StyleBoxTexture:
+	return ArtPack.nine_slice("ui/hub/header_plate.png", 4, 4, 4, 4)
+
+
 static func make_button(text: String, minimum: Vector2) -> Button:
 	var button := Button.new()
 	button.text = text

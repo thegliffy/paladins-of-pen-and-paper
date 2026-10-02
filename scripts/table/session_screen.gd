@@ -72,17 +72,18 @@ func show_hub() -> void:
 	_set_table_visible(true)
 	_initiative.visible = false
 	_set_banner_shown(true)
+	_apply_hub_plates()
 	var place: Dictionary = ContentDB.place(GameState.place_id)
 	_banner.text = "%s   %d gold" % [place["name"], GameState.gold]
 	_set_caption(str(place["description"]))
 	_sync_party()
 	var fight: bool = not ContentDB.place_monster_ids(GameState.place_id).is_empty()
 	set_actions([
-		{"id": "travel", "label": "Travel", "icon": "icon_run"},
-		{"id": "fight", "label": "Fight", "icon": "icon_attack", "disabled": not fight},
-		{"id": "rest", "label": "Rest", "icon": "icon_cover"},
-		{"id": "quest", "label": "Quest", "icon": "icon_skill"},
-		{"id": "party", "label": "Gear", "icon": "icon_item"},
+		{"id": "travel", "label": "Travel", "icon_path": "ui/hub/icon_travel.png", "hub": true},
+		{"id": "fight", "label": "Fight", "icon_path": "ui/hub/icon_fight.png", "hub": true, "disabled": not fight},
+		{"id": "rest", "label": "Rest", "icon_path": "ui/hub/icon_rest.png", "hub": true},
+		{"id": "quest", "label": "Quest", "icon_path": "ui/hub/icon_quest.png", "hub": true},
+		{"id": "party", "label": "Gear", "icon_path": "ui/hub/icon_gear.png", "hub": true},
 	])
 	_close_modal()
 	close_stats_sheet()
@@ -233,19 +234,26 @@ func set_actions(entries: Array) -> void:
 	var want_icon := false
 	for entry in entries:
 		labels.append(str(entry["label"]))
-		if str(entry.get("icon", "")) != "":
+		if str(entry.get("icon", "")) != "" or str(entry.get("icon_path", "")) != "":
 			want_icon = true
 	var fit: Dictionary = Widgets.action_row_fit(labels, width, height, want_icon)
 	var icon_width := int(fit["icon_width"])
 	var x := 2.0
 	for entry in entries:
 		var button := Widgets.make_button(str(entry["label"]), Vector2(width, height))
+		if bool(entry.get("hub", false)):
+			Widgets.skin_hub_button(button)
 		button.position = Vector2(x, 4)
 		button.size = Vector2(width, height)
 		button.add_theme_font_size_override("font_size", int(fit["font_size"]))
 		button.add_theme_constant_override("h_separation", int(fit["gap"]))
+		var icon_path := str(entry.get("icon_path", ""))
 		var icon_name := str(entry.get("icon", ""))
-		if icon_width > 0 and icon_name != "" and Pack.exists("res://art/ui/%s.png" % icon_name):
+		if icon_width > 0 and icon_path != "" and ArtPack.has(icon_path):
+			button.icon = ArtPack.texture(icon_path)
+			button.expand_icon = true
+			button.add_theme_constant_override("icon_max_width", icon_width)
+		elif icon_width > 0 and icon_name != "" and Pack.exists("res://art/ui/%s.png" % icon_name):
 			button.icon = SpriteCatalog.ui(icon_name)
 			button.expand_icon = true
 			button.add_theme_constant_override("icon_max_width", icon_width)
@@ -672,6 +680,13 @@ func _set_caption(text: String) -> void:
 	_caption.text = text
 	if _caption_plate:
 		_caption_plate.visible = text != ""
+
+
+func _apply_hub_plates() -> void:
+	if _banner_plate:
+		_banner_plate.add_theme_stylebox_override("panel", Widgets.hub_plate())
+	if _caption_plate:
+		_caption_plate.add_theme_stylebox_override("panel", Widgets.hub_plate())
 
 
 func _set_banner_shown(shown: bool) -> void:
@@ -1188,9 +1203,11 @@ func _sync_party() -> void:
 		var doll := PaperDoll.new()
 		doll.name = "Doll"
 		var class_id := str(member["class_id"])
-		var armed := bool(PaperDoll.seat_spec(member).get("main_weapon", false))
+		var seat_gear := PaperDoll.seat_spec(member)
+		var armed := bool(seat_gear.get("main_weapon", false))
+		var main_tag := str(seat_gear.get("main_tag", ""))
 		if ArtPack.seat_is_default(class_id, member["look"]):
-			doll.show_sheet(ArtPack.seat_idle(class_id, armed), canvas)
+			doll.show_sheet(ArtPack.seat_idle(class_id, armed, main_tag), canvas)
 		else:
 			doll.set_look(member["look"], class_id, str(member["race"]), "back")
 		doll.show_gear(member)
