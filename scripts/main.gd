@@ -4,6 +4,30 @@ const TouchSuite := preload("res://tests/touch_suite.gd")
 
 var screen: Node
 var _busy := false
+var _touch_watchdog := Thread.new()
+var _touch_lock := Mutex.new()
+var _touch_done := false
+
+
+func _mark_touch_done() -> void:
+	_touch_lock.lock()
+	_touch_done = true
+	_touch_lock.unlock()
+
+
+func _touch_timeout() -> void:
+	var waited := 0
+	while waited < 120000:
+		OS.delay_msec(200)
+		waited += 200
+		_touch_lock.lock()
+		var done := _touch_done
+		_touch_lock.unlock()
+		if done:
+			return
+	push_error("TOUCH_CHECK_TIMEOUT")
+	print("TOUCH_CHECK_TIMEOUT")
+	OS.kill(OS.get_process_id())
 
 
 func _ready() -> void:
@@ -15,7 +39,18 @@ func _ready() -> void:
 		await _export_check()
 		return
 	if OS.get_cmdline_user_args().has("--touch-check"):
+		# Uncapped drawing on the software renderer keeps the process at full
+		# CPU and leaves stdout buffered, so a stuck check prints nothing.
+		# The suite also waits on a few real timers (the victory XP line, the
+		# enemy long-press). Those are bounded. This watchdog is the hard stop:
+		# if the check is still running after two minutes, the process exits.
+		ProjectSettings.set_setting("application/run/flush_stdout_on_print", true)
+		Engine.max_fps = 30
+		print("TOUCH_CHECK_START")
+		_touch_watchdog.start(_touch_timeout)
 		var touch_code: int = await TouchSuite.run(self)
+		_mark_touch_done()
+		_touch_watchdog.wait_to_finish()
 		get_tree().quit(touch_code)
 		return
 	if OS.get_cmdline_user_args().has("--shots"):

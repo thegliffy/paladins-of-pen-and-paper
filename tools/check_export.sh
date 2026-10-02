@@ -35,7 +35,7 @@ TOUCH_LOG="$OUT/touch.log"
 set +e
 (
 	cd "$OUT"
-	xvfb-run -a -s "-screen 0 900x1600x24" "$GODOT" --main-pack "$OUT/game.pck" -- --touch-check
+	timeout -k 10 150 xvfb-run -a -s "-screen 0 900x1600x24" "$GODOT" --main-pack "$OUT/game.pck" -- --touch-check
 ) | tee "$TOUCH_LOG"
 touch_code=${PIPESTATUS[0]}
 set -e
