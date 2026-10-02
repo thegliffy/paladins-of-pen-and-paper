@@ -1123,6 +1123,14 @@ static func _assert_header_plates(session: SessionScreen, tree: SceneTree, failu
 		if backing.a < 0.99 or Widgets.contrast_ratio(fg, backing) < 4.5:
 			failures.append("hub_contrast_%s" % plate_name)
 			push_error("Touch check: %s text does not contrast with its backing" % plate_name)
+		var frame := _header_frame(plate)
+		var font_size := label.get_theme_font_size("font_size")
+		var wrapped := Widgets.wrap_size(label.text, maxf(1.0, label.size.x), font_size)
+		var slack := maxf(0.0, label.size.y - wrapped.y)
+		var text_bottom := label.position.y + slack * 0.5 + wrapped.y
+		if text_bottom > plate.size.y - frame + 0.01:
+			failures.append("hub_plate_fit_%s" % plate_name)
+			push_error("Touch check: %s wrapped text is taller than its plate" % plate_name)
 		var at := plate.get_global_rect().position + Vector2(6, 6)
 		if at.x < 0.0 or at.y < 0.0 or at.x >= image.get_width() or at.y >= image.get_height():
 			failures.append("hub_plate_pixel_%s" % plate_name)
@@ -1131,6 +1139,15 @@ static func _assert_header_plates(session: SessionScreen, tree: SceneTree, failu
 		if pixel.b > pixel.r or pixel.a < 0.95:
 			failures.append("hub_plate_sky_%s" % plate_name)
 			push_error("Touch check: %s still shows the sky %s" % [plate_name, pixel])
+
+
+static func _header_frame(plate: Panel) -> float:
+	var style := plate.get_theme_stylebox("panel")
+	if style is StyleBoxTexture:
+		return (style as StyleBoxTexture).texture_margin_top
+	if style is StyleBoxFlat:
+		return float((style as StyleBoxFlat).get_border_width(SIDE_TOP))
+	return 0.0
 
 
 static func _plate_backing(plate: Panel) -> Color:

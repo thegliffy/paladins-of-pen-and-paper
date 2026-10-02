@@ -744,14 +744,24 @@ func _test_hub_text_fit() -> void:
 	var banner := Layout.rect("hub", "banner")
 	var tiny := Layout.font_tiny()
 	var small := Layout.font_small()
-	var caption_w := caption.size.x - 8.0
-	var caption_h := caption.size.y - 2.0
-	var banner_w := banner.size.x - 8.0
-	var banner_h := banner.size.y - 2.0
+	var frame := 4.0
+	var caption_w := caption.size.x - frame * 2.0
+	var banner_w := banner.size.x - frame * 2.0
+	var banner_h := banner.size.y - frame * 2.0
 	var region: Dictionary = _region()
 	for place in region["places"]:
-		_fit_text(str(place["description"]), caption_w, caption_h, tiny, str(place["id"]) + " hub caption")
-		_fit_text("%s   %d gold" % [str(place["name"]), 9999], banner_w, banner_h, small, str(place["id"]) + " hub banner")
+		var desc := str(place["description"])
+		var block := Widgets.wrap_size(desc, caption_w, tiny)
+		var fitted := Widgets.fitted_header_height(desc, caption.size.x, tiny, caption.size.y, frame)
+		check(block.x <= caption_w + 0.01, str(place["id"]) + " hub caption stays inside the width")
+		check(block.y <= fitted - frame * 2.0 + 0.01, str(place["id"]) + " hub caption fits its plate")
+		if block.y > caption.size.y - frame * 2.0 + 0.01:
+			check(fitted > caption.size.y + 0.01, str(place["id"]) + " blurb plate grows for the wrapped lines")
+		var banner_text := "%s   %d gold" % [str(place["name"]), 9999]
+		var banner_fitted := Widgets.fitted_header_height(banner_text, banner.size.x, small, banner.size.y, frame)
+		var banner_block := Widgets.wrap_size(banner_text, banner_w, small)
+		check(banner_block.y <= banner_fitted - frame * 2.0 + 0.01, str(place["id"]) + " hub banner fits its plate")
+		check(banner_block.y <= banner_h + frame * 2.0 + 0.01, str(place["id"]) + " hub banner stays one line")
 	check(Widgets.header_back().a >= 0.99, "hub header backing is opaque")
 	check(Widgets.contrast_ratio(Widgets.header_ink(), Widgets.header_back()) >= 4.5, "hub header text contrasts with its parchment")
 	var bar := Layout.rect("combat", "action_bar")

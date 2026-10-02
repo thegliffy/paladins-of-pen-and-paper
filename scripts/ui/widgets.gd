@@ -50,6 +50,14 @@ static func hub_plate() -> StyleBoxTexture:
 	return ArtPack.nine_slice("ui/hub/header_plate.png", 4, 4, 4, 4)
 
 
+static func fitted_header_height(text: String, width: float, font_size: int, min_height: float, frame: float) -> float:
+	## The plate stays at least as tall as the layout, and grows so the wrapped
+	## lines sit inside the frame instead of crossing the bottom edge.
+	var inner_w := maxf(1.0, width - frame * 2.0)
+	var block := wrap_size(text, inner_w, font_size)
+	return maxf(min_height, block.y + frame * 2.0)
+
+
 static func make_button(text: String, minimum: Vector2) -> Button:
 	var button := Button.new()
 	button.text = text

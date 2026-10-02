@@ -75,6 +75,7 @@ func show_hub() -> void:
 	_apply_hub_plates()
 	var place: Dictionary = ContentDB.place(GameState.place_id)
 	_banner.text = "%s   %d gold" % [place["name"], GameState.gold]
+	_fit_header_plate(_banner_plate, _banner, Layout.rect("hub", "banner"))
 	_set_caption(str(place["description"]))
 	_sync_party()
 	var fight: bool = not ContentDB.place_monster_ids(GameState.place_id).is_empty()
@@ -680,6 +681,28 @@ func _set_caption(text: String) -> void:
 	_caption.text = text
 	if _caption_plate:
 		_caption_plate.visible = text != ""
+		_fit_header_plate(_caption_plate, _caption, Layout.rect("combat", "caption"))
+
+
+func _header_frame(plate: Panel) -> float:
+	var style := plate.get_theme_stylebox("panel")
+	if style is StyleBoxTexture:
+		return (style as StyleBoxTexture).texture_margin_top
+	if style is StyleBoxFlat:
+		return float((style as StyleBoxFlat).get_border_width(SIDE_TOP))
+	return 0.0
+
+
+func _fit_header_plate(plate: Panel, label: Label, base: Rect2) -> void:
+	if plate == null or label == null:
+		return
+	var frame := _header_frame(plate)
+	var font_size := label.get_theme_font_size("font_size")
+	var height := Widgets.fitted_header_height(label.text, base.size.x, font_size, base.size.y, frame)
+	plate.position = base.position
+	plate.size = Vector2(base.size.x, height)
+	label.position = Vector2(frame, frame)
+	label.size = Vector2(maxf(1.0, base.size.x - frame * 2.0), height - frame * 2.0)
 
 
 func _apply_hub_plates() -> void:

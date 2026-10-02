@@ -550,6 +550,7 @@ func _shots() -> void:
 	await _capture_towns(session)
 	await _capture_v036(session)
 	await _capture_v037(session)
+	await _capture_v038(session)
 	GameState.place_id = "millpond"
 	session.stage_battle_preview()
 	var flow := BattleFlow.new()
@@ -651,6 +652,15 @@ func _capture_v037(session: SessionScreen) -> void:
 	GameState.gold = gold
 	GameState.place_id = place
 	session._sync_party()
+	session.show_hub()
+
+
+func _capture_v038(session: SessionScreen) -> void:
+	var place := GameState.place_id
+	GameState.place_id = "pebblegate"
+	session.show_hub()
+	await _capture("hub_pebblegate_v038")
+	GameState.place_id = place
 	session.show_hub()
 
 
