@@ -87,6 +87,10 @@ Native 270×480 captures of the production art:
 
 ![Pebblegate hub blurb](docs/screenshots/hub_pebblegate_v038.png)
 
+![Pebblegate hub bars](docs/screenshots/hub_bars_v038.png)
+
+![Gravel Keep bars](docs/screenshots/combat_bars_v038.png)
+
 ![Town pins on the map](docs/screenshots/map_pins_v037.png)
 
 ![Bag icons](docs/screenshots/bag_icons_v037.png)
