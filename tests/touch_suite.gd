@@ -1579,6 +1579,28 @@ static func _bottom_and_levels(host: Node, tree: SceneTree, failures: Array[Stri
 			if int(tempered["max_hp"]) <= worn_max or hp_digits.text != _vital(int(member["hp"]), int(tempered["max_hp"])):
 				failures.append("pool_upgrade_text")
 				push_error("Touch check: tempered mail reads %s" % hp_digits.text)
+	session.sync_unit({"id": "p0", "hp": 700, "max_hp": 700, "mp": 700, "max_mp": 700})
+	if hp_digits.text != "700/700" or mp_digits.text != "700/700":
+		failures.append("pool_wide_text")
+		push_error("Touch check: 700/700 reads %s %s" % [hp_digits.text, mp_digits.text])
+	elif hp_digits.content_size().x > hp_digits.size.x + 0.01 or mp_digits.content_size().x > mp_digits.size.x + 0.01:
+		failures.append("pool_wide_fit")
+		push_error("Touch check: 700/700 is wider than the bar")
+	else:
+		var host_rect := (session._seats[0].get_node("BarHost") as Control).get_global_rect()
+		var hp_rect := hp_digits.get_global_rect()
+		var mp_rect := mp_digits.get_global_rect()
+		var action_top := Layout.rect("combat", "action_bar").position.y
+		var stacked := hp_rect.intersection(mp_rect)
+		if not host_rect.encloses(hp_rect) or not host_rect.encloses(mp_rect):
+			failures.append("pool_wide_fit")
+			push_error("Touch check: 700/700 sits outside the bar")
+		elif hp_rect.end.y > action_top or mp_rect.end.y > action_top:
+			failures.append("pool_wide_action")
+			push_error("Touch check: 700/700 crosses the skill bar")
+		elif stacked.size.x > 1.0 and stacked.size.y > 1.0:
+			failures.append("pool_wide_overlap")
+			push_error("Touch check: 700/700 health and energy overlap")
 	session.sync_unit({"id": "p0", "hp": 40, "max_hp": 100, "mp": 10, "max_mp": 20})
 	var wide := session.bar_fill_width("p0")
 	var wide_mp := session.mp_bar_fill_width("p0")
