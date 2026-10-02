@@ -1,0 +1,1317 @@
+{
+ "meta": {
+  "ui/items/oath_blade.png": {
+   "status": "approved",
+   "item": "oath_blade",
+   "name": "Oath Blade",
+   "slot": "weapon",
+   "rarity": "common",
+   "notes": "16x16 item icon (Oath Blade): plain short steel sword, gold vow line in the fuller. No rarity border (UI tints by rarity)."
+  },
+  "ui/items/chapel_mace.png": {
+   "status": "approved",
+   "item": "chapel_mace",
+   "name": "Chapel Mace",
+   "slot": "weapon",
+   "rarity": "common",
+   "notes": "16x16 item icon (Chapel Mace): flanged steel ball on a wooden haft, small gold cross. No rarity border (UI tints by rarity)."
+  },
+  "ui/items/reed_staff.png": {
+   "status": "approved",
+   "item": "reed_staff",
+   "name": "Reed Staff",
+   "slot": "weapon",
+   "rarity": "common",
+   "notes": "16x16 item icon (Reed Staff): jointed pale reed with copper wire bands and a green tuft. No rarity border (UI tints by rarity)."
+  },
+  "ui/items/sap_crook.png": {
+   "status": "approved",
+   "item": "sap_crook",
+   "name": "Sap Crook",
+   "slot": "weapon",
+   "rarity": "common",
+   "notes": "16x16 item icon (Sap Crook): hooked shepherd crook, leaf sprout and an amber sap drip. No rarity border (UI tints by rarity)."
+  },
+  "ui/items/thorn_bow.png": {
+   "status": "approved",
+   "item": "thorn_bow",
+   "name": "Thorn Bow",
+   "slot": "weapon",
+   "rarity": "common",
+   "notes": "16x16 item icon (Thorn Bow): simple wooden bow with thorn nubs, cream string. No rarity border (UI tints by rarity)."
+  },
+  "ui/items/pocket_knife.png": {
+   "status": "approved",
+   "item": "pocket_knife",
+   "name": "Pocket Knife",
+   "slot": "weapon",
+   "rarity": "common",
+   "notes": "16x16 item icon (Pocket Knife): tiny folding knife, wooden handle with rivet (smallest blade). No rarity border (UI tints by rarity)."
+  },
+  "ui/items/road_lute.png": {
+   "status": "approved",
+   "item": "road_lute",
+   "name": "Road Lute",
+   "slot": "weapon",
+   "rarity": "common",
+   "notes": "16x16 item icon (Road Lute): pear-shaped wooden lute, dark sound hole, cream strings. No rarity border (UI tints by rarity)."
+  },
+  "ui/items/gravel_axe.png": {
+   "status": "approved",
+   "item": "gravel_axe",
+   "name": "Gravel Axe",
+   "slot": "weapon",
+   "rarity": "common",
+   "notes": "16x16 item icon (Gravel Axe): long haft, chipped grey stone-like axe head. No rarity border (UI tints by rarity)."
+  },
+  "ui/items/kiln_sword.png": {
+   "status": "approved",
+   "item": "kiln_sword",
+   "name": "Kiln Sword",
+   "slot": "weapon",
+   "rarity": "rare",
+   "notes": "16x16 item icon (Kiln Sword): longer, wider blade with a blued edge; brick-red guard and grip. No rarity border (UI tints by rarity)."
+  },
+  "ui/items/lamp_staff.png": {
+   "status": "approved",
+   "item": "lamp_staff",
+   "name": "Lamp Staff",
+   "slot": "weapon",
+   "rarity": "rare",
+   "notes": "16x16 item icon (Lamp Staff): staff topped with a glowing gold lantern. No rarity border (UI tints by rarity)."
+  },
+  "ui/items/marsh_bow.png": {
+   "status": "approved",
+   "item": "marsh_bow",
+   "name": "Marsh Bow",
+   "slot": "weapon",
+   "rarity": "rare",
+   "notes": "16x16 item icon (Marsh Bow): dark-green waxed recurve, wrapped grip, sky string sparks. No rarity border (UI tints by rarity)."
+  },
+  "ui/items/night_shard.png": {
+   "status": "approved",
+   "item": "night_shard",
+   "name": "Night Shard",
+   "slot": "weapon",
+   "rarity": "rare",
+   "notes": "16x16 item icon (Night Shard): jagged black-violet glass shard on a blue grip. No rarity border (UI tints by rarity)."
+  },
+  "ui/items/sunbrand.png": {
+   "status": "approved",
+   "item": "sunbrand",
+   "name": "Sunbrand",
+   "slot": "weapon",
+   "rarity": "legendary",
+   "notes": "16x16 item icon (Sunbrand): full-diagonal gold greatsword, long guard, red sun gem, glints. No rarity border (UI tints by rarity)."
+  },
+  "ui/items/howl_fang.png": {
+   "status": "approved",
+   "item": "howl_fang",
+   "name": "Howl Fang",
+   "slot": "weapon",
+   "rarity": "unique",
+   "notes": "16x16 item icon (Howl Fang): a curved bone fang bound to a cord. No rarity border (UI tints by rarity)."
+  },
+  "ui/items/kettle_shield.png": {
+   "status": "approved",
+   "item": "kettle_shield",
+   "name": "Kettle Shield",
+   "slot": "off",
+   "rarity": "common",
+   "notes": "16x16 item icon (Kettle Shield): dented grey pot lid with a knob handle. No rarity border (UI tints by rarity)."
+  },
+  "ui/items/hymn_board.png": {
+   "status": "approved",
+   "item": "hymn_board",
+   "name": "Hymn Board",
+   "slot": "off",
+   "rarity": "common",
+   "notes": "16x16 item icon (Hymn Board): arched wooden board with faded verse lines and a gold cross. No rarity border (UI tints by rarity)."
+  },
+  "ui/items/glass_orb.png": {
+   "status": "approved",
+   "item": "glass_orb",
+   "name": "Glass Orb",
+   "slot": "off",
+   "rarity": "common",
+   "notes": "16x16 item icon (Glass Orb): clear glass ball with a gold spark inside, on a wooden stand. No rarity border (UI tints by rarity)."
+  },
+  "ui/items/oak_buckler.png": {
+   "status": "approved",
+   "item": "oak_buckler",
+   "name": "Oak Buckler",
+   "slot": "off",
+   "rarity": "rare",
+   "notes": "16x16 item icon (Oak Buckler): round oak with an iron rim, studs and an iron rose boss. No rarity border (UI tints by rarity)."
+  },
+  "ui/items/void_lens.png": {
+   "status": "approved",
+   "item": "void_lens",
+   "name": "Void Lens",
+   "slot": "off",
+   "rarity": "rare",
+   "notes": "16x16 item icon (Void Lens): gold-framed hand lens full of dark violet void and a star. No rarity border (UI tints by rarity)."
+  },
+  "ui/items/travel_coat.png": {
+   "status": "approved",
+   "item": "travel_coat",
+   "name": "Travel Coat",
+   "slot": "armor",
+   "rarity": "common",
+   "notes": "16x16 item icon (Travel Coat): long brown waxed coat, tan collar, gold buttons. No rarity border (UI tints by rarity)."
+  },
+  "ui/items/reed_wrap.png": {
+   "status": "approved",
+   "item": "reed_wrap",
+   "name": "Reed Wrap",
+   "slot": "armor",
+   "rarity": "common",
+   "notes": "16x16 item icon (Reed Wrap): green marsh cloak with woven tan reed strands. No rarity border (UI tints by rarity)."
+  },
+  "ui/items/hedge_mail.png": {
+   "status": "approved",
+   "item": "hedge_mail",
+   "name": "Hedge Mail",
+   "slot": "armor",
+   "rarity": "common",
+   "notes": "16x16 item icon (Hedge Mail): hedge-green jack studded with silver rings, leather belt. No rarity border (UI tints by rarity)."
+  },
+  "ui/items/kiln_plate.png": {
+   "status": "approved",
+   "item": "kiln_plate",
+   "name": "Kiln Plate",
+   "slot": "armor",
+   "rarity": "common",
+   "notes": "16x16 item icon (Kiln Plate): brick-red breastplate and pauldrons, amber rivets. No rarity border (UI tints by rarity)."
+  },
+  "ui/items/moon_robe.png": {
+   "status": "approved",
+   "item": "moon_robe",
+   "name": "Moon Robe",
+   "slot": "armor",
+   "rarity": "rare",
+   "notes": "16x16 item icon (Moon Robe): pale robe with violet V-neck and hem, gold crescent. No rarity border (UI tints by rarity)."
+  },
+  "ui/items/keep_plate.png": {
+   "status": "approved",
+   "item": "keep_plate",
+   "name": "Keep Plate",
+   "slot": "armor",
+   "rarity": "rare",
+   "notes": "16x16 item icon (Keep Plate): broad steel plate, double pauldrons, gold trim (heaviest silhouette). No rarity border (UI tints by rarity)."
+  },
+  "ui/items/lurker_scale.png": {
+   "status": "approved",
+   "item": "lurker_scale",
+   "name": "Bone Plate",
+   "slot": "armor",
+   "rarity": "unique",
+   "notes": "16x16 item icon (Bone Plate): pale bone rib-plate with knuckle-bone pauldrons. No rarity border (UI tints by rarity)."
+  },
+  "ui/items/bread_charm.png": {
+   "status": "approved",
+   "item": "bread_charm",
+   "name": "Bread Charm",
+   "slot": "trinket",
+   "rarity": "common",
+   "notes": "16x16 item icon (Bread Charm): bread crust bound with a red thread cross, on a loop. No rarity border (UI tints by rarity)."
+  },
+  "ui/items/wick_ring.png": {
+   "status": "approved",
+   "item": "wick_ring",
+   "name": "Wick Ring",
+   "slot": "trinket",
+   "rarity": "common",
+   "notes": "16x16 item icon (Wick Ring): copper ring with a tiny candle stub and flame. No rarity border (UI tints by rarity)."
+  },
+  "ui/items/pond_bead.png": {
+   "status": "approved",
+   "item": "pond_bead",
+   "name": "Pond Bead",
+   "slot": "trinket",
+   "rarity": "rare",
+   "notes": "16x16 item icon (Pond Bead): mill-water teal glass bead on a cord. No rarity border (UI tints by rarity)."
+  },
+  "ui/items/threat_bell.png": {
+   "status": "approved",
+   "item": "threat_bell",
+   "name": "Threat Bell",
+   "slot": "trinket",
+   "rarity": "rare",
+   "notes": "16x16 item icon (Threat Bell): gold bell with a red ribbon and dark clapper. No rarity border (UI tints by rarity)."
+  },
+  "ui/items/ley_locket.png": {
+   "status": "approved",
+   "item": "ley_locket",
+   "name": "Ley Locket",
+   "slot": "trinket",
+   "rarity": "legendary",
+   "notes": "16x16 item icon (Ley Locket): gold heart locket with a violet gem, chain and glints. No rarity border (UI tints by rarity)."
+  },
+  "ui/items/blob_crown.png": {
+   "status": "approved",
+   "item": "blob_crown",
+   "name": "Grinning Crown",
+   "slot": "trinket",
+   "rarity": "unique",
+   "notes": "16x16 item icon (Grinning Crown): blue slime crown with a grin and drips. No rarity border (UI tints by rarity)."
+  },
+  "ui/items/brute_heart.png": {
+   "status": "approved",
+   "item": "brute_heart",
+   "name": "Brute Heart",
+   "slot": "trinket",
+   "rarity": "unique",
+   "notes": "16x16 item icon (Brute Heart): grey stone heart with glowing orange cracks. No rarity border (UI tints by rarity)."
+  },
+  "ui/items/wisp_jar.png": {
+   "status": "approved",
+   "item": "wisp_jar",
+   "name": "Cap Jar",
+   "slot": "trinket",
+   "rarity": "unique",
+   "notes": "16x16 item icon (Cap Jar): corked glass jar holding an orange glow. No rarity border (UI tints by rarity)."
+  },
+  "ui/items/tonic.png": {
+   "status": "approved",
+   "item": "tonic",
+   "name": "Hearth Tonic",
+   "slot": "usable",
+   "rarity": "common",
+   "notes": "16x16 item icon (Hearth Tonic): round glass flask of red tonic, cork. No rarity border (UI tints by rarity)."
+  },
+  "ui/items/vial.png": {
+   "status": "approved",
+   "item": "vial",
+   "name": "Lamp Vial",
+   "slot": "usable",
+   "rarity": "common",
+   "notes": "16x16 item icon (Lamp Vial): slim blue vial with a gold collar. No rarity border (UI tints by rarity)."
+  },
+  "ui/items/loaf_crumb.png": {
+   "status": "approved",
+   "item": "loaf_crumb",
+   "name": "Loaf Crumb",
+   "slot": "usable",
+   "rarity": "common",
+   "notes": "16x16 item icon (Loaf Crumb): torn chunk of brown loaf. No rarity border (UI tints by rarity)."
+  },
+  "ui/items/blue_ether.png": {
+   "status": "approved",
+   "item": "blue_ether",
+   "name": "Blue Ether",
+   "slot": "usable",
+   "rarity": "rare",
+   "notes": "16x16 item icon (Blue Ether): bigger blue flask, gold collar and cork, sparkles. No rarity border (UI tints by rarity)."
+  },
+  "ui/items/field_salve.png": {
+   "status": "approved",
+   "item": "field_salve",
+   "name": "Field Salve",
+   "slot": "usable",
+   "rarity": "rare",
+   "notes": "16x16 item icon (Field Salve): silver salve tin with a red cross and a herb sprig. No rarity border (UI tints by rarity)."
+  },
+  "ui/items/kettle_dram.png": {
+   "status": "approved",
+   "item": "kettle_dram",
+   "name": "Kettle Dram",
+   "slot": "usable",
+   "rarity": "common",
+   "notes": "16x16 item icon (Kettle Dram): little copper kettle, half red / half blue contents, steam. No rarity border (UI tints by rarity)."
+  },
+  "paperdoll/gear/oath_blade.png": {
+   "status": "approved",
+   "item": "oath_blade",
+   "anchor": [
+    24,
+    77
+   ],
+   "canvas": [
+    48,
+    78
+   ],
+   "gear_layer": "main",
+   "two_handed": false,
+   "notes": "back-view seat overlay, 48x78, anchor (24,77). held at the hero's right side (screen right, x40-47), pointing up/out past the shoulder; the lute is slung diagonally across the back instead. Pixels under chair_back are cleared."
+  },
+  "paperdoll/gear/chapel_mace.png": {
+   "status": "approved",
+   "item": "chapel_mace",
+   "anchor": [
+    24,
+    77
+   ],
+   "canvas": [
+    48,
+    78
+   ],
+   "gear_layer": "main",
+   "two_handed": false,
+   "notes": "back-view seat overlay, 48x78, anchor (24,77). held at the hero's right side (screen right, x40-47), pointing up/out past the shoulder; the lute is slung diagonally across the back instead. Pixels under chair_back are cleared."
+  },
+  "paperdoll/gear/reed_staff.png": {
+   "status": "approved",
+   "item": "reed_staff",
+   "anchor": [
+    24,
+    77
+   ],
+   "canvas": [
+    48,
+    78
+   ],
+   "gear_layer": "main",
+   "two_handed": true,
+   "notes": "back-view seat overlay, 48x78, anchor (24,77). staffs held upright at the right side (x40-48, top y1-16); bows, the gravel axe and Sunbrand slung diagonally across the back, top end over the right shoulder, lower end hidden by the chair. Pixels under chair_back are cleared."
+  },
+  "paperdoll/gear/sap_crook.png": {
+   "status": "approved",
+   "item": "sap_crook",
+   "anchor": [
+    24,
+    77
+   ],
+   "canvas": [
+    48,
+    78
+   ],
+   "gear_layer": "main",
+   "two_handed": true,
+   "notes": "back-view seat overlay, 48x78, anchor (24,77). staffs held upright at the right side (x40-48, top y1-16); bows, the gravel axe and Sunbrand slung diagonally across the back, top end over the right shoulder, lower end hidden by the chair. Pixels under chair_back are cleared."
+  },
+  "paperdoll/gear/thorn_bow.png": {
+   "status": "approved",
+   "item": "thorn_bow",
+   "anchor": [
+    24,
+    77
+   ],
+   "canvas": [
+    48,
+    78
+   ],
+   "gear_layer": "main",
+   "two_handed": true,
+   "notes": "back-view seat overlay, 48x78, anchor (24,77). staffs held upright at the right side (x40-48, top y1-16); bows, the gravel axe and Sunbrand slung diagonally across the back, top end over the right shoulder, lower end hidden by the chair. Pixels under chair_back are cleared."
+  },
+  "paperdoll/gear/pocket_knife.png": {
+   "status": "approved",
+   "item": "pocket_knife",
+   "anchor": [
+    24,
+    77
+   ],
+   "canvas": [
+    48,
+    78
+   ],
+   "gear_layer": "main",
+   "two_handed": false,
+   "notes": "back-view seat overlay, 48x78, anchor (24,77). held at the hero's right side (screen right, x40-47), pointing up/out past the shoulder; the lute is slung diagonally across the back instead. Pixels under chair_back are cleared."
+  },
+  "paperdoll/gear/road_lute.png": {
+   "status": "approved",
+   "item": "road_lute",
+   "anchor": [
+    24,
+    77
+   ],
+   "canvas": [
+    48,
+    78
+   ],
+   "gear_layer": "main",
+   "two_handed": false,
+   "notes": "back-view seat overlay, 48x78, anchor (24,77). held at the hero's right side (screen right, x40-47), pointing up/out past the shoulder; the lute is slung diagonally across the back instead. Pixels under chair_back are cleared."
+  },
+  "paperdoll/gear/gravel_axe.png": {
+   "status": "approved",
+   "item": "gravel_axe",
+   "anchor": [
+    24,
+    77
+   ],
+   "canvas": [
+    48,
+    78
+   ],
+   "gear_layer": "main",
+   "two_handed": true,
+   "notes": "back-view seat overlay, 48x78, anchor (24,77). staffs held upright at the right side (x40-48, top y1-16); bows, the gravel axe and Sunbrand slung diagonally across the back, top end over the right shoulder, lower end hidden by the chair. Pixels under chair_back are cleared."
+  },
+  "paperdoll/gear/kiln_sword.png": {
+   "status": "approved",
+   "item": "kiln_sword",
+   "anchor": [
+    24,
+    77
+   ],
+   "canvas": [
+    48,
+    78
+   ],
+   "gear_layer": "main",
+   "two_handed": false,
+   "notes": "back-view seat overlay, 48x78, anchor (24,77). held at the hero's right side (screen right, x40-47), pointing up/out past the shoulder; the lute is slung diagonally across the back instead. Pixels under chair_back are cleared."
+  },
+  "paperdoll/gear/lamp_staff.png": {
+   "status": "approved",
+   "item": "lamp_staff",
+   "anchor": [
+    24,
+    77
+   ],
+   "canvas": [
+    48,
+    78
+   ],
+   "gear_layer": "main",
+   "two_handed": true,
+   "notes": "back-view seat overlay, 48x78, anchor (24,77). staffs held upright at the right side (x40-48, top y1-16); bows, the gravel axe and Sunbrand slung diagonally across the back, top end over the right shoulder, lower end hidden by the chair. Pixels under chair_back are cleared."
+  },
+  "paperdoll/gear/marsh_bow.png": {
+   "status": "approved",
+   "item": "marsh_bow",
+   "anchor": [
+    24,
+    77
+   ],
+   "canvas": [
+    48,
+    78
+   ],
+   "gear_layer": "main",
+   "two_handed": true,
+   "notes": "back-view seat overlay, 48x78, anchor (24,77). staffs held upright at the right side (x40-48, top y1-16); bows, the gravel axe and Sunbrand slung diagonally across the back, top end over the right shoulder, lower end hidden by the chair. Pixels under chair_back are cleared."
+  },
+  "paperdoll/gear/night_shard.png": {
+   "status": "approved",
+   "item": "night_shard",
+   "anchor": [
+    24,
+    77
+   ],
+   "canvas": [
+    48,
+    78
+   ],
+   "gear_layer": "main",
+   "two_handed": false,
+   "notes": "back-view seat overlay, 48x78, anchor (24,77). held at the hero's right side (screen right, x40-47), pointing up/out past the shoulder; the lute is slung diagonally across the back instead. Pixels under chair_back are cleared."
+  },
+  "paperdoll/gear/sunbrand.png": {
+   "status": "approved",
+   "item": "sunbrand",
+   "anchor": [
+    24,
+    77
+   ],
+   "canvas": [
+    48,
+    78
+   ],
+   "gear_layer": "main",
+   "two_handed": true,
+   "notes": "back-view seat overlay, 48x78, anchor (24,77). staffs held upright at the right side (x40-48, top y1-16); bows, the gravel axe and Sunbrand slung diagonally across the back, top end over the right shoulder, lower end hidden by the chair. Pixels under chair_back are cleared."
+  },
+  "paperdoll/gear/howl_fang.png": {
+   "status": "approved",
+   "item": "howl_fang",
+   "anchor": [
+    24,
+    77
+   ],
+   "canvas": [
+    48,
+    78
+   ],
+   "gear_layer": "main",
+   "two_handed": false,
+   "notes": "back-view seat overlay, 48x78, anchor (24,77). held at the hero's right side (screen right, x40-47), pointing up/out past the shoulder; the lute is slung diagonally across the back instead. Pixels under chair_back are cleared."
+  },
+  "paperdoll/gear/kettle_shield.png": {
+   "status": "approved",
+   "item": "kettle_shield",
+   "anchor": [
+    24,
+    77
+   ],
+   "canvas": [
+    48,
+    78
+   ],
+   "gear_layer": "off",
+   "two_handed": false,
+   "notes": "back-view seat overlay, 48x78, anchor (24,77). on the hero's left arm edge (screen left, x0-10, y40-67). Pixels under chair_back are cleared."
+  },
+  "paperdoll/gear/hymn_board.png": {
+   "status": "approved",
+   "item": "hymn_board",
+   "anchor": [
+    24,
+    77
+   ],
+   "canvas": [
+    48,
+    78
+   ],
+   "gear_layer": "off",
+   "two_handed": false,
+   "notes": "back-view seat overlay, 48x78, anchor (24,77). on the hero's left arm edge (screen left, x0-10, y40-67). Pixels under chair_back are cleared."
+  },
+  "paperdoll/gear/glass_orb.png": {
+   "status": "approved",
+   "item": "glass_orb",
+   "anchor": [
+    24,
+    77
+   ],
+   "canvas": [
+    48,
+    78
+   ],
+   "gear_layer": "off",
+   "two_handed": false,
+   "notes": "back-view seat overlay, 48x78, anchor (24,77). on the hero's left arm edge (screen left, x0-10, y40-67). Pixels under chair_back are cleared."
+  },
+  "paperdoll/gear/oak_buckler.png": {
+   "status": "approved",
+   "item": "oak_buckler",
+   "anchor": [
+    24,
+    77
+   ],
+   "canvas": [
+    48,
+    78
+   ],
+   "gear_layer": "off",
+   "two_handed": false,
+   "notes": "back-view seat overlay, 48x78, anchor (24,77). on the hero's left arm edge (screen left, x0-10, y40-67). Pixels under chair_back are cleared."
+  },
+  "paperdoll/gear/void_lens.png": {
+   "status": "approved",
+   "item": "void_lens",
+   "anchor": [
+    24,
+    77
+   ],
+   "canvas": [
+    48,
+    78
+   ],
+   "gear_layer": "off",
+   "two_handed": false,
+   "notes": "back-view seat overlay, 48x78, anchor (24,77). on the hero's left arm edge (screen left, x0-10, y40-67). Pixels under chair_back are cleared."
+  },
+  "paperdoll/gear/travel_coat.png": {
+   "status": "approved",
+   "item": "travel_coat",
+   "anchor": [
+    24,
+    77
+   ],
+   "canvas": [
+    48,
+    78
+   ],
+   "gear_layer": "armor",
+   "two_handed": false,
+   "notes": "back-view seat overlay, 48x78, anchor (24,77). shoulders + upper back; drawn after class_back and BEFORE hair/hood (long hair and hoods fall over the back plate). Pixels under chair_back are cleared."
+  },
+  "paperdoll/gear/reed_wrap.png": {
+   "status": "approved",
+   "item": "reed_wrap",
+   "anchor": [
+    24,
+    77
+   ],
+   "canvas": [
+    48,
+    78
+   ],
+   "gear_layer": "armor",
+   "two_handed": false,
+   "notes": "back-view seat overlay, 48x78, anchor (24,77). shoulders + upper back; drawn after class_back and BEFORE hair/hood (long hair and hoods fall over the back plate). Pixels under chair_back are cleared."
+  },
+  "paperdoll/gear/hedge_mail.png": {
+   "status": "approved",
+   "item": "hedge_mail",
+   "anchor": [
+    24,
+    77
+   ],
+   "canvas": [
+    48,
+    78
+   ],
+   "gear_layer": "armor",
+   "two_handed": false,
+   "notes": "back-view seat overlay, 48x78, anchor (24,77). shoulders + upper back; drawn after class_back and BEFORE hair/hood (long hair and hoods fall over the back plate). Pixels under chair_back are cleared."
+  },
+  "paperdoll/gear/kiln_plate.png": {
+   "status": "approved",
+   "item": "kiln_plate",
+   "anchor": [
+    24,
+    77
+   ],
+   "canvas": [
+    48,
+    78
+   ],
+   "gear_layer": "armor",
+   "two_handed": false,
+   "notes": "back-view seat overlay, 48x78, anchor (24,77). shoulders + upper back; drawn after class_back and BEFORE hair/hood (long hair and hoods fall over the back plate). Pixels under chair_back are cleared."
+  },
+  "paperdoll/gear/moon_robe.png": {
+   "status": "approved",
+   "item": "moon_robe",
+   "anchor": [
+    24,
+    77
+   ],
+   "canvas": [
+    48,
+    78
+   ],
+   "gear_layer": "armor",
+   "two_handed": false,
+   "notes": "back-view seat overlay, 48x78, anchor (24,77). shoulders + upper back; drawn after class_back and BEFORE hair/hood (long hair and hoods fall over the back plate). Pixels under chair_back are cleared."
+  },
+  "paperdoll/gear/keep_plate.png": {
+   "status": "approved",
+   "item": "keep_plate",
+   "anchor": [
+    24,
+    77
+   ],
+   "canvas": [
+    48,
+    78
+   ],
+   "gear_layer": "armor",
+   "two_handed": false,
+   "notes": "back-view seat overlay, 48x78, anchor (24,77). shoulders + upper back; drawn after class_back and BEFORE hair/hood (long hair and hoods fall over the back plate). Pixels under chair_back are cleared."
+  },
+  "paperdoll/gear/lurker_scale.png": {
+   "status": "approved",
+   "item": "lurker_scale",
+   "anchor": [
+    24,
+    77
+   ],
+   "canvas": [
+    48,
+    78
+   ],
+   "gear_layer": "armor",
+   "two_handed": false,
+   "notes": "back-view seat overlay, 48x78, anchor (24,77). shoulders + upper back; drawn after class_back and BEFORE hair/hood (long hair and hoods fall over the back plate). Pixels under chair_back are cleared."
+  },
+  "approval/gear_seated.png": {
+   "status": "approved",
+   "notes": "APPROVAL SHEET: all 8 classes seated (back view) bare, with a class loadout, heavy plate + two-hander, plate + sword + shield, and robe + staff; recommended layer order (armor under hair/hat, weapons over, chair last). Off-hand daggers are drawn mirrored."
+  },
+  "approval/gear_seated_4x.png": {
+   "status": "approved",
+   "notes": "4x nearest of approval/gear_seated.png."
+  },
+  "approval/gear_seated_runtime_on_top.png": {
+   "status": "approved",
+   "notes": "QA: the same rows drawn the way PaperDoll.show_gear() currently does it (every overlay on top of the finished doll), to show the hair/hood clash."
+  },
+  "approval/items_1x.png": {
+   "status": "approved",
+   "notes": "APPROVAL SHEET: all 40 item icons at 1x grouped by slot, labelled name / rarity / id (rarity colour on the label only; the icons have no border)."
+  },
+  "approval/items_4x.png": {
+   "status": "approved",
+   "notes": "4x nearest of approval/items_1x.png."
+  },
+  "approval/gear_overlays.png": {
+   "status": "approved",
+   "notes": "QA: each of the 26 overlays on the rogue seat (the one class with no baked weapon, so each overlay is seen alone)."
+  },
+  "approval/gear_overlays_3x.png": {
+   "status": "approved",
+   "notes": "3x nearest."
+  },
+  "approval/gear_seats/seat_paladin_idle.png": {
+   "status": "approved",
+   "anchor": [
+    24,
+    77
+   ],
+   "notes": "QA seat: paladin wearing keep_plate, oath_blade, kettle_shield (recommended layer order). Used by scene_test_portrait_gear.png."
+  },
+  "approval/gear_seats/seat_paladin_active.png": {
+   "status": "approved",
+   "anchor": [
+    24,
+    77
+   ],
+   "notes": "QA seat: paladin wearing keep_plate, oath_blade, kettle_shield (recommended layer order). Used by scene_test_portrait_gear.png."
+  },
+  "approval/gear_seats/seat_cleric_idle.png": {
+   "status": "approved",
+   "anchor": [
+    24,
+    77
+   ],
+   "notes": "QA seat: cleric wearing hedge_mail, chapel_mace, hymn_board (recommended layer order). Used by scene_test_portrait_gear.png."
+  },
+  "approval/gear_seats/seat_cleric_active.png": {
+   "status": "approved",
+   "anchor": [
+    24,
+    77
+   ],
+   "notes": "QA seat: cleric wearing hedge_mail, chapel_mace, hymn_board (recommended layer order). Used by scene_test_portrait_gear.png."
+  },
+  "approval/gear_seats/seat_rogue_idle.png": {
+   "status": "approved",
+   "anchor": [
+    24,
+    77
+   ],
+   "notes": "QA seat: rogue wearing travel_coat, night_shard, pocket_knife (recommended layer order). Used by scene_test_portrait_gear.png."
+  },
+  "approval/gear_seats/seat_rogue_active.png": {
+   "status": "approved",
+   "anchor": [
+    24,
+    77
+   ],
+   "notes": "QA seat: rogue wearing travel_coat, night_shard, pocket_knife (recommended layer order). Used by scene_test_portrait_gear.png."
+  },
+  "approval/gear_seats/seat_druid_idle.png": {
+   "status": "approved",
+   "anchor": [
+    24,
+    77
+   ],
+   "notes": "QA seat: druid wearing reed_wrap, sap_crook (recommended layer order). Used by scene_test_portrait_gear.png."
+  },
+  "approval/gear_seats/seat_druid_active.png": {
+   "status": "approved",
+   "anchor": [
+    24,
+    77
+   ],
+   "notes": "QA seat: druid wearing reed_wrap, sap_crook (recommended layer order). Used by scene_test_portrait_gear.png."
+  },
+  "approval/gear_seats/seat_wizard_idle.png": {
+   "status": "approved",
+   "anchor": [
+    24,
+    77
+   ],
+   "notes": "QA seat: wizard wearing moon_robe, lamp_staff (recommended layer order). Used by scene_test_portrait_gear.png."
+  },
+  "approval/gear_seats/seat_wizard_active.png": {
+   "status": "approved",
+   "anchor": [
+    24,
+    77
+   ],
+   "notes": "QA seat: wizard wearing moon_robe, lamp_staff (recommended layer order). Used by scene_test_portrait_gear.png."
+  },
+  "approval/class_noweapon_check.png": {
+   "status": "draft_pending_approval",
+   "notes": "APPROVAL SHEET: the 6 classes with a baked weapon (paladin, druid, wizard, barbarian, bard, ranger): shipped seat, the same seat built with class_back_<c>_noweapon, and noweapon + a typical main-hand weapon (paladin Oath Blade, druid Sap Crook, wizard Reed Staff, barbarian Gravel Axe, bard Road Lute, ranger Thorn Bow); all composed in the recommended seat_recipe order (steps_with_gear)."
+  },
+  "approval/class_noweapon_check_4x.png": {
+   "status": "draft_pending_approval",
+   "notes": "4x nearest of approval/class_noweapon_check.png."
+  }
+ },
+ "items": {
+  "status": "approved",
+  "source": "data/items.json (40 items) @ cursor/phase-0-playable-slice-9a5e; v0.2.8 report Art Director section",
+  "icons": {
+   "dir": "ui/items/",
+   "size": [
+    16,
+    16
+   ],
+   "border": false,
+   "style": "chunky flat, 1px #120c18 outline, 3-4 tone rim shading from the top-left, pack palette, binary alpha",
+   "placeholders_note": "category placeholders (sword, bow, potion...) stay as fallbacks; point data/items.json \"icon\" at ui/items/<id>.png"
+  },
+  "gear": {
+   "dir": "paperdoll/gear/",
+   "canvas": [
+    48,
+    78
+   ],
+   "anchor": [
+    24,
+    77
+   ],
+   "face": "back (seat doll)",
+   "placement": {
+    "armor": "shoulders + upper back; drawn after class_back and BEFORE hair/hood (long hair and hoods fall over the back plate)",
+    "main1": "held at the hero's right side (screen right, x40-47), pointing up/out past the shoulder; the lute is slung diagonally across the back instead",
+    "main2": "staffs held upright at the right side (x40-48, top y1-16); bows, the gravel axe and Sunbrand slung diagonally across the back, top end over the right shoulder, lower end hidden by the chair",
+    "off": "on the hero's left arm edge (screen left, x0-10, y40-67)"
+   },
+   "layer_order": [
+    "back/body_back_skin_<skin>",
+    "back/outfit_back (tinted)",
+    "back/class_back_<class> (class_back_<class>_noweapon when a main-hand weapon is equipped and the class has one, see class_noweapon)",
+    "gear ARMOR: paperdoll/gear/<armor id>",
+    "back/hair_back_<hair> (tinted, hat-clipped)",
+    "back/class_back_<class>_hat",
+    "gear OFF HAND: paperdoll/gear/<off id> (flip horizontally when the off-hand item is a weapon/dagger drawn for the main hand)",
+    "gear MAIN HAND: paperdoll/gear/<main id> (a two-hander fills both hands; skip the off-hand)",
+    "back/chair_back (always last; gear pixels under the chair are already cleared)",
+    "ACTIVE: shift up 3px, then 1px #f8d040 outline around the union (includes the gear)"
+   ],
+   "runtime_note": "PaperDoll.show_gear() currently draws only main + armor, on top of the finished doll, stretched to the doll size. For these overlays: add the off hand, draw armor before hair/hat (see layer_order), and do not stretch them onto the 32x48 FRONT doll used on the gear screen (these are back-view art)."
+  },
+  "list": [
+   {
+    "id": "oath_blade",
+    "name": "Oath Blade",
+    "slot": "weapon",
+    "tag": "sword",
+    "rarity": "common",
+    "hands": 1,
+    "icon": "ui/items/oath_blade.png",
+    "doll": "paperdoll/gear/oath_blade.png",
+    "visual": "plain short steel sword, gold vow line in the fuller"
+   },
+   {
+    "id": "chapel_mace",
+    "name": "Chapel Mace",
+    "slot": "weapon",
+    "tag": "mace",
+    "rarity": "common",
+    "hands": 1,
+    "icon": "ui/items/chapel_mace.png",
+    "doll": "paperdoll/gear/chapel_mace.png",
+    "visual": "flanged steel ball on a wooden haft, small gold cross"
+   },
+   {
+    "id": "reed_staff",
+    "name": "Reed Staff",
+    "slot": "weapon",
+    "tag": "staff",
+    "rarity": "common",
+    "hands": 2,
+    "icon": "ui/items/reed_staff.png",
+    "doll": "paperdoll/gear/reed_staff.png",
+    "visual": "jointed pale reed with copper wire bands and a green tuft"
+   },
+   {
+    "id": "sap_crook",
+    "name": "Sap Crook",
+    "slot": "weapon",
+    "tag": "staff",
+    "rarity": "common",
+    "hands": 2,
+    "icon": "ui/items/sap_crook.png",
+    "doll": "paperdoll/gear/sap_crook.png",
+    "visual": "hooked shepherd crook, leaf sprout and an amber sap drip"
+   },
+   {
+    "id": "thorn_bow",
+    "name": "Thorn Bow",
+    "slot": "weapon",
+    "tag": "bow",
+    "rarity": "common",
+    "hands": 2,
+    "icon": "ui/items/thorn_bow.png",
+    "doll": "paperdoll/gear/thorn_bow.png",
+    "visual": "simple wooden bow with thorn nubs, cream string"
+   },
+   {
+    "id": "pocket_knife",
+    "name": "Pocket Knife",
+    "slot": "weapon",
+    "tag": "dagger",
+    "rarity": "common",
+    "hands": 1,
+    "icon": "ui/items/pocket_knife.png",
+    "doll": "paperdoll/gear/pocket_knife.png",
+    "visual": "tiny folding knife, wooden handle with rivet (smallest blade)"
+   },
+   {
+    "id": "road_lute",
+    "name": "Road Lute",
+    "slot": "weapon",
+    "tag": "lute",
+    "rarity": "common",
+    "hands": 1,
+    "icon": "ui/items/road_lute.png",
+    "doll": "paperdoll/gear/road_lute.png",
+    "visual": "pear-shaped wooden lute, dark sound hole, cream strings"
+   },
+   {
+    "id": "gravel_axe",
+    "name": "Gravel Axe",
+    "slot": "weapon",
+    "tag": "axe",
+    "rarity": "common",
+    "hands": 2,
+    "icon": "ui/items/gravel_axe.png",
+    "doll": "paperdoll/gear/gravel_axe.png",
+    "visual": "long haft, chipped grey stone-like axe head"
+   },
+   {
+    "id": "kiln_sword",
+    "name": "Kiln Sword",
+    "slot": "weapon",
+    "tag": "sword",
+    "rarity": "rare",
+    "hands": 1,
+    "icon": "ui/items/kiln_sword.png",
+    "doll": "paperdoll/gear/kiln_sword.png",
+    "visual": "longer, wider blade with a blued edge; brick-red guard and grip"
+   },
+   {
+    "id": "lamp_staff",
+    "name": "Lamp Staff",
+    "slot": "weapon",
+    "tag": "staff",
+    "rarity": "rare",
+    "hands": 2,
+    "icon": "ui/items/lamp_staff.png",
+    "doll": "paperdoll/gear/lamp_staff.png",
+    "visual": "staff topped with a glowing gold lantern"
+   },
+   {
+    "id": "marsh_bow",
+    "name": "Marsh Bow",
+    "slot": "weapon",
+    "tag": "bow",
+    "rarity": "rare",
+    "hands": 2,
+    "icon": "ui/items/marsh_bow.png",
+    "doll": "paperdoll/gear/marsh_bow.png",
+    "visual": "dark-green waxed recurve, wrapped grip, sky string sparks"
+   },
+   {
+    "id": "night_shard",
+    "name": "Night Shard",
+    "slot": "weapon",
+    "tag": "dagger",
+    "rarity": "rare",
+    "hands": 1,
+    "icon": "ui/items/night_shard.png",
+    "doll": "paperdoll/gear/night_shard.png",
+    "visual": "jagged black-violet glass shard on a blue grip"
+   },
+   {
+    "id": "sunbrand",
+    "name": "Sunbrand",
+    "slot": "weapon",
+    "tag": "sword",
+    "rarity": "legendary",
+    "hands": 2,
+    "icon": "ui/items/sunbrand.png",
+    "doll": "paperdoll/gear/sunbrand.png",
+    "visual": "full-diagonal gold greatsword, long guard, red sun gem, glints"
+   },
+   {
+    "id": "howl_fang",
+    "name": "Howl Fang",
+    "slot": "weapon",
+    "tag": "dagger",
+    "rarity": "unique",
+    "hands": 1,
+    "icon": "ui/items/howl_fang.png",
+    "doll": "paperdoll/gear/howl_fang.png",
+    "visual": "a curved bone fang bound to a cord"
+   },
+   {
+    "id": "kettle_shield",
+    "name": "Kettle Shield",
+    "slot": "off",
+    "tag": "shield",
+    "rarity": "common",
+    "hands": 1,
+    "icon": "ui/items/kettle_shield.png",
+    "doll": "paperdoll/gear/kettle_shield.png",
+    "visual": "dented grey pot lid with a knob handle"
+   },
+   {
+    "id": "hymn_board",
+    "name": "Hymn Board",
+    "slot": "off",
+    "tag": "shield",
+    "rarity": "common",
+    "hands": 1,
+    "icon": "ui/items/hymn_board.png",
+    "doll": "paperdoll/gear/hymn_board.png",
+    "visual": "arched wooden board with faded verse lines and a gold cross"
+   },
+   {
+    "id": "glass_orb",
+    "name": "Glass Orb",
+    "slot": "off",
+    "tag": "orb",
+    "rarity": "common",
+    "hands": 1,
+    "icon": "ui/items/glass_orb.png",
+    "doll": "paperdoll/gear/glass_orb.png",
+    "visual": "clear glass ball with a gold spark inside, on a wooden stand"
+   },
+   {
+    "id": "oak_buckler",
+    "name": "Oak Buckler",
+    "slot": "off",
+    "tag": "shield",
+    "rarity": "rare",
+    "hands": 1,
+    "icon": "ui/items/oak_buckler.png",
+    "doll": "paperdoll/gear/oak_buckler.png",
+    "visual": "round oak with an iron rim, studs and an iron rose boss"
+   },
+   {
+    "id": "void_lens",
+    "name": "Void Lens",
+    "slot": "off",
+    "tag": "orb",
+    "rarity": "rare",
+    "hands": 1,
+    "icon": "ui/items/void_lens.png",
+    "doll": "paperdoll/gear/void_lens.png",
+    "visual": "gold-framed hand lens full of dark violet void and a star"
+   },
+   {
+    "id": "travel_coat",
+    "name": "Travel Coat",
+    "slot": "armor",
+    "tag": "light",
+    "rarity": "common",
+    "hands": 1,
+    "icon": "ui/items/travel_coat.png",
+    "doll": "paperdoll/gear/travel_coat.png",
+    "visual": "long brown waxed coat, tan collar, gold buttons"
+   },
+   {
+    "id": "reed_wrap",
+    "name": "Reed Wrap",
+    "slot": "armor",
+    "tag": "light",
+    "rarity": "common",
+    "hands": 1,
+    "icon": "ui/items/reed_wrap.png",
+    "doll": "paperdoll/gear/reed_wrap.png",
+    "visual": "green marsh cloak with woven tan reed strands"
+   },
+   {
+    "id": "hedge_mail",
+    "name": "Hedge Mail",
+    "slot": "armor",
+    "tag": "medium",
+    "rarity": "common",
+    "hands": 1,
+    "icon": "ui/items/hedge_mail.png",
+    "doll": "paperdoll/gear/hedge_mail.png",
+    "visual": "hedge-green jack studded with silver rings, leather belt"
+   },
+   {
+    "id": "kiln_plate",
+    "name": "Kiln Plate",
+    "slot": "armor",
+    "tag": "heavy",
+    "rarity": "common",
+    "hands": 1,
+    "icon": "ui/items/kiln_plate.png",
+    "doll": "paperdoll/gear/kiln_plate.png",
+    "visual": "brick-red breastplate and pauldrons, amber rivets"
+   },
+   {
+    "id": "moon_robe",
+    "name": "Moon Robe",
+    "slot": "armor",
+    "tag": "light",
+    "rarity": "rare",
+    "hands": 1,
+    "icon": "ui/items/moon_robe.png",
+    "doll": "paperdoll/gear/moon_robe.png",
+    "visual": "pale robe with violet V-neck and hem, gold crescent"
+   },
+   {
+    "id": "keep_plate",
+    "name": "Keep Plate",
+    "slot": "armor",
+    "tag": "heavy",
+    "rarity": "rare",
+    "hands": 1,
+    "icon": "ui/items/keep_plate.png",
+    "doll": "paperdoll/gear/keep_plate.png",
+    "visual": "broad steel plate, double pauldrons, gold trim (heaviest silhouette)"
+   },
+   {
+    "id": "lurker_scale",
+    "name": "Bone Plate",
+    "slot": "armor",
+    "tag": "medium",
+    "rarity": "unique",
+    "hands": 1,
+    "icon": "ui/items/lurker_scale.png",
+    "doll": "paperdoll/gear/lurker_scale.png",
+    "visual": "pale bone rib-plate with knuckle-bone pauldrons"
+   },
+   {
+    "id": "bread_charm",
+    "name": "Bread Charm",
+    "slot": "trinket",
+    "tag": "",
+    "rarity": "common",
+    "hands": 1,
+    "icon": "ui/items/bread_charm.png",
+    "doll": "",
+    "visual": "bread crust bound with a red thread cross, on a loop"
+   },
+   {
+    "id": "wick_ring",
+    "name": "Wick Ring",
+    "slot": "trinket",
+    "tag": "",
+    "rarity": "common",
+    "hands": 1,
+    "icon": "ui/items/wick_ring.png",
+    "doll": "",
+    "visual": "copper ring with a tiny candle stub and flame"
+   },
+   {
+    "id": "pond_bead",
+    "name": "Pond Bead",
+    "slot": "trinket",
+    "tag": "",
+    "rarity": "rare",
+    "hands": 1,
+    "icon": "ui/items/pond_bead.png",
+    "doll": "",
+    "visual": "mill-water teal glass bead on a cord"
+   },
+   {
+    "id": "threat_bell",
+    "name": "Threat Bell",
+    "slot": "trinket",
+    "tag": "",
+    "rarity": "rare",
+    "hands": 1,
+    "icon": "ui/items/threat_bell.png",
+    "doll": "",
+    "visual": "gold bell with a red ribbon and dark clapper"
+   },
+   {
+    "id": "ley_locket",
+    "name": "Ley Locket",
+    "slot": "trinket",
+    "tag": "",
+    "rarity": "legendary",
+    "hands": 1,
+    "icon": "ui/items/ley_locket.png",
+    "doll": "",
+    "visual": "gold heart locket with a violet gem, chain and glints"
+   },
+   {
+    "id": "blob_crown",
+    "name": "Grinning Crown",
+    "slot": "trinket",
+    "tag": "",
+    "rarity": "unique",
+    "hands": 1,
+    "icon": "ui/items/blob_crown.png",
+    "doll": "",
+    "visual": "blue slime crown with a grin and drips"
+   },
+   {
+    "id": "brute_heart",
+    "name": "Brute Heart",
+    "slot": "trinket",
+    "tag": "",
+    "rarity": "unique",
+    "hands": 1,
+    "icon": "ui/items/brute_heart.png",
+    "doll": "",
+    "visual": "grey stone heart with glowing orange cracks"
+   },
+   {
+    "id": "wisp_jar",
+    "name": "Cap Jar",
+    "slot": "trinket",
+    "tag": "",
+    "rarity": "unique",
+    "hands": 1,
+    "icon": "ui/items/wisp_jar.png",
+    "doll": "",
+    "visual": "corked glass jar holding an orange glow"
+   },
+   {
+    "id": "tonic",
+    "name": "Hearth Tonic",
+    "slot": "usable",
+    "tag": "heal_hp",
+    "rarity": "common",
+    "hands": 1,
+    "icon": "ui/items/tonic.png",
+    "doll": "",
+    "visual": "round glass flask of red tonic, cork"
+   },
+   {
+    "id": "vial",
+    "name": "Lamp Vial",
+    "slot": "usable",
+    "tag": "heal_mp",
+    "rarity": "common",
+    "hands": 1,
+    "icon": "ui/items/vial.png",
+    "doll": "",
+    "visual": "slim blue vial with a gold collar"
+   },
+   {
+    "id": "loaf_crumb",
+    "name": "Loaf Crumb",
+    "slot": "usable",
+    "tag": "heal_hp",
+    "rarity": "common",
+    "hands": 1,
+    "icon": "ui/items/loaf_crumb.png",
+    "doll": "",
+    "visual": "torn chunk of brown loaf"
+   },
+   {
+    "id": "blue_ether",
+    "name": "Blue Ether",
+    "slot": "usable",
+    "tag": "heal_mp",
+    "rarity": "rare",
+    "hands": 1,
+    "icon": "ui/items/blue_ether.png",
+    "doll": "",
+    "visual": "bigger blue flask, gold collar and cork, sparkles"
+   },
+   {
+    "id": "field_salve",
+    "name": "Field Salve",
+    "slot": "usable",
+    "tag": "heal_hp",
+    "rarity": "rare",
+    "hands": 1,
+    "icon": "ui/items/field_salve.png",
+    "doll": "",
+    "visual": "silver salve tin with a red cross and a herb sprig"
+   },
+   {
+    "id": "kettle_dram",
+    "name": "Kettle Dram",
+    "slot": "usable",
+    "tag": "heal_both",
+    "rarity": "common",
+    "hands": 1,
+    "icon": "ui/items/kettle_dram.png",
+    "doll": "",
+    "visual": "little copper kettle, half red / half blue contents, steam"
+   }
+  ]
+ }
+}

@@ -100,12 +100,14 @@ static func seat_spec(member: Dictionary) -> Dictionary:
 	var two := false
 	if main_id != "" and ContentDB.has_item(main_id):
 		var main: Dictionary = ContentDB.resolve(main_id)
+		if str(main.get("slot", "")) == "weapon":
+			spec["main_weapon"] = true
+			spec["main_tag"] = str(main.get("tag", ""))
+			two = int(main.get("hands", 1)) >= 2
+			spec["two_hand"] = two
 		var main_path := str(main.get("doll", ""))
 		if main_path != "" and ArtPack.has(main_path):
 			spec["main"] = main_path
-			spec["main_weapon"] = str(main.get("slot", "")) == "weapon"
-			two = int(main.get("hands", 1)) >= 2
-			spec["two_hand"] = two
 	if not two:
 		var off_id := str(gear["off"])
 		if off_id != "" and ContentDB.has_item(off_id):

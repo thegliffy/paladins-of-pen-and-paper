@@ -152,22 +152,60 @@ static func seat_is_default(class_id: String, look: Dictionary) -> bool:
 	return outfit == str(row["outfit"])
 
 
-static func seat_idle(class_id: String, main_weapon: bool = false) -> Texture2D:
-	return texture(seat_sheet_rel(class_id, "seat_idle", main_weapon))
+static func seat_idle(class_id: String, main_weapon: bool = false, main_tag: String = "") -> Texture2D:
+	return texture(seat_sheet_rel(class_id, "seat_idle", main_weapon, main_tag))
 
 
-static func seat_active(class_id: String, main_weapon: bool = false) -> Texture2D:
-	return texture(seat_sheet_rel(class_id, "seat_active", main_weapon))
+static func seat_active(class_id: String, main_weapon: bool = false, main_tag: String = "") -> Texture2D:
+	return texture(seat_sheet_rel(class_id, "seat_active", main_weapon, main_tag))
 
 
-static func seat_sheet_rel(class_id: String, key: String, main_weapon: bool) -> String:
+static func seat_sheet_rel(class_id: String, key: String, main_weapon: bool, main_tag: String = "") -> String:
+	var entry := class_noweapon_entry(class_id)
+	var state := "idle" if key == "seat_idle" else "active"
+	if _ranger_no_quiver(class_id, main_weapon, main_tag):
+		var bare := str(entry.get(key + "_nonbow", ""))
+		if bare != "" and has(bare):
+			return bare
+		return "party/seat_ranger_%s_noweapon_noquiver.png" % state
 	if main_weapon:
-		var entry := class_noweapon_entry(class_id)
 		var rel := str(entry.get(key, ""))
 		if rel != "" and has(rel):
 			return rel
-	var state := "idle" if key == "seat_idle" else "active"
 	return "party/seat_%s_%s.png" % [class_id, state]
+
+
+static func map_pin_anchor() -> Vector2:
+	var raw: Array = manifest()["map_pins"]["anchor"]
+	return Vector2(float(raw[0]), float(raw[1]))
+
+
+static func icon_is_placeholder(tex: Texture2D) -> bool:
+	## The old item icons were a parchment square with a #5a4028 frame.
+	if tex == null:
+		return true
+	var image := tex.get_image()
+	if image == null or image.get_width() != 16 or image.get_height() != 16:
+		return true
+	var border := Color("5a4028")
+	var hits := 0
+	for i in 16:
+		for point in [Vector2i(i, 0), Vector2i(i, 15), Vector2i(0, i), Vector2i(15, i)]:
+			var px := image.get_pixel(point.x, point.y)
+			if px.a > 0.7 and absf(px.r - border.r) < 0.05 and absf(px.g - border.g) < 0.05 and absf(px.b - border.b) < 0.06:
+				hits += 1
+	return hits >= 52
+
+
+static func _ranger_no_quiver(class_id: String, main_weapon: bool, main_tag: String) -> bool:
+	## No main hand keeps the baked bow and quiver. A bow keeps the quiver.
+	## Any other main-hand tag drops both. An empty tag is the older armed
+	## lookup and stays on the quiver layer until a real tag is passed.
+	if class_id != "ranger" or not main_weapon or main_tag == "":
+		return false
+	var rule: Dictionary = manifest()["paperdoll"].get("ranger_quiver", {})
+	var bows: Array = rule.get("bow_tags", ["bow"])
+	return not bows.has(main_tag)
 
 
 static func class_noweapon_entry(class_id: String) -> Dictionary:
@@ -286,7 +324,12 @@ static func class_noweapon_rel(class_id: String) -> String:
 	return str(class_noweapon_entry(class_id).get("layer", ""))
 
 
-static func pick_class_back(class_id: String, main_weapon: bool, noweapon_present: bool) -> String:
+static func pick_class_back(class_id: String, main_weapon: bool, noweapon_present: bool, main_tag: String = "") -> String:
+	if _ranger_no_quiver(class_id, main_weapon, main_tag):
+		var nonbow := str(class_noweapon_entry(class_id).get("layer_nonbow", ""))
+		if nonbow != "":
+			return nonbow
+		return "paperdoll/back/class_back_ranger_noweapon_noquiver.png"
 	if main_weapon and noweapon_present:
 		var listed := class_noweapon_rel(class_id)
 		if listed != "":
@@ -295,12 +338,12 @@ static func pick_class_back(class_id: String, main_weapon: bool, noweapon_presen
 	return "paperdoll/back/class_back_%s.png" % class_id
 
 
-static func class_back_rel(class_id: String, main_weapon: bool) -> String:
+static func class_back_rel(class_id: String, main_weapon: bool, main_tag: String = "") -> String:
 	## Cleric and rogue are absent from paperdoll.class_noweapon, so they keep the normal layer.
 	var bare := class_noweapon_rel(class_id)
 	if bare == "":
 		return "paperdoll/back/class_back_%s.png" % class_id
-	return pick_class_back(class_id, main_weapon, has(bare))
+	return pick_class_back(class_id, main_weapon, has(bare), main_tag)
 
 
 static func offhand_flips(item: Dictionary) -> bool:
@@ -317,10 +360,11 @@ static func seat_blit_plan(class_id: String, gear: Dictionary) -> Array:
 	var steps: Array = []
 	var two := bool(gear.get("two_hand", false))
 	var main_weapon := bool(gear.get("main_weapon", false))
+	var main_tag := str(gear.get("main_tag", ""))
 	steps.append({"id": "body", "kind": "body"})
 	if class_id != "barbarian":
 		steps.append({"id": "outfit", "kind": "outfit"})
-	steps.append({"id": "class", "kind": "blit", "path": class_back_rel(class_id, main_weapon)})
+	steps.append({"id": "class", "kind": "blit", "path": class_back_rel(class_id, main_weapon, main_tag)})
 	var armor := str(gear.get("armor", ""))
 	if armor != "":
 		steps.append({"id": "armor", "kind": "gear", "path": armor, "flip": false})
@@ -358,13 +402,14 @@ static func compose_doll(face: String, look: Dictionary, class_id: String, gear:
 	var hair_name: String = HAIR_RAMPS[posmod(int(look.get("hair_color", 0)), HAIR_RAMPS.size())]
 	var gear_key := ""
 	if face != "front" and not gear.is_empty():
-		gear_key = "|%s|%s|%s|%s|%s|%s" % [
+		gear_key = "|%s|%s|%s|%s|%s|%s|%s" % [
 			str(gear.get("armor", "")),
 			str(gear.get("off", "")),
 			str(bool(gear.get("off_flip", false))),
 			str(gear.get("main", "")),
 			str(bool(gear.get("main_weapon", false))),
 			str(bool(gear.get("two_hand", false))),
+			str(gear.get("main_tag", "")),
 		]
 	var key := "%s|%s|%d|%d|%d|%s|%s%s" % [face, class_id, skin, head, hair, outfit, hair_name, gear_key]
 	if _baked.has(key):

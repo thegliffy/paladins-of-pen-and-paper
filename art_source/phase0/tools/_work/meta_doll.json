@@ -824,6 +824,104 @@
    "hair_clip_y": 0,
    "notes": "drawn above hair_back; hide hair rows y < hair_clip_y while worn."
   },
+  "paperdoll/back/class_back_paladin_noweapon.png": {
+   "anchor": [
+    24,
+    77
+   ],
+   "canvas": [
+    48,
+    78
+   ],
+   "layer": 2,
+   "variant_of": "paperdoll/back/class_back_paladin.png",
+   "status": "draft_pending_approval",
+   "notes": "class_back_paladin without the baked sword at the left hip; everything else pixel-identical (the weapon parts were the last parts of the layer, so the arm/robe/cape underneath is already fully drawn). Use when a main-hand weapon is equipped."
+  },
+  "paperdoll/back/class_back_druid_noweapon.png": {
+   "anchor": [
+    24,
+    77
+   ],
+   "canvas": [
+    48,
+    78
+   ],
+   "layer": 2,
+   "variant_of": "paperdoll/back/class_back_druid.png",
+   "status": "draft_pending_approval",
+   "notes": "class_back_druid without the baked staff (and its hand) at the left; everything else pixel-identical (the weapon parts were the last parts of the layer, so the arm/robe/cape underneath is already fully drawn). Use when a main-hand weapon is equipped."
+  },
+  "paperdoll/back/class_back_wizard_noweapon.png": {
+   "anchor": [
+    24,
+    77
+   ],
+   "canvas": [
+    48,
+    78
+   ],
+   "layer": 2,
+   "variant_of": "paperdoll/back/class_back_wizard.png",
+   "status": "draft_pending_approval",
+   "notes": "class_back_wizard without the baked staff (and its hand) at the right; everything else pixel-identical (the weapon parts were the last parts of the layer, so the arm/robe/cape underneath is already fully drawn). Use when a main-hand weapon is equipped."
+  },
+  "paperdoll/back/class_back_barbarian_noweapon.png": {
+   "anchor": [
+    24,
+    77
+   ],
+   "canvas": [
+    48,
+    78
+   ],
+   "layer": 2,
+   "variant_of": "paperdoll/back/class_back_barbarian.png",
+   "status": "draft_pending_approval",
+   "notes": "class_back_barbarian without the baked axe across the back; everything else pixel-identical (the weapon parts were the last parts of the layer, so the arm/robe/cape underneath is already fully drawn). Use when a main-hand weapon is equipped."
+  },
+  "paperdoll/back/class_back_bard_noweapon.png": {
+   "anchor": [
+    24,
+    77
+   ],
+   "canvas": [
+    48,
+    78
+   ],
+   "layer": 2,
+   "variant_of": "paperdoll/back/class_back_bard.png",
+   "status": "draft_pending_approval",
+   "notes": "class_back_bard without the baked lute at the right; everything else pixel-identical (the weapon parts were the last parts of the layer, so the arm/robe/cape underneath is already fully drawn). Use when a main-hand weapon is equipped."
+  },
+  "paperdoll/back/class_back_ranger_noweapon.png": {
+   "anchor": [
+    24,
+    77
+   ],
+   "canvas": [
+    48,
+    78
+   ],
+   "layer": 2,
+   "variant_of": "paperdoll/back/class_back_ranger.png",
+   "status": "draft_pending_approval",
+   "notes": "class_back_ranger without the baked bow (and its hand) at the left; everything else pixel-identical (the weapon parts were the last parts of the layer, so the arm/robe/cape underneath is already fully drawn). Use when a main-hand weapon is equipped."
+  },
+  "paperdoll/back/class_back_ranger_noweapon_noquiver.png": {
+   "anchor": [
+    24,
+    77
+   ],
+   "canvas": [
+    48,
+    78
+   ],
+   "layer": 2,
+   "variant_of": "paperdoll/back/class_back_ranger_noweapon.png",
+   "status": "review",
+   "notes": "class_back_ranger_noweapon without the back quiver and its fletching. Use when the ranger holds a main-hand weapon whose tag is not bow."
+  },
   "paperdoll/back/chair_back.png": {
    "anchor": [
     24,
@@ -1164,6 +1262,300 @@
     "hat": true
    },
    "notes": "48x78 seat built from the back-view paperdoll layers. Active: all layers raised 3px + 1px gold #f8d040 outline around the union."
+  },
+  "party/seat_paladin_idle_noweapon.png": {
+   "anchor": [
+    24,
+    77
+   ],
+   "canvas": [
+    48,
+    78
+   ],
+   "composed_from": "seat_recipe with back/class_back_paladin_noweapon",
+   "defaults": {
+    "skin": 2,
+    "head": 1,
+    "hair": 2,
+    "hair_color": "brown",
+    "outfit": "white",
+    "hat": true
+   },
+   "status": "draft_pending_approval",
+   "notes": "party/seat_paladin_idle without the baked class weapon (for a hero with a main-hand weapon equipped; draw the gear overlays on top per seat_recipe steps_with_gear)."
+  },
+  "party/seat_paladin_active_noweapon.png": {
+   "anchor": [
+    24,
+    77
+   ],
+   "canvas": [
+    48,
+    78
+   ],
+   "composed_from": "seat_recipe with back/class_back_paladin_noweapon",
+   "defaults": {
+    "skin": 2,
+    "head": 1,
+    "hair": 2,
+    "hair_color": "brown",
+    "outfit": "white",
+    "hat": true
+   },
+   "status": "draft_pending_approval",
+   "notes": "party/seat_paladin_active without the baked class weapon (for a hero with a main-hand weapon equipped; draw the gear overlays on top per seat_recipe steps_with_gear)."
+  },
+  "party/seat_druid_idle_noweapon.png": {
+   "anchor": [
+    24,
+    77
+   ],
+   "canvas": [
+    48,
+    78
+   ],
+   "composed_from": "seat_recipe with back/class_back_druid_noweapon",
+   "defaults": {
+    "skin": 6,
+    "head": 6,
+    "hair": 1,
+    "hair_color": "white",
+    "outfit": "green",
+    "hat": true
+   },
+   "status": "draft_pending_approval",
+   "notes": "party/seat_druid_idle without the baked class weapon (for a hero with a main-hand weapon equipped; draw the gear overlays on top per seat_recipe steps_with_gear)."
+  },
+  "party/seat_druid_active_noweapon.png": {
+   "anchor": [
+    24,
+    77
+   ],
+   "canvas": [
+    48,
+    78
+   ],
+   "composed_from": "seat_recipe with back/class_back_druid_noweapon",
+   "defaults": {
+    "skin": 6,
+    "head": 6,
+    "hair": 1,
+    "hair_color": "white",
+    "outfit": "green",
+    "hat": true
+   },
+   "status": "draft_pending_approval",
+   "notes": "party/seat_druid_active without the baked class weapon (for a hero with a main-hand weapon equipped; draw the gear overlays on top per seat_recipe steps_with_gear)."
+  },
+  "party/seat_wizard_idle_noweapon.png": {
+   "anchor": [
+    24,
+    77
+   ],
+   "canvas": [
+    48,
+    78
+   ],
+   "composed_from": "seat_recipe with back/class_back_wizard_noweapon",
+   "defaults": {
+    "skin": 1,
+    "head": 5,
+    "hair": 5,
+    "hair_color": "blonde",
+    "outfit": "blue",
+    "hat": true
+   },
+   "status": "draft_pending_approval",
+   "notes": "party/seat_wizard_idle without the baked class weapon (for a hero with a main-hand weapon equipped; draw the gear overlays on top per seat_recipe steps_with_gear)."
+  },
+  "party/seat_wizard_active_noweapon.png": {
+   "anchor": [
+    24,
+    77
+   ],
+   "canvas": [
+    48,
+    78
+   ],
+   "composed_from": "seat_recipe with back/class_back_wizard_noweapon",
+   "defaults": {
+    "skin": 1,
+    "head": 5,
+    "hair": 5,
+    "hair_color": "blonde",
+    "outfit": "blue",
+    "hat": true
+   },
+   "status": "draft_pending_approval",
+   "notes": "party/seat_wizard_active without the baked class weapon (for a hero with a main-hand weapon equipped; draw the gear overlays on top per seat_recipe steps_with_gear)."
+  },
+  "party/seat_barbarian_idle_noweapon.png": {
+   "anchor": [
+    24,
+    77
+   ],
+   "canvas": [
+    48,
+    78
+   ],
+   "composed_from": "seat_recipe with back/class_back_barbarian_noweapon",
+   "defaults": {
+    "skin": 3,
+    "head": 3,
+    "hair": 8,
+    "hair_color": "ginger",
+    "outfit": null,
+    "hat": true
+   },
+   "status": "draft_pending_approval",
+   "notes": "party/seat_barbarian_idle without the baked class weapon (for a hero with a main-hand weapon equipped; draw the gear overlays on top per seat_recipe steps_with_gear)."
+  },
+  "party/seat_barbarian_active_noweapon.png": {
+   "anchor": [
+    24,
+    77
+   ],
+   "canvas": [
+    48,
+    78
+   ],
+   "composed_from": "seat_recipe with back/class_back_barbarian_noweapon",
+   "defaults": {
+    "skin": 3,
+    "head": 3,
+    "hair": 8,
+    "hair_color": "ginger",
+    "outfit": null,
+    "hat": true
+   },
+   "status": "draft_pending_approval",
+   "notes": "party/seat_barbarian_active without the baked class weapon (for a hero with a main-hand weapon equipped; draw the gear overlays on top per seat_recipe steps_with_gear)."
+  },
+  "party/seat_bard_idle_noweapon.png": {
+   "anchor": [
+    24,
+    77
+   ],
+   "canvas": [
+    48,
+    78
+   ],
+   "composed_from": "seat_recipe with back/class_back_bard_noweapon",
+   "defaults": {
+    "skin": 5,
+    "head": 3,
+    "hair": 6,
+    "hair_color": "black",
+    "outfit": "red",
+    "hat": true
+   },
+   "status": "draft_pending_approval",
+   "notes": "party/seat_bard_idle without the baked class weapon (for a hero with a main-hand weapon equipped; draw the gear overlays on top per seat_recipe steps_with_gear)."
+  },
+  "party/seat_bard_active_noweapon.png": {
+   "anchor": [
+    24,
+    77
+   ],
+   "canvas": [
+    48,
+    78
+   ],
+   "composed_from": "seat_recipe with back/class_back_bard_noweapon",
+   "defaults": {
+    "skin": 5,
+    "head": 3,
+    "hair": 6,
+    "hair_color": "black",
+    "outfit": "red",
+    "hat": true
+   },
+   "status": "draft_pending_approval",
+   "notes": "party/seat_bard_active without the baked class weapon (for a hero with a main-hand weapon equipped; draw the gear overlays on top per seat_recipe steps_with_gear)."
+  },
+  "party/seat_ranger_idle_noweapon.png": {
+   "anchor": [
+    24,
+    77
+   ],
+   "canvas": [
+    48,
+    78
+   ],
+   "composed_from": "seat_recipe with back/class_back_ranger_noweapon",
+   "defaults": {
+    "skin": 3,
+    "head": 4,
+    "hair": 4,
+    "hair_color": "ginger",
+    "outfit": "green",
+    "hat": true
+   },
+   "status": "draft_pending_approval",
+   "notes": "party/seat_ranger_idle without the baked class weapon (for a hero with a main-hand weapon equipped; draw the gear overlays on top per seat_recipe steps_with_gear)."
+  },
+  "party/seat_ranger_active_noweapon.png": {
+   "anchor": [
+    24,
+    77
+   ],
+   "canvas": [
+    48,
+    78
+   ],
+   "composed_from": "seat_recipe with back/class_back_ranger_noweapon",
+   "defaults": {
+    "skin": 3,
+    "head": 4,
+    "hair": 4,
+    "hair_color": "ginger",
+    "outfit": "green",
+    "hat": true
+   },
+   "status": "draft_pending_approval",
+   "notes": "party/seat_ranger_active without the baked class weapon (for a hero with a main-hand weapon equipped; draw the gear overlays on top per seat_recipe steps_with_gear)."
+  },
+  "party/seat_ranger_idle_noweapon_noquiver.png": {
+   "anchor": [
+    24,
+    77
+   ],
+   "canvas": [
+    48,
+    78
+   ],
+   "composed_from": "seat_recipe with back/class_back_ranger_noweapon_noquiver",
+   "defaults": {
+    "skin": 3,
+    "head": 4,
+    "hair": 4,
+    "hair_color": "ginger",
+    "outfit": "green",
+    "hat": true
+   },
+   "status": "review",
+   "notes": "ranger seat with no baked bow and no quiver: for a ranger holding a non-bow main-hand weapon."
+  },
+  "party/seat_ranger_active_noweapon_noquiver.png": {
+   "anchor": [
+    24,
+    77
+   ],
+   "canvas": [
+    48,
+    78
+   ],
+   "composed_from": "seat_recipe with back/class_back_ranger_noweapon_noquiver",
+   "defaults": {
+    "skin": 3,
+    "head": 4,
+    "hair": 4,
+    "hair_color": "ginger",
+    "outfit": "green",
+    "hat": true
+   },
+   "status": "review",
+   "notes": "ranger seat with no baked bow and no quiver: for a ranger holding a non-bow main-hand weapon."
   },
   "paperdoll/palettes/classes_check.png": {
    "notes": "QA: all 8 classes, default front doll (top) and composed seat (bottom; paladin active)."
