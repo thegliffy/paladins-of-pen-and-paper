@@ -5,12 +5,14 @@ from PIL import Image
 import pal
 from pal import C, OUT, save, text, text_w, HEX, NAMES
 W_ = OUT + 'tools/_work/'
-def L(rel): return Image.open(OUT + rel).convert('RGBA')
+ROOT_ = OUT                    # refine pass: before-scenes switch this to tools/_work/pre_refine/ (approval/refine/* always from OUT)
+def L(rel): return Image.open((OUT if rel.startswith('approval/refine/') else ROOT_) + rel).convert('RGBA')
 def frame_of(rel, i, fw):
     im = L(rel); return im.crop((i * fw, 0, (i + 1) * fw, im.height))
 META = {}
-for f in ('meta_cut.json', 'meta_proc.json', 'meta_doll.json', 'meta_skills.json', 'meta_regions.json', 'meta_items.json'):
-    d = json.load(open(W_ + f)); META.update(d['meta'] if 'meta' in d else d)
+for f in ('meta_cut.json', 'meta_proc.json', 'meta_doll.json', 'meta_skills.json', 'meta_regions.json', 'meta_items.json', 'meta_refine.json'):
+    d = json.load(open(W_ + f)); d = d['meta'] if 'meta' in d else d
+    for _k, _v in d.items(): META.setdefault(_k, {}).update(_v)      # merge (refine adds status/what/before on top of the source entry)
 DOLL = json.load(open(W_ + 'meta_doll.json')); SKM = json.load(open(W_ + 'meta_skills.json'))['motifs']; SKK = json.load(open(W_ + 'meta_skills.json'))['kinds']
 
 # ---------------- palette ----------------
@@ -143,7 +145,7 @@ META['ui/portrait/action_bar_examples_3x.png'] = dict(notes='3x nearest.')
 # ---------- scene_test_portrait ----------
 P = L(globals().get('SCENE_BG', 'combat/bg_forest_portrait.png'))
 def pput(im, ax, ay, anchor): P.alpha_composite(im, (ax - anchor[0], ay - anchor[1]))
-PPARTY = ['paladin', 'cleric', 'rogue', 'druid', 'wizard']          # v5: max party 5, mixed
+PPARTY = globals().get('SCENE_PARTY', ['paladin', 'cleric', 'rogue', 'druid', 'wizard'])          # v5: max party 5, mixed
 def dflt_front(c):
     d = DOLL['seat_defaults'][c]; return doll_front(d['skin'], d['head'], d['hair'], d['hair_color'], d['outfit'], c, d['hat'])
 pparty = [dflt_front(c) for c in PPARTY]
@@ -534,6 +536,9 @@ save(FXT, 'fx_test_portrait.png'); save(upsc(FXT, 3), 'fx_test_portrait_3x.png')
 META['fx_test_portrait.png'] = dict(notes='QA: one representative frame of each FX on monsters (fx centred on body, lightning/heal/buff/shield on feet) and composed seats, at native scale.')
 META['fx_test_portrait_3x.png'] = dict(notes='3x nearest.')
 
+# ---------- refine pass phase 1 (status review): before/after sheets in approval/refine/ ----------
+exec(compile(open(OUT + 'tools/compose_refine.py').read(), 'compose_refine', 'exec'), globals())
+
 # ---------------- contact sheet ----------------
 BGc = C['gray']; CW = 796
 secs = [('COMBAT', ['combat/*.png']), ('MONSTERS', ['monsters/*/*_idle.png', 'monsters/*/*_attack.png', 'monsters/*/*_hit.png', 'monsters/*/*_death.png', 'monsters/*/*_still.png', 'monsters/*/*_portrait.png']),
@@ -595,6 +600,7 @@ print('checked', len(files), 'PNGs; problems:', problems[:20])
 
 
 # ---------------- manifest ----------------
+for _r, _m in REF['meta'].items(): META.setdefault(_r, {}).update(_m)      # refined/new pieces: status review wins
 files = sorted(p for p in glob.glob(OUT + '**/*.png', recursive=True) if '/tools/' not in p)
 entries = []
 for p in files:
@@ -606,7 +612,7 @@ for p in files:
     if 'frames' not in m: m['frames'] = 1; m.setdefault('frame_size', list(im.size))
     e.update(m); entries.append(e)
 entries += [dict(path='palette/palette48.gpl', notes='GIMP/Aseprite palette, 48 named colours.'), dict(path='palette/palette48.hex', notes='48 hex colours, one per line (Lospec .hex format).'),
-            dict(path='tools/', notes='reproducible build scripts: build_cut.py -> build_proc.py -> build_doll.py -> build_skills.py -> build_regions.py -> build_items.py -> compose.py (python w/ pillow+numpy+scipy). tools/_work holds intermediates.')]
+            dict(path='tools/', notes='reproducible build scripts: build_cut.py -> build_proc.py -> build_doll.py -> build_skills.py -> build_regions.py -> build_items.py -> build_refine.py -> compose.py (python w/ pillow+numpy+scipy). tools/_work holds intermediates.')]
 LEGACY = {'combat/bg_forest.png': 'use combat/bg_forest_portrait.png', 'combat/table.png': 'use combat/table_portrait.png (250x40)',
     'ui/hp_mp_card.png': 'use ui/portrait/hp_mp_card_narrow.png', 'ui/bar_hp.png': 'use ui/portrait/bar_hp_88.png or bar_hp_tile', 'ui/bar_mp.png': 'use ui/portrait/bar_mp_88.png or bar_mp_tile',
     'ui/bar_bg.png': 'baked into the narrow card', 'scene_test.png': 'see scene_test_portrait.png', 'scene_test_4x.png': 'see scene_test_portrait_4x.png'}
@@ -704,14 +710,42 @@ MAN['paperdoll']['seat_recipe']['steps_with_gear'] = ITJ['gear']['layer_order']
 MAN['paperdoll']['seat_recipe']['gear_note'] = 'Gear overlays (paperdoll/gear/<id>.png, 48x78, anchor 24,77) slot into the recipe as steps_with_gear: armor after class_back and before hair/hat; off hand then main hand after the hat; chair_back stays last. When a main-hand weapon is equipped, use class_back_<class>_noweapon instead of class_back_<class> (see class_noweapon). Status: approved (art/phase0-pack @7946500).'
 NW_CLASSES = ['paladin', 'druid', 'wizard', 'barbarian', 'bard', 'ranger']
 CLASS_NOWEAPON = dict(status='draft_pending_approval', rule='When the hero has a main-hand weapon equipped, draw paperdoll/back/class_back_<class>_noweapon.png instead of class_back_<class>.png (the class art has its own baked weapon that would double up with the gear overlay). The prebuilt default seats party/seat_<class>_idle/active_noweapon.png are the same swap applied to seat_recipe. Classes not listed (cleric, rogue) have no baked weapon: always use class_back_<class>. Nothing else changes: same 48x78 canvas, anchor [24,77], layer slot and hat layer.',
-    removed=dict(paladin='sword at the left hip', druid='leaf-topped staff and the hand holding it (left)', wizard='orb staff and the hand holding it (right)', barbarian='axe across the back (haft + head; the crossed harness straps stay)', bard='lute at the right (body, neck, pegs)', ranger='bow and the hand holding it (left; quiver and fletching stay)'),
+    removed=dict(paladin='sword at the left hip', druid='leaf-topped staff and the hand holding it (left)', wizard='orb staff and the hand holding it (right)', barbarian='axe across the back (haft + head; the crossed harness straps stay)', bard='lute at the right (body, neck, pegs)', ranger='bow and the hand holding it (left; quiver and fletching stay). Ranger with a NON-bow main hand: see layer_nonbow / paperdoll.ranger_quiver'),
     classes={c_: dict(layer=f'paperdoll/back/class_back_{c_}_noweapon.png', replaces=f'paperdoll/back/class_back_{c_}.png', seat_idle=f'party/seat_{c_}_idle_noweapon.png', seat_active=f'party/seat_{c_}_active_noweapon.png') for c_ in NW_CLASSES},
     build='tools/build_doll.py class_back(c, noweapon=True): the weapon parts are the last parts of each class layer and are skipped, so every other pixel is identical to class_back_<class> (the arm/robe/cape under the weapon is already fully drawn).',
     approval=['approval/class_noweapon_check.png', 'approval/class_noweapon_check_4x.png'])
+CLASS_NOWEAPON['classes']['ranger'].update(layer_nonbow='paperdoll/back/class_back_ranger_noweapon_noquiver.png', seat_idle_nonbow='party/seat_ranger_idle_noweapon_noquiver.png',
+    seat_active_nonbow='party/seat_ranger_active_noweapon_noquiver.png', nonbow_note='main-hand item tag != "bow" -> use the *_nonbow entries (no quiver, no fletching). Status review (refine-2).')
 MAN['paperdoll']['class_noweapon'] = CLASS_NOWEAPON
+MAN['paperdoll']['ranger_quiver'] = REF['quiver']
+MAN['paperdoll']['seat_recipe']['fist_rule'] = REF['fist']
 MAN['paperdoll']['seat_recipe']['noweapon_rule'] = CLASS_NOWEAPON['rule']
 MAN['paperdoll']['back_seated']['layer_order_with_gear'] = ITJ['gear']['layer_order']
 MAN['location_backdrops'] = {p_['id']: dict(file=p_['backdrop'], region=p_['region'], status='approved', horizon_y=141, monster_feet_band=[222, 266], calm_below_y=300) for p_ in RGJ['places']}
+BUILD_ORDER = ['tools/build_cut.py', 'tools/build_proc.py', 'tools/build_doll.py (also writes the unrefined ranger noquiver layer to tools/_work/doll_raw/)', 'tools/build_skills.py', 'tools/build_regions.py', 'tools/build_items.py',
+    'tools/build_refine.py (refine-2 full set: reads only tools/_work/pre_refine/ + tools/_work/doll_raw/ + the refine_* drawing modules, so it is idempotent)', 'tools/compose.py (meta merge, scenes, approval sheets incl. approval/refine/final/, palette check, manifest)']
+REPO_CHANGES = ['ui/hub: replace res://art/ui btn_tan/btn_tan_down + icon_run/attack/cover/skill/item and the StyleBoxFlat banner/caption in session_screen.show_hub with ui/hub/hub_button(_down).png (9-slice 6), header_plate.png (9-slice 4), icon_{travel,fight,rest,quest,gear}.png',
+    'data/region.json: places brinewick/ashgate/pebblegate "sprite": "village" -> "brinewick"/"ashgate"/"pebblegate" (map_screen.gd loads map/loc_<sprite>.png, 32x32, drawn at place pos - (16,28))',
+    'scripts/core/art_pack.gd: quiver rule in pick_class_back / class_back_rel / seat_sheet_rel: pass the main-hand item tag; ranger + main hand + tag != "bow" -> class_noweapon.classes.ranger.layer_nonbow / seat_*_nonbow',
+    'tests/run_tests.gd: the loc_<sprite> check now also covers loc_brinewick/ashgate/pebblegate; add an export check for the noquiver layer like the noweapon check in main.gd',
+    'repo placeholders to drop: combat/bg_{brinewick,ashgate,pebblegate}_portrait.png and the parchment ui/items/<id>.png placeholders (the pack now has all 101 icons and all 3 town backdrops at the same paths under art_source/phase0/)',
+    'sync art_source/phase0/ from this pack (no code reads tools/)']
+for _t in ('candlewick', 'brinewick', 'ashgate', 'pebblegate'):
+    MAN['location_backdrops'][_t] = dict(file=f'combat/bg_{_t}_portrait.png', region='greenmere', town=True, status='review', horizon_y=141, calm_below_y=300, hub_note='town hub: seats/table/hub UI sit over x50-220 below y195, kept clean')
+for _k in ('millpond', 'howling_cleft', 'forest', 'gravel_keep', 'briar_cross', 'lantern_reach'):
+    if _k in MAN['location_backdrops']: MAN['location_backdrops'][_k]['status'] = 'review'; MAN['location_backdrops'][_k]['refine'] = 'refine-2'
+MAN['map_pins'] = dict(size=[32, 32], anchor=[16, 28], path='map/loc_<sprite>.png', loader='scripts/map/map_screen.gd: ArtPack.texture("map/loc_%s.png" % place.sprite), position = place pos - (16, 28)',
+    existing=['village', 'cave', 'castle', 'tavern', 'shrine', 'windmill'], new=dict(brinewick='map/loc_brinewick.png', ashgate='map/loc_ashgate.png', pebblegate='map/loc_pebblegate.png'),
+    status_new='review', region_json_change='set "sprite" of places brinewick/ashgate/pebblegate to their own id (all three currently "village")')
+REFINE_BLOCK = dict(phase='refine-2: full set (status review, phase 1 approved)', build_order=BUILD_ORDER, repo_changes=REPO_CHANGES, quiver=REF['quiver'], fist=REF['fist'], icon_check=REF['icon_check'], style_version=REF['style']['version'], before_root=REF['before_root'],
+    before_root_note='tools/_work/pre_refine/ = full pre-refine snapshot of the pack (same relative paths) + repo_placeholders/ (repo parchment item placeholders, recoloured town backdrops) + repo_art_ui/ (repo res://art/ui) + tools_src/ (build scripts before the pass). Use it for before/after sheets.',
+    build='tools/build_refine.py (after build_items.py, before compose.py); art in refine_style.py, refine_backdrops.py, refine_backdrops2.py, refine_ui.py, refine_items.py, refine_icons2.py, refine_gear.py, refine_doll.py, refine_dice.py, refine_pins.py. compose.py loads meta_refine.json and renders approval/refine/* via compose_refine.py.',
+    refined=REF['refined'], kit=REF['kit'], late=REF['late'],
+    sheets=['approval/refine/final/final_contact_sheet(+_2x).png', 'approval/refine/final/combat_gravel_keep(+_4x).png', 'approval/refine/final/town_ashgate(+_4x).png', 'approval/refine/final/town_pebblegate(+_4x).png',
+            'approval/refine/combat_meadow_before_after(+_3x).png', 'approval/refine/combat_cave_before_after(+_3x).png', 'approval/refine/hub_towns_before_after(+_3x).png', 'approval/refine/icons_before_after(+_4x).png'],
+    hub_ui_note='ui/hub/hub_button(_down).png (32x32 9-slice, margin 6), ui/hub/header_plate.png (24x24 9-slice, margin 4) and ui/hub/icon_{travel,fight,rest,quest,gear}.png (16x16) are on-palette replacements for res://art/ui btn_tan/btn_tan_down/icon_run/icon_attack/icon_cover/icon_skill/icon_item and the StyleBoxFlat banner/caption in session_screen.show_hub. Wiring them in is a repo change (not done).',
+    pending=['front/creator paperdoll layers (paperdoll/*.png, heads, hairs) not relit in refine-2 (only the seated back view is)', 'body_back_skin_* layers not relit (their tones are the skin choice)', 'existing 6 map pins and 40 pre-refine item icons unchanged apart from the phase-1 fixes', 'landscape legacy files (bg_forest.png, table.png, scene_test*.png landscape) untouched'])
+MAN['style'] = REF['style']; MAN['refine'] = REFINE_BLOCK
 json.dump(MAN, open(OUT + 'manifest.json', 'w'), indent=1)
 # markdown
 def fmt(v): return json.dumps(v) if not isinstance(v, str) else v
@@ -741,6 +775,14 @@ md = ['# Paladins of Pen and Paper: Phase 0 sprite pack', '', f'Generated {MAN["
       '## Skill FX', '| strip | frame size | frames | fps | anchor | loop / segments | notes |', '|---|---|---|---|---|---|---|'] + ['| fx/%s.png | %s | %s | %s | %s | %s | %s |' % (k, 'x'.join(map(str, v['frame_size'])), v['frames'], v['fps'], fmt(v['anchor']), fmt(v.get('segments', v.get('loop'))), v['notes']) for k, v in FX_BLOCK.items()] + ['',
       'FX style: no black outline (glow effects); bright core stepping to a darker coloured rim, binary alpha, fades via ordered dither. `fx_test_portrait.png` shows one frame of each at native scale.', '',
       '**Legacy (landscape-only):** ' + ', '.join('`%s`' % p for p in PORTRAIT['legacy_landscape_files']), '',
+      '## Style rules (refine pass, ' + REF['style']['version'] + ')', 'Applied to every refined piece; the full pass applies them to the rest of the pack. Machine-readable copy: `manifest.json` → `style`.', ''] + ['- **%s**: %s' % (k, v) for k, v in REF['style'].items() if k != 'version'] + ['',
+      '## Refine-2 full set (status: review)', '**Build order:** ' + ' → '.join('`%s`' % b for b in BUILD_ORDER), '',
+      '**Ranger quiver rule:** ' + REF['quiver']['rule'], '', '```gdscript', REF['quiver']['gdscript'], '```', '',
+      '**Fist rule:** ' + REF['fist']['rule'] + ' Held: ' + ', '.join(REF['fist']['held']) + '. No fist: ' + ', '.join('%s (%s)' % kv for kv in REF['fist']['no_fist'].items()) + '.', '',
+      '**Icon coverage:** %d items in data/items.json @ 3103e38, %d with ui/items/<id>.png, missing: %s.' % (REF['icon_check']['items'], REF['icon_check']['with_icon'], REF['icon_check']['missing'] or 'none'), '',
+      '**Repo changes the build needs (not done here):**', ''] + ['- ' + x for x in REPO_CHANGES] + ['',
+      'Refined/new pieces keep their filename, size and anchor and carry `status: review` (+ `refine`, `what`, `before`) in `manifest.json`. Before files: `' + REF['before_root'] + '` (same relative paths). Build: ' + REFINE_BLOCK['build'], '', 'Sheets: ' + ', '.join('`%s`' % x for x in REFINE_BLOCK['sheets']) + '.', '', REFINE_BLOCK['hub_ui_note'], '',
+      '| file | new | what changed |', '|---|---|---|'] + ['| %s | %s | %s |' % (r_['path'], 'NEW' if r_['new'] else '', r_['what']) for r_ in REF['refined']] + ['', '**Not covered by refine-2:** ' + '; '.join(REFINE_BLOCK['pending']) + '.', '',
       '## Files', '| path | size | frames | frame size | fps | anchor | extra | notes |', '|---|---|---|---|---|---|---|---|']
 for e in entries:
     extra = {k: v for k, v in e.items() if k not in ('path', 'size', 'frames', 'frame_size', 'fps', 'anchor', 'notes', 'canvas', 'loop')}

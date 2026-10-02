@@ -908,6 +908,20 @@
    "status": "draft_pending_approval",
    "notes": "class_back_ranger without the baked bow (and its hand) at the left; everything else pixel-identical (the weapon parts were the last parts of the layer, so the arm/robe/cape underneath is already fully drawn). Use when a main-hand weapon is equipped."
   },
+  "paperdoll/back/class_back_ranger_noweapon_noquiver.png": {
+   "anchor": [
+    24,
+    77
+   ],
+   "canvas": [
+    48,
+    78
+   ],
+   "layer": 2,
+   "variant_of": "paperdoll/back/class_back_ranger_noweapon.png",
+   "status": "review",
+   "notes": "class_back_ranger_noweapon without the back quiver and its fletching. Use when the ranger holds a main-hand weapon whose tag is not bow."
+  },
   "paperdoll/back/chair_back.png": {
    "anchor": [
     24,
@@ -1500,6 +1514,48 @@
    },
    "status": "draft_pending_approval",
    "notes": "party/seat_ranger_active without the baked class weapon (for a hero with a main-hand weapon equipped; draw the gear overlays on top per seat_recipe steps_with_gear)."
+  },
+  "party/seat_ranger_idle_noweapon_noquiver.png": {
+   "anchor": [
+    24,
+    77
+   ],
+   "canvas": [
+    48,
+    78
+   ],
+   "composed_from": "seat_recipe with back/class_back_ranger_noweapon_noquiver",
+   "defaults": {
+    "skin": 3,
+    "head": 4,
+    "hair": 4,
+    "hair_color": "ginger",
+    "outfit": "green",
+    "hat": true
+   },
+   "status": "review",
+   "notes": "ranger seat with no baked bow and no quiver: for a ranger holding a non-bow main-hand weapon."
+  },
+  "party/seat_ranger_active_noweapon_noquiver.png": {
+   "anchor": [
+    24,
+    77
+   ],
+   "canvas": [
+    48,
+    78
+   ],
+   "composed_from": "seat_recipe with back/class_back_ranger_noweapon_noquiver",
+   "defaults": {
+    "skin": 3,
+    "head": 4,
+    "hair": 4,
+    "hair_color": "ginger",
+    "outfit": "green",
+    "hat": true
+   },
+   "status": "review",
+   "notes": "ranger seat with no baked bow and no quiver: for a ranger holding a non-bow main-hand weapon."
   },
   "paperdoll/palettes/classes_check.png": {
    "notes": "QA: all 8 classes, default front doll (top) and composed seat (bottom; paladin active)."

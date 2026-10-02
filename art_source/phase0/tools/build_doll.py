@@ -742,7 +742,7 @@ def sleeves(L, base, dark, light, cuff=None, bell=True):
             folds(Q, sl, [[(7, 49), (6, 56)], [(10, 50), (11, 57)]] if sl[50, 5] else [[(40, 49), (41, 56)], [(37, 50), (36, 57)]], C[dark])
             if cuff: paint(Q, sl & (bys >= 59) | (e_bot(sl) & (bys >= 57)), C[cuff])
         part(L, f)
-def class_back(c, noweapon=False):
+def class_back(c, noweapon=False, noquiver=False):
     """noweapon=True skips the baked class weapon parts (they are always the LAST parts of the class, so removing them
     leaves every other pixel identical and reveals the fully drawn parts / body underneath)."""
     L = layer(BW, BH)
@@ -772,8 +772,8 @@ def class_back(c, noweapon=False):
         part(L, lambda Q: (lambda m: (shade3(Q, m, C['leaf'], C['leaf_dk'], C['grass'], spine=True), folds(Q, m, [[(19, 46), (13, 67)], [(28, 46), (34, 67)], [(23, 50), (22, 67)]], C['leaf_dk'], C['grass']), paint(Q, e_bot(m), C['pine'])))(robe_mask(67, 18.5)))
         part(L, lambda Q: belt(Q, 56, 'wood', 'wood_dk', knot=M([(15, 57), (18, 57), (18, 61), (15, 61)])))
         sleeves(L, 'leaf_dk', 'pine', 'leaf', bell=False)
-        part(L, lambda Q: (shade3(Q, M([(27, 32), (32, 34), (21, 58), (16, 56)]), C['wood'], C['wood_dk'], C['wood_lt']), paint(Q, LNn([(19, 55), (29, 34)]), C['wood_dk'])))   # quiver
-        part(L, lambda Q: (paint(Q, P1([(19, 21), (20, 20), (21, 21), (18, 20)]), C['white']), paint(Q, P1([(20, 21)]), C['red'])))
+        if not noquiver: part(L, lambda Q: (shade3(Q, M([(27, 32), (32, 34), (21, 58), (16, 56)]), C['wood'], C['wood_dk'], C['wood_lt']), paint(Q, LNn([(19, 55), (29, 34)]), C['wood_dk'])))   # quiver
+        if not noquiver: part(L, lambda Q: (paint(Q, P1([(19, 21), (20, 20), (21, 21), (18, 20)]), C['white']), paint(Q, P1([(20, 21)]), C['red'])))
         if NW: part(L, lambda Q: (paint(Q, LNn([(5, 30), (3, 40), (3, 54), (6, 66)], 2), C['wood_lt']), paint(Q, LNn([(6, 30), (6, 66)]), C['cream'])))     # bow at the left side
         if NW: part(L, lambda Q: shade3(Q, Ell(5, 55.5, 2.0, 2.0), C['skin3'], C['skin4'], C['skin2']))
     elif c == 'bard':
@@ -886,6 +886,11 @@ for c, what in NOWEAPON.items():
     save(img(cbn[c]), P + f'back/class_back_{c}_noweapon.png')
     META[P + f'back/class_back_{c}_noweapon.png'] = dict(BA, layer=2, variant_of=P + f'back/class_back_{c}.png', status='draft_pending_approval',
         notes=f'class_back_{c} without the baked {what}; everything else pixel-identical (the weapon parts were the last parts of the layer, so the arm/robe/cape underneath is already fully drawn). Use when a main-hand weapon is equipped.')
+# ranger without quiver + fletching (refine-2): for a ranger holding a NON-bow main-hand weapon (see manifest paperdoll.ranger_quiver)
+cbq = class_back('ranger', noweapon=True, noquiver=True); save(img(cbq), P + 'back/class_back_ranger_noweapon_noquiver.png')
+save(img(cbq), 'tools/_work/doll_raw/' + P + 'back/class_back_ranger_noweapon_noquiver.png')   # unrefined copy: build_refine reads this (keeps refine idempotent)
+META[P + 'back/class_back_ranger_noweapon_noquiver.png'] = dict(BA, layer=2, variant_of=P + 'back/class_back_ranger_noweapon.png', status='review',
+    notes='class_back_ranger_noweapon without the back quiver and its fletching. Use when the ranger holds a main-hand weapon whose tag is not bow.')
 save(img(ch), P + 'back/chair_back.png'); META[P + 'back/chair_back.png'] = dict(BA, layer=5, notes='chair backrest, drawn LAST (in front of the seated body). Active seat: raise all layers 3px and add a 1px gold #f8d040 outline around the union.')
 
 # ramps (machine-readable, 1px per entry) + previews
@@ -942,6 +947,13 @@ for c in NOWEAPON:
         save(img(seat(c, act, noweapon=True)), f'party/seat_{c}_{st}_noweapon.png')
         META[f'party/seat_{c}_{st}_noweapon.png'] = dict(anchor=[24, 77], canvas=[BW, BH], composed_from=f'seat_recipe with back/class_back_{c}_noweapon', defaults=SEAT_DEFAULTS[c], status='draft_pending_approval',
             notes=f'party/seat_{c}_{st} without the baked class weapon (for a hero with a main-hand weapon equipped; draw the gear overlays on top per seat_recipe steps_with_gear).')
+for st, act in (('idle', False), ('active', True)):
+    d = SEAT_DEFAULTS['ranger']; Lq = layer(BW, BH); over(Lq, bb[d['skin'] - 1]); over(Lq, remap_arr(ob, outfit_map(d['outfit']))); over(Lq, cbq)
+    hl = clip_hair(remap_arr(hb[d['hair'] - 1], hair_map(d['hair_color'])), HAT_CLIP_BACK['ranger']); over(Lq, hl); over(Lq, hbk['ranger']); over(Lq, ch)
+    if act: L2 = layer(BW, BH); L2[:-3] = Lq[3:]; Lq = L2; outline(Lq, C['gold'])
+    save(img(Lq), f'party/seat_ranger_{st}_noweapon_noquiver.png')
+    META[f'party/seat_ranger_{st}_noweapon_noquiver.png'] = dict(anchor=[24, 77], canvas=[BW, BH], composed_from='seat_recipe with back/class_back_ranger_noweapon_noquiver', defaults=SEAT_DEFAULTS['ranger'], status='review',
+        notes='ranger seat with no baked bow and no quiver: for a ranger holding a non-bow main-hand weapon.')
 def front_default(c):
     d = SEAT_DEFAULTS[c]
     return compose_front(d['skin'] - 1, d['head'] - 1, d['hair'] - 1, d['hair_color'], d['outfit'], c, d['hat'])
