@@ -4,6 +4,30 @@ const TouchSuite := preload("res://tests/touch_suite.gd")
 
 var screen: Node
 var _busy := false
+var _touch_watchdog := Thread.new()
+var _touch_lock := Mutex.new()
+var _touch_done := false
+
+
+func _mark_touch_done() -> void:
+	_touch_lock.lock()
+	_touch_done = true
+	_touch_lock.unlock()
+
+
+func _touch_timeout() -> void:
+	var waited := 0
+	while waited < 120000:
+		OS.delay_msec(200)
+		waited += 200
+		_touch_lock.lock()
+		var done := _touch_done
+		_touch_lock.unlock()
+		if done:
+			return
+	push_error("TOUCH_CHECK_TIMEOUT")
+	print("TOUCH_CHECK_TIMEOUT")
+	OS.kill(OS.get_process_id())
 
 
 func _ready() -> void:
@@ -15,7 +39,18 @@ func _ready() -> void:
 		await _export_check()
 		return
 	if OS.get_cmdline_user_args().has("--touch-check"):
+		# Uncapped drawing on the software renderer keeps the process at full
+		# CPU and leaves stdout buffered, so a stuck check prints nothing.
+		# The suite also waits on a few real timers (the victory XP line, the
+		# enemy long-press). Those are bounded. This watchdog is the hard stop:
+		# if the check is still running after two minutes, the process exits.
+		ProjectSettings.set_setting("application/run/flush_stdout_on_print", true)
+		Engine.max_fps = 30
+		print("TOUCH_CHECK_START")
+		_touch_watchdog.start(_touch_timeout)
 		var touch_code: int = await TouchSuite.run(self)
+		_mark_touch_done()
+		_touch_watchdog.wait_to_finish()
 		get_tree().quit(touch_code)
 		return
 	if OS.get_cmdline_user_args().has("--shots"):
@@ -376,6 +411,7 @@ func _opaque_pixels(tex: Texture2D) -> int:
 
 
 func _shots() -> void:
+	Engine.max_fps = 30
 	_seed_party()
 	var creator := CreatorScreen.new()
 	creator.stage_preview()
@@ -493,6 +529,7 @@ func _shots() -> void:
 	])
 	await _capture("cave")
 	await _capture_towns(session)
+	await _capture_v036(session)
 	GameState.place_id = "millpond"
 	session.stage_battle_preview()
 	var flow := BattleFlow.new()
@@ -500,6 +537,53 @@ func _shots() -> void:
 	session.add_child(flow)
 	var elapsed := await flow.measure_visible_attack()
 	print("BASIC_ATTACK_MS %d" % elapsed)
+
+
+func _capture_v036(session: SessionScreen) -> void:
+	var party: Array = GameState.party.duplicate(true)
+	var queue: Array = GameState.level_queue.duplicate()
+	var gold := GameState.gold
+	var bag: Dictionary = GameState.inventory.duplicate()
+	var place := GameState.place_id
+	GameState.level_queue.clear()
+	GameState.place_id = "candlewick"
+	session.show_hub()
+	await _capture("hub_bar_v036")
+	var shown: Dictionary = GameState.party[0]
+	var worn: Dictionary = Formulas.normalize_gear(shown.get("gear", {}))
+	if str(worn.get("main", "")) != "":
+		worn["main"] = CraftRules.stack_key(str(worn["main"]), 1)
+		shown["gear"] = worn
+	session.show_hero_sheet(0)
+	await _capture("hero_stats_v036")
+	session.close_stats_sheet()
+	var member: Dictionary = GameState.party[0]
+	member["xp"] = 0
+	GameState.apply_xp(member, Formulas.xp_to_next(int(member["level"])))
+	session.show_level_panel(0)
+	await _capture("level_choice_v036")
+	session.close_level_panel()
+	GameState.party = party.duplicate(true)
+	GameState.level_queue.clear()
+	GameState.inventory = bag.duplicate()
+	GameState.gold = gold
+	GameState.place_id = "millpond"
+	GameState.give_item("bread_charm", 1)
+	GameState.equip_item(0, "bread_charm", "")
+	session._sync_party()
+	session.present_units([
+		{"id": "m0", "side": "monster", "kind": "puddleblob", "hp": 20, "max_hp": 20, "mp": 0, "max_mp": 1, "back_row": false},
+	])
+	session.show_member_bar(0, {}, "", {})
+	session.push_party_vitals()
+	await _capture("combat_hp_v036")
+	GameState.party = party
+	GameState.level_queue = queue
+	GameState.inventory = bag
+	GameState.gold = gold
+	GameState.place_id = place
+	session._sync_party()
+	session.show_hub()
 
 
 func _capture_towns(session: SessionScreen) -> void:

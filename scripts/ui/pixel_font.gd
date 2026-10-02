@@ -83,6 +83,7 @@ static func label(text: String, color: Color, scale: int = 1) -> TextureRect:
 	node.stretch_mode = TextureRect.STRETCH_SCALE
 	node.texture = texture(text, color, scale)
 	node.size = Vector2(width(text, scale), 5 * maxi(1, scale))
+	node.set_meta("caption", text)
 	return node
 
 

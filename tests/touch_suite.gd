@@ -4,6 +4,7 @@ extends RefCounted
 
 
 static func run(host: Node) -> int:
+	Engine.max_fps = 30
 	Input.set_emulate_mouse_from_touch(false)
 	Input.set_emulate_touch_from_mouse(false)
 	var tree := host.get_tree()
@@ -26,6 +27,8 @@ static func run(host: Node) -> int:
 	await _row_fit(host, tree, failures)
 	await _quest_panel(host, tree, failures)
 	await _town_services(host, tree, failures)
+	await _bottom_and_levels(host, tree, failures)
+	await _hero_stats(host, tree, failures)
 	if failures.is_empty():
 		print("TOUCH_CHECK_OK")
 		return 0
@@ -324,7 +327,7 @@ static func _tap_ally(host: Node, tree: SceneTree, failures: Array[String]) -> v
 	session.sync_unit(flow.units[1])
 	var seat := session._seats[1] as Control
 	var digits := seat.get_node("BarHost/HpDigits") as DigitReadout
-	if digits == null or digits.text != "20":
+	if digits == null or digits.text != _vital(20, int(flow.units[1]["max_hp"])):
 		failures.append("ally_digits_before")
 		push_error("Touch check: the chair did not show 20 before the heal")
 		session.queue_free()
@@ -347,11 +350,14 @@ static func _tap_ally(host: Node, tree: SceneTree, failures: Array[String]) -> v
 		push_error("Touch check: Rallying Brand was not labeled immediate")
 	var at := Vector2(seat.get_global_rect().get_center().x, seat.get_global_rect().end.y - 6.0)
 	await _tap(tree, at)
+	if session.get_node_or_null("StatsSheet") != null:
+		failures.append("ally_sheet")
+		push_error("Touch check: an armed heal opened the stats sheet")
 	var healed: bool = await _until(tree, func() -> bool: return _unit_hp(flow, "p1") > 20)
 	if not healed:
 		failures.append("ally_cast")
 		push_error("Touch check: tapping an ally did not cast the heal")
-	elif digits.text == "20" or int(digits.text) != _unit_hp(flow, "p1"):
+	elif digits.text != _vital(_unit_hp(flow, "p1"), int(flow.units[1]["max_hp"])):
 		failures.append("ally_digits")
 		push_error("Touch check: the chair still showed %s after HP became %d" % [digits.text, _unit_hp(flow, "p1")])
 	if _unit_hp(flow, "m0") != 800:
@@ -380,7 +386,7 @@ static func _heal_on_cast(host: Node, tree: SceneTree, failures: Array[String]) 
 	for child in session.get_children():
 		if child is DigitReadout and str((child as DigitReadout).text).begins_with("+"):
 			popup = true
-	if hp <= 20 or digits == null or digits.text != str(hp) or not popup:
+	if hp <= 20 or digits == null or digits.text != _vital(hp, int(flow.units[1]["max_hp"])) or not popup:
 		failures.append("heal_now")
 		push_error("Touch check: heal left HP %d chair %s popup %s" % [hp, digits.text if digits else "missing", popup])
 	elif _unit_hp(flow, "m0") != 800 or flow.turn_index != turn_before:
@@ -637,7 +643,7 @@ static func _combat_item(host: Node, tree: SceneTree, failures: Array[String]) -
 	var seat := session._seats[1] as Control
 	var digits := seat.get_node("BarHost/HpDigits") as DigitReadout
 	var item := _find_action(session, "item")
-	if item == null or digits == null or digits.text != "20":
+	if item == null or digits == null or digits.text != _vital(20, int(flow.units[1]["max_hp"])):
 		failures.append("item_button")
 		push_error("Touch check: the item slot or the chair was not ready")
 		session.queue_free()
@@ -666,9 +672,12 @@ static func _combat_item(host: Node, tree: SceneTree, failures: Array[String]) -
 		return
 	var at := Vector2(seat.get_global_rect().get_center().x, seat.get_global_rect().end.y - 6.0)
 	await _tap(tree, at)
+	if session.get_node_or_null("StatsSheet") != null:
+		failures.append("item_sheet")
+		push_error("Touch check: an armed tonic opened the stats sheet")
 	var healed: bool = await _until(tree, func() -> bool: return _unit_hp(flow, "p1") > 20)
 	var hp := _unit_hp(flow, "p1")
-	if not healed or digits.text != str(hp):
+	if not healed or digits.text != _vital(hp, int(flow.units[1]["max_hp"])):
 		failures.append("item_heal")
 		push_error("Touch check: the tonic left HP %d chair %s" % [hp, digits.text])
 	elif int(GameState.inventory.get("tonic", 0)) != 2:
@@ -1435,3 +1444,655 @@ static func _collect_labels(node: Node, into: Array[Label]) -> void:
 		into.append(node)
 	for child in node.get_children():
 		_collect_labels(child, into)
+
+
+static func _vital(current: int, maximum: int) -> String:
+	return Formulas.vital_text(current, maximum)
+
+
+static func _bottom_and_levels(host: Node, tree: SceneTree, failures: Array[String]) -> void:
+	GameState.new_campaign([
+		_hero("mason", "delver", "paladin"),
+		_hero("nim", "glenfolk", "cleric"),
+	])
+	GameState.place_id = "candlewick"
+	var session := SessionScreen.new()
+	await _mount(host, tree, session)
+	session.show_hub()
+	await tree.process_frame
+	await tree.process_frame
+	_assert_bottom(session, failures, "hub")
+	session.show_hub()
+	await tree.process_frame
+	_assert_bottom(session, failures, "hub_again")
+	if _count_named(session, "HpDigits") != GameState.party.size():
+		failures.append("hub_hp_dup")
+		push_error("Touch check: chair health numbers were rebuilt on top of the old ones")
+	session.visible = false
+	var map := MapScreen.new()
+	host.add_child(map)
+	map.set_anchors_preset(Control.PRESET_FULL_RECT)
+	await tree.process_frame
+	await tree.process_frame
+	_assert_bottom(map, failures, "map")
+	map.queue_free()
+	var quest := QuestScreen.new()
+	quest.setup("log")
+	host.add_child(quest)
+	quest.set_anchors_preset(Control.PRESET_FULL_RECT)
+	await tree.process_frame
+	_assert_bottom(quest, failures, "quest")
+	quest.queue_free()
+	session.visible = true
+	await tree.process_frame
+	var member: Dictionary = GameState.party[0]
+	var before := GameState.combat_stats(member)
+	member["hp"] = maxi(1, int(before["max_hp"]) / 2)
+	member["mp"] = maxi(0, int(before["max_mp"]) / 2)
+	session.push_vitals(0)
+	await tree.process_frame
+	var hp_digits := _chair_digits(session, 0, "HpDigits")
+	var mp_digits := _chair_digits(session, 0, "MpDigits")
+	if hp_digits == null or hp_digits.text != _vital(int(member["hp"]), int(before["max_hp"])):
+		failures.append("pool_half")
+		push_error("Touch check: half health did not reach the chair")
+	var half_fill := session.bar_fill_width("p0")
+	if half_fill < 1.0 or half_fill > 30.0:
+		failures.append("pool_half_fill")
+		push_error("Touch check: half health fill is %s" % half_fill)
+	if not GameState.give_item("bread_charm", 1) or GameState.equip_item(0, "bread_charm", "") != "":
+		failures.append("pool_charm")
+		push_error("Touch check: bread charm did not equip")
+	else:
+		session.push_vitals(0)
+		var charmed := GameState.combat_stats(member)
+		if int(charmed["max_hp"]) != int(before["max_hp"]) + 10:
+			failures.append("pool_charm_max")
+			push_error("Touch check: bread charm max is %s" % charmed["max_hp"])
+		if hp_digits.text != _vital(int(member["hp"]), int(charmed["max_hp"])):
+			failures.append("pool_charm_text")
+			push_error("Touch check: bread charm chair reads %s" % hp_digits.text)
+		if int(member["hp"]) <= int(before["max_hp"]) / 2:
+			failures.append("pool_charm_current")
+			push_error("Touch check: bread charm did not raise current health")
+	if not GameState.give_item("wick_ring", 1) or GameState.equip_item(0, "wick_ring", "") != "":
+		failures.append("pool_ring")
+	else:
+		session.push_vitals(0)
+		var ringed := GameState.combat_stats(member)
+		if int(ringed["max_mp"]) <= int(before["max_mp"]) or mp_digits == null or mp_digits.text != _vital(int(member["mp"]), int(ringed["max_mp"])):
+			failures.append("pool_ring_text")
+			push_error("Touch check: wick ring did not refresh energy")
+	var armed := GameState.combat_stats(member)
+	if GameState.unequip_slot(0, "trinket:0") != "":
+		failures.append("pool_unequip")
+	else:
+		session.push_vitals(0)
+		var dropped := GameState.combat_stats(member)
+		if int(dropped["max_hp"]) >= int(armed["max_hp"]) or int(member["hp"]) > int(dropped["max_hp"]):
+			failures.append("pool_clamp")
+			push_error("Touch check: unequip left health at %s/%s" % [member["hp"], dropped["max_hp"]])
+		elif hp_digits.text != _vital(int(member["hp"]), int(dropped["max_hp"])):
+			failures.append("pool_clamp_text")
+	if not GameState.give_item("silk_mail", 1) or GameState.equip_item(0, "silk_mail", "armor") != "":
+		failures.append("pool_mail")
+	else:
+		var mailed := GameState.combat_stats(member)
+		GameState.gold = 400
+		GameState.give_item("bat_ear", 2)
+		var worn_max := int(mailed["max_hp"])
+		if GameState.upgrade_worn(0, "armor") != "":
+			failures.append("pool_upgrade")
+			push_error("Touch check: silk mail did not temper")
+		else:
+			session.push_vitals(0)
+			var tempered := GameState.combat_stats(member)
+			if int(tempered["max_hp"]) <= worn_max or hp_digits.text != _vital(int(member["hp"]), int(tempered["max_hp"])):
+				failures.append("pool_upgrade_text")
+				push_error("Touch check: tempered mail reads %s" % hp_digits.text)
+	session.sync_unit({"id": "p0", "hp": 40, "max_hp": 100, "mp": 10, "max_mp": 20})
+	var wide := session.bar_fill_width("p0")
+	var wide_mp := session.mp_bar_fill_width("p0")
+	session.sync_unit({"id": "p0", "hp": 40, "max_hp": 200, "mp": 10, "max_mp": 40})
+	if session.bar_fill_width("p0") >= wide or session.mp_bar_fill_width("p0") >= wide_mp:
+		failures.append("pool_max_fill")
+		push_error("Touch check: a higher max did not shrink the fill")
+	if hp_digits.text != "40/200" or mp_digits.text != "10/40":
+		failures.append("pool_max_text")
+		push_error("Touch check: max-only sync reads %s %s" % [hp_digits.text, mp_digits.text])
+	var clamped_hp := Formulas.fit_pool(40, 200, 30, false)
+	var clamped_mp := Formulas.fit_pool(10, 40, 8, true)
+	session.sync_unit({"id": "p0", "hp": clamped_hp, "max_hp": 30, "mp": clamped_mp, "max_mp": 8})
+	if clamped_hp != 30 or clamped_mp != 8 or hp_digits.text != "30/30" or mp_digits.text != "8/8":
+		failures.append("pool_drop_text")
+		push_error("Touch check: a lower max reads %s %s" % [hp_digits.text, mp_digits.text])
+	session.show_hub()
+	await tree.process_frame
+	var flow := BattleFlow.new()
+	flow.hurry = true
+	flow.view = session
+	session.add_child(flow)
+	flow._build_units([{"id": "puddleblob"}])
+	var unit: Dictionary = flow.units[0]
+	unit["hp"] = mini(40, int(unit["max_hp"]))
+	session.present_units(flow.units)
+	session.show_member_bar(0, {}, "", {})
+	await tree.process_frame
+	_assert_bottom(session, failures, "combat")
+	session.show_member_bar(0, {}, "", {})
+	await tree.process_frame
+	_assert_bottom(session, failures, "combat_again")
+	var buff_max := int(unit["max_hp"])
+	var buff_mp := int(unit["max_mp"])
+	unit["conditions"] = [{"id": "bulk", "timer": 3, "body": 2, "mind": 1, "hp_pct": 0.1, "mp_pct": 0.1}]
+	flow._apply_condition_shifts(unit)
+	hp_digits = _chair_digits(session, 0, "HpDigits")
+	mp_digits = _chair_digits(session, 0, "MpDigits")
+	if int(unit["max_hp"]) <= buff_max or int(unit["max_mp"]) <= buff_mp:
+		failures.append("pool_buff")
+		push_error("Touch check: the buff left pools at %s/%s" % [unit["max_hp"], unit["max_mp"]])
+	elif hp_digits == null or hp_digits.text != _vital(int(unit["hp"]), int(unit["max_hp"])) or mp_digits.text != _vital(int(unit["mp"]), int(unit["max_mp"])):
+		failures.append("pool_buff_text")
+		push_error("Touch check: buff chair reads %s %s" % [hp_digits.text, mp_digits.text])
+	var debuff_hp := int(unit["hp"])
+	unit["conditions"] = [{"id": "wilt", "timer": 2, "body": -6}]
+	flow._apply_condition_shifts(unit)
+	if int(unit["max_hp"]) >= buff_max or int(unit["hp"]) > int(unit["max_hp"]):
+		failures.append("pool_debuff")
+		push_error("Touch check: the wilt left health at %s/%s" % [unit["hp"], unit["max_hp"]])
+	elif _chair_digits(session, 0, "HpDigits").text != _vital(int(unit["hp"]), int(unit["max_hp"])):
+		failures.append("pool_debuff_text")
+	elif int(unit["hp"]) > debuff_hp and int(unit["max_hp"]) < debuff_hp:
+		failures.append("pool_debuff_clamp")
+	session.show_hub()
+	await tree.process_frame
+	var body_before := GameState.combat_stats(member)
+	member["growth"]["body"] = int(member["growth"].get("body", 0)) + 1
+	GameState._fit_pools(member, body_before, GameState.combat_stats(member))
+	session.push_vitals(0)
+	var body_after := GameState.combat_stats(member)
+	hp_digits = _chair_digits(session, 0, "HpDigits")
+	if int(body_after["max_hp"]) <= int(body_before["max_hp"]) or hp_digits == null or hp_digits.text != _vital(int(member["hp"]), int(body_after["max_hp"])):
+		failures.append("pool_body")
+		push_error("Touch check: body did not refresh health, reads %s" % (hp_digits.text if hp_digits else ""))
+	var mind_before := body_after
+	member["growth"]["mind"] = int(member["growth"].get("mind", 0)) + 1
+	GameState._fit_pools(member, mind_before, GameState.combat_stats(member))
+	session.push_vitals(0)
+	var mind_after := GameState.combat_stats(member)
+	mp_digits = _chair_digits(session, 0, "MpDigits")
+	if int(mind_after["max_mp"]) <= int(mind_before["max_mp"]) or mp_digits == null or mp_digits.text != _vital(int(member["mp"]), int(mind_after["max_mp"])):
+		failures.append("pool_mind")
+		push_error("Touch check: mind did not refresh energy")
+	for hero in GameState.party:
+		hero["xp"] = Formulas.xp_to_next(int(hero["level"])) - 1
+	GameState.level_queue.clear()
+	GameState.arm_battle()
+	_accept_continue(tree, session, failures)
+	await flow._grant_victory()
+	GameState.disarm_battle()
+	flow._listen(false)
+	if GameState.peek_level() < 0:
+		failures.append("victory_level")
+		push_error("Touch check: victory did not queue a level choice")
+		session.queue_free()
+		return
+	var queued := GameState.level_queue.size()
+	if queued < 2:
+		failures.append("victory_queue")
+		push_error("Touch check: both heroes should choose, queue is %s" % queued)
+	var picks := {"n": 0}
+	session.resolve_level_ups()
+	await _take_level_choices(tree, session, failures, picks)
+	if GameState.peek_level() >= 0 or int(picks["n"]) < 2:
+		failures.append("level_remaining")
+		push_error("Touch check: level choices left %s after %s picks" % [GameState.level_queue.size(), picks["n"]])
+	var grown := false
+	for hero in GameState.party:
+		if LevelRules.sheet_line(hero, {}) != "":
+			grown = true
+	if not grown:
+		failures.append("level_growth")
+	GameState.save_game()
+	var kept_growth: Dictionary = LevelRules.read(GameState.party[0])
+	var kept_queue: Array = GameState.level_queue.duplicate()
+	GameState.party[0]["growth"] = LevelRules.blank()
+	GameState.level_queue = [0]
+	if not GameState.load_game():
+		failures.append("level_load")
+	elif JSON.stringify(LevelRules.read(GameState.party[0])) != JSON.stringify(kept_growth) or GameState.level_queue.size() != kept_queue.size():
+		failures.append("level_save")
+		push_error("Touch check: growth or the queue did not survive the save")
+	session.show_hub()
+	await tree.process_frame
+	_assert_bottom(session, failures, "after_level")
+	var gear := GearScreen.new()
+	gear.setup("hero")
+	session.add_child(gear)
+	gear.set_anchors_preset(Control.PRESET_FULL_RECT)
+	await tree.process_frame
+	await tree.process_frame
+	_assert_bottom(gear, failures, "gear")
+	var sheet_hit := false
+	var labels: Array[Label] = []
+	_collect_labels(gear, labels)
+	for label in labels:
+		if label.text.begins_with("Grown:"):
+			sheet_hit = true
+	if not sheet_hit:
+		failures.append("level_sheet")
+		push_error("Touch check: the character sheet does not list the growth")
+	var smith_tab := gear.find_child("Tab_smith", true, false) as Button
+	if smith_tab != null:
+		await _tap(tree, smith_tab.get_global_rect().get_center())
+		var smith_open: bool = await _until(tree, func() -> bool: return session.find_child("SmithScreen", true, false) != null)
+		if smith_open:
+			_assert_bottom(session.find_child("SmithScreen", true, false), failures, "smith")
+	gear.queue_free()
+	await tree.process_frame
+	session.show_member_bar(0, {}, "", {})
+	await tree.process_frame
+	_assert_bottom(session, failures, "combat_after_level")
+	flow._build_units([{"id": "puddleblob"}])
+	var learned: Dictionary = flow.units[0].get("choice_ranks", {})
+	var expected: Dictionary = LevelRules.read(GameState.party[0])["skills"]
+	if not expected.is_empty() and learned.is_empty():
+		failures.append("level_combat")
+		push_error("Touch check: the skill rank did not reach the battle")
+	session.queue_free()
+	await tree.process_frame
+
+
+static func _chair_digits(session: SessionScreen, index: int, node_name: String) -> DigitReadout:
+	if index < 0 or index >= session._seats.size():
+		return null
+	return session._seats[index].get_node_or_null("BarHost/%s" % node_name) as DigitReadout
+
+
+static func _count_named(node: Node, node_name: String) -> int:
+	var count := 0
+	if str(node.name) == node_name:
+		count += 1
+	for child in node.get_children():
+		count += _count_named(child, node_name)
+	return count
+
+
+static func _first_take(session: Node) -> Button:
+	var found: Array[Button] = []
+	_collect_buttons(session.get_node_or_null("LevelPanel"), found)
+	for button in found:
+		if str(button.name).begins_with("Level_") and button.text == "Take":
+			return button
+	return null
+
+
+static func _accept_continue(tree: SceneTree, session: Node, failures: Array[String]) -> void:
+	var continued := false
+	for _i in 40:
+		if _find_button(session, "Continue") != null:
+			continued = true
+			break
+		await tree.create_timer(0.1).timeout
+	if not continued:
+		failures.append("victory_continue")
+		push_error("Touch check: victory did not offer Continue")
+		if session.has_signal("continue_pressed"):
+			session.continue_pressed.emit()
+		return
+	await _tap(tree, _find_button(session, "Continue").get_global_rect().get_center())
+
+
+static func _take_level_choices(tree: SceneTree, session: Node, failures: Array[String], picks: Dictionary) -> void:
+	while int(picks["n"]) < 6 and GameState.peek_level() >= 0:
+		var shown: bool = await _until(tree, func() -> bool: return session.get_node_or_null("LevelPanel") != null)
+		if not shown:
+			failures.append("level_panel")
+			return
+		await _assert_level_panel(session, tree, failures, "level_%d" % int(picks["n"]))
+		var outside := GameState.level_queue.size()
+		await _tap(tree, Vector2(4, 4))
+		await tree.process_frame
+		if GameState.level_queue.size() != outside or session.get_node_or_null("LevelPanel") == null:
+			failures.append("level_skip")
+			push_error("Touch check: the level choice closed without a pick")
+			return
+		var take := _first_take(session)
+		if take == null:
+			failures.append("level_take")
+			return
+		var taken_name := str(take.name)
+		await _tap(tree, take.get_global_rect().get_center())
+		picks["n"] = int(picks["n"]) + 1
+		var advanced: bool = await _until(tree, func() -> bool:
+			return session.find_child(taken_name, true, false) == null or GameState.peek_level() < 0
+		)
+		if not advanced:
+			failures.append("level_commit")
+			return
+
+
+static func _assert_level_panel(session: Node, tree: SceneTree, failures: Array[String], tag: String) -> void:
+	await tree.process_frame
+	await RenderingServer.frame_post_draw
+	var panel := session.get_node_or_null("LevelPanel") as Control
+	if panel == null:
+		failures.append("level_missing_%s" % tag)
+		return
+	var sheet := panel.get_node_or_null("Sheet") as Panel
+	if sheet == null or sheet.size.x < 240.0 or sheet.size.y < 200.0:
+		failures.append("level_sheet_size_%s" % tag)
+		return
+	var style := sheet.get_theme_stylebox("panel") as StyleBoxFlat
+	if style == null or style.bg_color.a < 0.99:
+		failures.append("level_opaque_%s" % tag)
+		return
+	var image := tree.root.get_viewport().get_texture().get_image()
+	var origin := sheet.get_global_rect().position
+	var sample_at := Vector2i(int(origin.x + 10), int(origin.y + 4))
+	if sample_at.x < 0 or sample_at.y < 0 or sample_at.x >= image.get_width() or sample_at.y >= image.get_height():
+		failures.append("level_pixel_%s" % tag)
+	else:
+		var pixel := image.get_pixelv(sample_at)
+		if not _parchment(pixel):
+			failures.append("level_parchment_%s" % tag)
+			push_error("Touch check: level sheet pixel %s on %s" % [pixel, tag])
+	var takes := 0
+	var buttons: Array[Button] = []
+	_collect_buttons(panel, buttons)
+	for button in buttons:
+		var word := button.text.to_lower()
+		if word == "close" or word == "skip" or word == "later" or word == "back":
+			failures.append("level_dismiss_%s" % tag)
+			push_error("Touch check: level panel offers %s" % button.text)
+		if button.text == "Take":
+			takes += 1
+			if button.size.y < 40.0:
+				failures.append("level_touch_%s" % tag)
+	if takes != 3:
+		failures.append("level_choices_%s" % tag)
+		push_error("Touch check: level panel has %s choices on %s" % [takes, tag])
+	var labels: Array[Label] = []
+	_collect_labels(panel, labels)
+	var seen: Array[Rect2] = []
+	var view := Rect2(Vector2.ZERO, Layout.viewport_size())
+	for label in labels:
+		if label.text == "":
+			continue
+		var fg := label.get_theme_color("font_color")
+		var bg := _label_back(label, style.bg_color)
+		if Widgets.contrast_ratio(fg, bg) < 4.5:
+			failures.append("level_contrast_%s" % tag)
+			push_error("Touch check: '%s' contrast on %s" % [label.text, tag])
+		if label.autowrap_mode == TextServer.AUTOWRAP_OFF:
+			failures.append("level_wrap_%s" % tag)
+		var rect := _clipped_rect(label)
+		if not view.grow(1.0).encloses(rect) or not sheet.get_global_rect().grow(1.0).encloses(rect):
+			failures.append("level_overflow_%s" % tag)
+			push_error("Touch check: '%s' %s leaves the sheet on %s" % [label.text, rect, tag])
+		for other in seen:
+			var hit := rect.intersection(other)
+			if hit.size.x > 1.0 and hit.size.y > 1.0:
+				failures.append("level_overlap_%s" % tag)
+				push_error("Touch check: '%s' overlaps another line on %s" % [label.text, tag])
+				break
+		seen.append(rect)
+	for button in buttons:
+		var rect := _clipped_rect(button)
+		for other in seen:
+			var hit := rect.intersection(other)
+			if hit.size.x > 1.0 and hit.size.y > 1.0:
+				failures.append("level_button_overlap_%s" % tag)
+				push_error("Touch check: '%s' covers a line on %s" % [button.text, tag])
+				break
+
+
+static func _assert_bottom(root: Node, failures: Array[String], tag: String) -> void:
+	var band := Rect2(0, 390, 270, 90)
+	var marks: Array = []
+	_gather_marks(root, marks)
+	var in_band: Array = []
+	for mark in marks:
+		var caption := str(mark["text"])
+		if caption.to_upper() == "ATTACK" or caption.to_upper() == "COVER" or caption.to_upper() == "PAS":
+			failures.append("bottom_doubled_%s" % tag)
+			push_error("Touch check: '%s' is painted twice on %s" % [caption, tag])
+		var rect: Rect2 = mark["rect"]
+		var hit := rect.intersection(band)
+		if hit.size.x > 0.5 and hit.size.y > 0.5:
+			in_band.append(mark)
+	for i in in_band.size():
+		for j in range(i + 1, in_band.size()):
+			var left: Rect2 = in_band[i]["rect"]
+			var right: Rect2 = in_band[j]["rect"]
+			var overlap := left.intersection(right)
+			if overlap.size.x > 1.0 and overlap.size.y > 1.0:
+				failures.append("bottom_overlap_%s" % tag)
+				push_error("Touch check: '%s' overlaps '%s' on %s" % [in_band[i]["text"], in_band[j]["text"], tag])
+				return
+
+
+static func _gather_marks(node: Node, into: Array) -> void:
+	if node == null:
+		return
+	if node is CanvasItem and not (node as CanvasItem).visible:
+		return
+	if node is Label:
+		var label := node as Label
+		if label.text != "":
+			var rect := _clipped_rect(label)
+			if rect.size.x > 0.5 and rect.size.y > 0.5:
+				into.append({"text": label.text, "rect": rect})
+	elif node is Button:
+		var button := node as Button
+		if button.text != "":
+			var button_rect := _clipped_rect(button)
+			if button_rect.size.x > 0.5 and button_rect.size.y > 0.5:
+				into.append({"text": button.text, "rect": button_rect})
+	elif node is TextureRect and node.has_meta("caption"):
+		var caption := str(node.get_meta("caption"))
+		if caption != "":
+			var caption_rect := _clipped_rect(node as Control)
+			if caption_rect.size.x > 0.5 and caption_rect.size.y > 0.5:
+				into.append({"text": caption, "rect": caption_rect})
+	elif node is DigitReadout:
+		var digits := node as DigitReadout
+		if digits.text != "":
+			var digit_rect := _clipped_rect(digits)
+			if digit_rect.size.x > 0.5 and digit_rect.size.y > 0.5:
+				into.append({"text": digits.text, "rect": digit_rect})
+	for child in node.get_children():
+		_gather_marks(child, into)
+
+
+static func _hero_stats(host: Node, tree: SceneTree, failures: Array[String]) -> void:
+	GameState.new_campaign([_hero("mason", "delver", "paladin")])
+	GameState.place_id = "candlewick"
+	var member: Dictionary = GameState.party[0]
+	LevelRules.apply(member, {"kind": "skill", "skill": "oathstrike"})
+	LevelRules.apply(member, {"kind": "stat", "stat": "mind"})
+	var worn: Dictionary = Formulas.normalize_gear(member.get("gear", {}))
+	var main := str(worn.get("main", ""))
+	if main == "":
+		main = "oath_blade"
+	worn["main"] = CraftRules.stack_key(main, 1)
+	member["gear"] = worn
+	var session := SessionScreen.new()
+	await _mount(host, tree, session)
+	session.show_hub()
+	await tree.process_frame
+	var seat := session._seats[0] as Control
+	await _tap(tree, seat.get_global_rect().get_center())
+	var opened: bool = await _until(tree, func() -> bool: return session.get_node_or_null("StatsSheet") != null)
+	if not opened:
+		failures.append("stats_open")
+		push_error("Touch check: tapping a seated hero did not open the sheet")
+		session.queue_free()
+		return
+	await _assert_stats_sheet(session, tree, failures, "hub", PackedStringArray([
+		"Mason", "Paladin", "Level", "XP", "to next", "HP", "MP",
+		"Body", "Senses", "Mind", "Attack", "Defense", "Crit", "Threat", "Spell",
+		"Oath Blade +1", "Oathstrike rank", "pick +", "Picks", "Grown:",
+	]))
+	_assert_bottom(session.get_node("StatsSheet"), failures, "stats_hub")
+	await _tap(tree, Vector2(2, 2))
+	var closed: bool = await _until(tree, func() -> bool: return session.get_node_or_null("StatsSheet") == null)
+	if not closed:
+		failures.append("stats_outside")
+		push_error("Touch check: a tap outside the sheet left it open")
+	await _tap(tree, seat.get_global_rect().get_center())
+	var reopened: bool = await _until(tree, func() -> bool: return session.get_node_or_null("StatsSheet") != null)
+	if not reopened:
+		failures.append("stats_reopen")
+	else:
+		var close := session.find_child("CloseStats", true, false) as Button
+		if close == null or close.text != "Close":
+			failures.append("stats_close")
+		else:
+			await _tap(tree, close.get_global_rect().get_center())
+			var dismissed: bool = await _until(tree, func() -> bool: return session.get_node_or_null("StatsSheet") == null)
+			if not dismissed:
+				failures.append("stats_close")
+				push_error("Touch check: Close left the sheet up")
+	session.queue_free()
+	await tree.process_frame
+	var pack: Dictionary = await _boot_turn(host, tree, [_hero("mason", "delver", "paladin")], ["puddleblob"])
+	session = pack["session"]
+	var flow := pack["flow"] as BattleFlow
+	var poked: Array[String] = []
+	session.target_pressed.connect(func(id: String) -> void: poked.append(id))
+	var before := _unit_hp(flow, "m0")
+	seat = session._seats[0] as Control
+	await _tap(tree, seat.get_global_rect().get_center())
+	opened = await _until(tree, func() -> bool: return session.get_node_or_null("StatsSheet") != null)
+	if not opened or not poked.is_empty() or _unit_hp(flow, "m0") != before:
+		failures.append("stats_combat")
+		push_error("Touch check: an unarmed hero tap spent the turn or skipped the sheet")
+	else:
+		await _assert_stats_sheet(session, tree, failures, "combat", PackedStringArray([
+			"Mason", "Paladin", "HP", "MP", "Attack", "Defense",
+		]))
+		_assert_bottom(session.get_node("StatsSheet"), failures, "stats_combat")
+	await _tap(tree, Vector2(2, 2))
+	await _until(tree, func() -> bool: return session.get_node_or_null("StatsSheet") == null)
+	var foe := session._monsters["m0"] as Control
+	await _tap(tree, foe.get_global_rect().get_center())
+	var struck: bool = await _until(tree, func() -> bool: return _unit_hp(flow, "m0") < before)
+	if not struck:
+		failures.append("stats_attack")
+		push_error("Touch check: a short enemy tap no longer attacks")
+	session.queue_free()
+	await tree.process_frame
+	pack = await _boot_turn(host, tree, [_hero("mason", "delver", "paladin")], ["puddleblob"])
+	session = pack["session"]
+	flow = pack["flow"]
+	before = _unit_hp(flow, "m0")
+	foe = session._monsters["m0"] as Control
+	await _hold(tree, foe.get_global_rect().get_center(), 0.55)
+	var enemy_open: bool = session.get_node_or_null("StatsSheet") != null
+	if not enemy_open or _unit_hp(flow, "m0") != before:
+		failures.append("stats_enemy")
+		push_error("Touch check: a long press did not show the foe, or it attacked")
+	else:
+		await _assert_stats_sheet(session, tree, failures, "enemy", PackedStringArray([
+			"Blueslime", "Level", "HP", "Attack",
+		]))
+		_assert_bottom(session.get_node("StatsSheet"), failures, "stats_enemy")
+		if _unit_hp(flow, "m0") != before:
+			failures.append("stats_enemy_release")
+			push_error("Touch check: releasing a long press still attacked")
+	session.queue_free()
+	await tree.process_frame
+
+
+static func _hold(tree: SceneTree, at: Vector2, seconds: float) -> void:
+	var screen_at: Vector2 = tree.root.get_screen_transform() * at
+	var down := InputEventScreenTouch.new()
+	down.index = 0
+	down.pressed = true
+	down.position = screen_at
+	Input.parse_input_event(down)
+	await tree.create_timer(seconds).timeout
+	var up := InputEventScreenTouch.new()
+	up.index = 0
+	up.pressed = false
+	up.position = screen_at
+	Input.parse_input_event(up)
+	await tree.process_frame
+	await tree.process_frame
+
+
+static func _assert_stats_sheet(session: Node, tree: SceneTree, failures: Array[String], tag: String, need: PackedStringArray) -> void:
+	await tree.process_frame
+	await RenderingServer.frame_post_draw
+	var root := session.get_node_or_null("StatsSheet") as Control
+	var sheet := session.get_node_or_null("StatsSheet/Sheet") as Panel
+	if root == null or sheet == null:
+		failures.append("stats_missing_%s" % tag)
+		return
+	var view := Rect2(Vector2.ZERO, Layout.viewport_size())
+	if root.size.x < view.size.x - 1.0 or root.size.y < view.size.y - 1.0:
+		failures.append("stats_viewport_%s" % tag)
+	if sheet.size.x < 250.0 or sheet.size.y < 460.0:
+		failures.append("stats_size_%s" % tag)
+		push_error("Touch check: stats sheet is %s on %s" % [sheet.size, tag])
+	var style := sheet.get_theme_stylebox("panel") as StyleBoxFlat
+	if style == null or style.bg_color.a < 0.99:
+		failures.append("stats_opaque_%s" % tag)
+		return
+	var image := tree.root.get_viewport().get_texture().get_image()
+	var origin := sheet.get_global_rect().position
+	var sample_at := Vector2i(int(origin.x + 12), int(origin.y + 4))
+	if sample_at.x < 0 or sample_at.y < 0 or sample_at.x >= image.get_width() or sample_at.y >= image.get_height():
+		failures.append("stats_pixel_%s" % tag)
+	else:
+		var pixel := image.get_pixelv(sample_at)
+		if not _parchment(pixel):
+			failures.append("stats_parchment_%s" % tag)
+			push_error("Touch check: stats sheet pixel %s on %s" % [pixel, tag])
+	var blob := ""
+	var labels: Array[Label] = []
+	_collect_labels(root, labels)
+	var seen: Array[Rect2] = []
+	for label in labels:
+		if label.text == "":
+			continue
+		blob += label.text + "\n"
+		var fg := label.get_theme_color("font_color")
+		var bg := _label_back(label, style.bg_color)
+		if Widgets.contrast_ratio(fg, bg) < 4.5:
+			failures.append("stats_contrast_%s" % tag)
+			push_error("Touch check: '%s' contrast on %s" % [label.text, tag])
+		if label.autowrap_mode == TextServer.AUTOWRAP_OFF:
+			failures.append("stats_wrap_%s" % tag)
+		var rect := _clipped_rect(label)
+		if rect.size.x < 0.5 or rect.size.y < 0.5:
+			continue
+		if not view.grow(1.0).encloses(rect) or not sheet.get_global_rect().grow(1.0).encloses(rect):
+			failures.append("stats_overflow_%s" % tag)
+			push_error("Touch check: '%s' %s leaves the sheet on %s" % [label.text, rect, tag])
+		for other in seen:
+			var hit := rect.intersection(other)
+			if hit.size.x > 1.0 and hit.size.y > 1.0:
+				failures.append("stats_overlap_%s" % tag)
+				push_error("Touch check: '%s' overlaps another line on %s" % [label.text, tag])
+				break
+		seen.append(rect)
+	var buttons: Array[Button] = []
+	_collect_buttons(root, buttons)
+	for button in buttons:
+		var rect := _clipped_rect(button)
+		if not sheet.get_global_rect().grow(1.0).encloses(rect):
+			failures.append("stats_button_%s" % tag)
+		for other in seen:
+			var hit := rect.intersection(other)
+			if hit.size.x > 1.0 and hit.size.y > 1.0:
+				failures.append("stats_button_overlap_%s" % tag)
+				push_error("Touch check: '%s' covers '%s' on %s" % [button.text, other, tag])
+				break
+		seen.append(rect)
+	for phrase in need:
+		if not blob.contains(phrase):
+			failures.append("stats_text_%s" % tag)
+			push_error("Touch check: sheet on %s is missing '%s'" % [tag, phrase])
+			break

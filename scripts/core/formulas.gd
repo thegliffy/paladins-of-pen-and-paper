@@ -376,7 +376,38 @@ static func skill_resource(skill: Dictionary) -> String:
 static func skill_mana_cost(skill: Dictionary, rank: int) -> int:
 	if skill_resource(skill) != "mana":
 		return 0
-	return mp_cost(int(skill.get("mp_base", 0)), rank)
+	return maxi(0, mp_cost(int(skill.get("mp_base", 0)), rank) - int(skill.get("mp_relief", 0)))
+
+
+static func skill_hp_cost(skill: Dictionary) -> int:
+	return maxi(0, int(skill.get("hp_cost", 0)) - int(skill.get("hp_relief", 0)))
+
+
+static func skill_cooldown_length(skill: Dictionary) -> int:
+	return maxi(0, int(skill.get("cooldown", 0)) - int(skill.get("cd_relief", 0)))
+
+
+static func vital_text(current: int, maximum: int) -> String:
+	return "%d/%d" % [maxi(0, current), maxi(0, maximum)]
+
+
+static func fit_pool(current: int, before_max: int, after_max: int, from_zero: bool) -> int:
+	## Rising max adds the difference. Falling max clamps. A dead pool stays empty unless from_zero.
+	if current <= 0 and not from_zero:
+		return 0
+	var next := current + maxi(0, after_max - before_max)
+	var floor_value := 0
+	if not from_zero and next > 0:
+		floor_value = 1
+	return clampi(next, floor_value, maxi(floor_value, after_max))
+
+
+static func tuned_max(base_max: int, level: int, body: int, mind: int, body_shift: int, mind_shift: int, pct: float, hp: bool) -> int:
+	var before := max_hp(level, body, mind) if hp else max_energy(level, body, mind)
+	var after := max_hp(level, body + body_shift, mind + mind_shift) if hp else max_energy(level, body + body_shift, mind + mind_shift)
+	var shifted := base_max + (after - before)
+	var scaled := int(round(float(shifted) * (1.0 + pct)))
+	return maxi(1, scaled)
 
 
 static func hp_cost_payable(hp: int, cost: int) -> bool:
@@ -417,7 +448,7 @@ static func skill_usable(skill: Dictionary, rank: int, hp: int, mp: int, cooldow
 	if resource == "free":
 		return true
 	if resource == "hp":
-		return hp_cost_payable(hp, int(skill.get("hp_cost", 0)))
+		return hp_cost_payable(hp, skill_hp_cost(skill))
 	if resource == "buildup":
 		return buildup_amount(buildup, str(skill.get("buildup_id", ""))) >= int(skill.get("buildup_cost", 0))
 	return false
@@ -432,9 +463,9 @@ static func apply_skill_payment(skill: Dictionary, rank: int, hp: int, mp: int, 
 	if resource == "mana":
 		next_mp -= skill_mana_cost(skill, rank)
 	elif resource == "cooldown":
-		arm_cooldown(next_cd, str(skill.get("id", "")), int(skill.get("cooldown", 0)))
+		arm_cooldown(next_cd, str(skill.get("id", "")), skill_cooldown_length(skill))
 	elif resource == "hp":
-		next_hp -= int(skill.get("hp_cost", 0))
+		next_hp -= skill_hp_cost(skill)
 	elif resource == "buildup":
 		var spend_id := str(skill.get("buildup_id", ""))
 		next_bu[spend_id] = buildup_amount(next_bu, spend_id) - int(skill.get("buildup_cost", 0))
@@ -462,7 +493,7 @@ static func skill_cost_label(skill: Dictionary, rank: int, cooldowns: Dictionary
 			return "%s  CD %d" % [name, left]
 		return "%s  Ready" % name
 	if resource == "hp":
-		return "%s  %d HP" % [name, int(skill.get("hp_cost", 0))]
+		return "%s  %d HP" % [name, skill_hp_cost(skill)]
 	if resource == "buildup":
 		var spend_id := str(skill.get("buildup_id", ""))
 		var spend_label := str(skill.get("buildup_label", "Stack"))
@@ -484,9 +515,9 @@ static func skill_cost_badge(skill: Dictionary, rank: int, cooldowns: Dictionary
 		var left := cooldown_remaining(cooldowns, str(skill.get("id", "")))
 		if left > 0:
 			return str(left)
-		return str(int(skill.get("cooldown", 0)))
+		return str(skill_cooldown_length(skill))
 	if resource == "hp":
-		return str(int(skill.get("hp_cost", 0)))
+		return str(skill_hp_cost(skill))
 	if resource == "buildup":
 		if int(skill.get("buildup_cost", 0)) > 0:
 			return str(int(skill.get("buildup_cost", 0)))
@@ -755,7 +786,7 @@ static func skill_inspect(skill: Dictionary, rank: int, hp: int, mp: int, cooldo
 	elif resource == "mana":
 		cost = "%d energy" % skill_mana_cost(skill, maxi(1, rank))
 	elif resource == "hp":
-		cost = "%d health" % int(skill.get("hp_cost", 0))
+		cost = "%d health" % skill_hp_cost(skill)
 	elif resource == "cooldown":
 		cost = "Cooldown"
 	elif resource == "buildup":
@@ -769,7 +800,7 @@ static func skill_inspect(skill: Dictionary, rank: int, hp: int, mp: int, cooldo
 		if left > 0:
 			cool = "%d left" % left
 		else:
-			cool = "%d turns" % int(skill.get("cooldown", 0))
+			cool = "%d turns" % skill_cooldown_length(skill)
 	return {
 		"name": str(skill.get("name", "Skill")),
 		"icon": str(skill.get("icon", "")),
